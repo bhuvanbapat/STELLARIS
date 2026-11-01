@@ -84,3 +84,35 @@ separate offset removed by Recenter/Reset. Timeline: 6 stages, 148 s at 1×
   CMakeLists, unit tests, GLUT demo, README.
 - Next: finish shaders → Renderer → App/UI → first build → screenshot-based
   visual verification per stage → tests → GLUT demo → docs.
+
+---
+
+## 2026-11-02 — Session 1, later: implementation milestones
+
+**Verified this session** (details and numbers in `docs/VERIFICATION.md`):
+
+- Renderer, UI and app complete; all six stages and all three final pathways
+  render on the RTX 4050. Unit tests 28/28. In-app `--selftest` 0 failures.
+  `--benchmark` 76–192 fps depending on stage and resolution.
+- Visual review loop (capture → inspect → fix), five rounds. Main fixes: HDR
+  emission rescaled (everything was overexposed), particle near-camera fade and
+  size cap, fixed-length volume steps (removed banding at the star's
+  silhouette), thinner disc absorption, star intensity compressed, diffuse
+  shell emission for the nebula/remnant, final-stage camera reframing, sign of
+  the composition lens shift, ImGui speed-row alignment.
+- freeGLUT demo builds standalone and from the root. All six phases captured.
+  Root cause of initially black captures: reading the back buffer before the
+  window had been shown (fixed by capturing after 20 timer ticks).
+- Added `--capture`, `--selftest`, `--benchmark`, `build.bat`, `run.bat`,
+  `run_glut_demo.bat`, README and docs.
+
+**Decisions:**
+- Particle budget 276k (90k ambient, 110k core, 16k jet, 60k ejecta);
+  brightness per particle kept low so the additive sum reads as a smooth density.
+- Composition: the subject is shifted right with an off-axis projection while
+  the info panel is visible (eases back when the UI is hidden with H).
+- Black-hole and remnant sizes are symbolic and labeled "(enlarged)".
+
+**Open items / ideas:** stage-1 cloud could be more dramatic (more contrast
+and depth layers); planetary-nebula shape is a little regular; physical mouse
+interaction with the UI still needs one human check.

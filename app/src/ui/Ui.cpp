@@ -135,7 +135,7 @@ bool iconButton(const char* id, Icon icon, float size, const char* tooltip) {
 } // namespace
 
 bool Ui::init(GLFWwindow* window, float contentScale) {
-    scale_ = std::clamp(contentScale, 1.0f, 3.0f);
+    baseScale_ = scale_ = std::clamp(contentScale, 1.0f, 3.0f);
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -227,6 +227,13 @@ void Ui::shutdown() {
 void Ui::beginFrame() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
+    // The layout is designed for 1600x900 logical pixels; shrink it for smaller
+    // windows (with a floor that keeps text readable) so panels leave room for the scene.
+    ImGuiIO& io = ImGui::GetIO();
+    const float logicalW = io.DisplaySize.x / baseScale_, logicalH = io.DisplaySize.y / baseScale_;
+    layout_ = std::clamp(std::min(logicalW / 1600.0f, logicalH / 900.0f), 0.72f, 1.0f);
+    scale_ = baseScale_ * layout_;
+    io.FontGlobalScale = layout_;
     ImGui::NewFrame();
 }
 
@@ -246,7 +253,7 @@ UiRequests Ui::draw(Playback& playback, ModelConfig& config, const UiFrameInfo& 
         // Minimal hint so the presenter knows how to bring the interface back.
         ImDrawList* dl = ImGui::GetForegroundDrawList();
         const ImVec2 ds = ImGui::GetIO().DisplaySize;
-        dl->AddText(small_, small_->FontSize, ImVec2(16 * scale_, ds.y - 28 * scale_), col32(kTextFaint, 0.7f),
+        dl->AddText(small_, small_->FontSize * layout_, ImVec2(16 * scale_, ds.y - 28 * scale_), col32(kTextFaint, 0.7f),
                     "H  show interface");
         return req;
     }
@@ -434,8 +441,10 @@ void Ui::drawTimeline(Playback& playback, const SceneState& s, UiRequests& req) 
     ImGui::SameLine(0, 18.0f * scale_);
 
     ImGui::PushFont(small_);
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (btn - ImGui::GetFontSize()) * 0.5f - 2.0f);
+    // SameLine() restores the row's original Y, so center every item explicitly.
+    const float rowY = ImGui::GetCursorPosY() + (btn - ImGui::GetFrameHeight()) * 0.5f;
     for (int i = 0; i < static_cast<int>(Playback::kSpeeds.size()); ++i) {
+        ImGui::SetCursorPosY(rowY);
         char label[16];
         std::snprintf(label, sizeof(label), "%g\u00d7##sp%d", Playback::kSpeeds[i], i);
         const bool active = i == playback.speedIndex();
@@ -445,12 +454,14 @@ void Ui::drawTimeline(Playback& playback, const SceneState& s, UiRequests& req) 
         ImGui::SameLine();
     }
     ImGui::SameLine(0, 18.0f * scale_);
+    ImGui::SetCursorPosY(rowY + ImGui::GetStyle().FramePadding.y);
     const std::string clock = formatTime(playback.time()) + " / " + formatTime(timelineDuration());
     ImGui::TextUnformatted(clock.c_str());
     ImGui::SameLine();
     const char* note = "Narrative timeline \u2014 not to physical time scale";
     const float noteW = ImGui::CalcTextSize(note).x;
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + std::max(0.0f, ImGui::GetContentRegionAvail().x - noteW));
+    ImGui::SetCursorPosY(rowY + ImGui::GetStyle().FramePadding.y);
     ImGui::PushStyleColor(ImGuiCol_Text, kTextFaint);
     ImGui::TextUnformatted(note);
     ImGui::PopStyleColor();
@@ -521,12 +532,12 @@ void Ui::drawAnnotations(const UiFrameInfo& info) {
         dl->AddCircleFilled(anchor, 2.5f * scale_, col32(kText, 0.9f * alpha));
         dl->AddLine(anchor, elbow, col32(kText, 0.45f * alpha), 1.0f * scale_);
         dl->AddLine(elbow, end, col32(kText, 0.45f * alpha), 1.0f * scale_);
-        const ImVec2 textPos(end.x + 6.0f * scale_, end.y - small_->FontSize * 0.55f);
-        const ImVec2 ts = small_->CalcTextSizeA(small_->FontSize, FLT_MAX, 0.0f, a.text);
+        const ImVec2 textPos(end.x + 6.0f * scale_, end.y - small_->FontSize * layout_ * 0.55f);
+        const ImVec2 ts = small_->CalcTextSizeA(small_->FontSize * layout_, FLT_MAX, 0.0f, a.text);
         dl->AddRectFilled(ImVec2(textPos.x - 5 * scale_, textPos.y - 2 * scale_),
                           ImVec2(textPos.x + ts.x + 5 * scale_, textPos.y + ts.y + 2 * scale_),
                           col32(ImVec4(0.02f, 0.03f, 0.06f, 0.55f), alpha), 4.0f * scale_);
-        dl->AddText(small_, small_->FontSize, textPos, col32(kText, alpha), a.text);
+        dl->AddText(small_, small_->FontSize * layout_, textPos, col32(kText, alpha), a.text);
     }
 }
 
@@ -534,8 +545,8 @@ void Ui::drawDiagnostics(const UiFrameInfo& info) {
     const ImVec2 ds = ImGui::GetIO().DisplaySize;
     char buf[64];
     std::snprintf(buf, sizeof(buf), "%.0f fps  \u00b7  GPU %.1f ms", info.fps, info.gpuMs);
-    const ImVec2 ts = small_->CalcTextSizeA(small_->FontSize, FLT_MAX, 0.0f, buf);
-    ImGui::GetForegroundDrawList()->AddText(small_, small_->FontSize,
+    const ImVec2 ts = small_->CalcTextSizeA(small_->FontSize * layout_, FLT_MAX, 0.0f, buf);
+    ImGui::GetForegroundDrawList()->AddText(small_, small_->FontSize * layout_,
                                             ImVec2(ds.x - ts.x - 22.0f * scale_, ds.y - 104.0f * scale_ - 18.0f * scale_ - ts.y - 6.0f * scale_),
                                             col32(kTextFaint, 0.8f), buf);
 }

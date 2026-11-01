@@ -190,7 +190,9 @@ void Renderer::uploadFrameUniforms(const SceneState& s, const CameraPose& cam, f
     const float aspect = static_cast<float>(width_) / static_cast<float>(height_);
     view_ = glm::lookAt(cam.position, cam.target, glm::vec3(0, 1, 0));
     proj_ = glm::perspective(glm::radians(cam.fovYDegrees), aspect, 0.05f, 2000.0f);
-    proj_[2][0] = lensShiftX;  // off-axis lens shift (moves the image, keeps perspective)
+    // Off-axis lens shift: moves the image horizontally without changing perspective.
+    // (z_view < 0 in front of the camera, hence the minus sign for a rightward shift.)
+    proj_[2][0] = -lensShiftX;
     camPos_ = cam.position;
 
     FrameUniforms u{};

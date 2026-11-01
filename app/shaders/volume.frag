@@ -53,7 +53,9 @@ float baseDensity(vec3 p, float drift) {
     if (shape < 0.02) return 0.0;
     vec4 n1 = noiseAt(q * 0.016 + vec3(drift * 0.5, 0.0, 0.0));
     vec4 n2 = noiseAt(q * 0.052 - vec3(0.0, drift, 0.0));
-    float detail = n1.r * 0.62 + n2.g * 0.28 + n2.a * 0.18;
+    vec4 n3 = noiseAt(q * 0.13 + vec3(0.0, 0.0, drift));
+    // Billowy cells plus ridged filaments; the fine octave erodes the edges.
+    float detail = n1.r * 0.58 + n2.g * 0.26 + n2.a * 0.16 + (n3.a - 0.5) * 0.16;
     float d = saturate(remap(detail, 1.0 - shape * 0.85, 1.0, 0.0, 1.0));
     return d * d * 2.2;
 }
@@ -171,7 +173,7 @@ void main() {
     float stepLen = 2.0 * CLOUD_R / float(uSteps);
     float t = tNear + stepLen * ign(gl_FragCoord.xy);
 
-    const float SIGMA = 0.20;  // extinction per unit density per scene unit
+    const float SIGMA = 0.26;  // extinction per unit density per scene unit
     vec3 transmittance = vec3(1.0);
     vec3 radiance = vec3(0.0);
 

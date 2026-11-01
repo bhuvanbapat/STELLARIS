@@ -28,6 +28,8 @@ struct AppOptions {
     std::vector<double>   captureTimes;
     // Self-test mode: exercise playback/seek/reset and verify GL health, then exit.
     bool selfTest = false;
+    // Benchmark mode: render sample points of every stage without vsync, report timings, exit.
+    bool benchmark = false;
 };
 
 // Parses argv. Returns false (and prints usage) on invalid input.
@@ -49,6 +51,7 @@ private:
     bool saveScreenshot(const std::filesystem::path& path);
     int  runCapture();
     int  runSelfTest();
+    int  runBenchmark();
     void toggleFullscreen();
     void resetAll();
 

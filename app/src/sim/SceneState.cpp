@@ -153,7 +153,7 @@ SceneState evaluateScene(double time, const ModelConfig& config) {
     evaluateFate(s, t, msRadius);
 
     s.centralColor = blackbodyColor(s.centralTempK);
-    const float msIntensity = 1.5f * static_cast<float>(std::pow(s.ms.teffK / kSolarTeffK, 0.35));
+    const float msIntensity = 1.5f * static_cast<float>(std::pow(s.ms.teffK / kSolarTeffK, 0.15));
     s.centralIntensity = mixf(1.6f, msIntensity, ignite) * mixf(1.0f, 0.38f, s.giant);
 
     // --- Exposure (authored "camera adaptation") ---------------------------------

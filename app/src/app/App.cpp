@@ -53,7 +53,8 @@ void printUsage() {
         "  --rotation R             relative core rotation (0.6-1.4)\n"
         "  --hide-ui                start with the interface hidden\n"
         "  --capture DIR T1,T2,...  render the listed times to DIR/*.png and exit\n"
-        "  --selftest               run automated playback/seek checks and exit\n");
+        "  --selftest               run automated playback/seek checks and exit\n"
+        "  --benchmark              measure frame times across all stages and exit\n");
 }
 
 void glfwErrorCallback(int code, const char* description) { log::error("GLFW error {}: {}", code, description); }
@@ -93,6 +94,7 @@ bool parseOptions(int argc, char** argv, AppOptions& o) {
         else if (a == "--play") o.autoplay = true;
         else if (a == "--hide-ui") o.hideUi = true;
         else if (a == "--selftest") o.selfTest = true;
+        else if (a == "--benchmark") o.benchmark = true;
         else if (a == "--capture" && i + 2 < argc) {
             o.captureDir = argv[++i];
             std::stringstream ss(argv[++i]);
@@ -188,6 +190,7 @@ int App::run() {
 
     if (!options_.captureTimes.empty()) return runCapture();
     if (options_.selfTest) return runSelfTest();
+    if (options_.benchmark) return runBenchmark();
     if (options_.autoplay) playback_.play();
 
     auto last = std::chrono::steady_clock::now();
@@ -360,6 +363,43 @@ int App::runSelfTest() {
 
     log::info("Self-test finished: {} failure(s). GPU frame ~{:.2f} ms", failures, renderer_->gpuFrameMs());
     return failures == 0 ? 0 : 1;
+}
+
+int App::runBenchmark() {
+    // Measured with vsync off so the numbers reflect rendering cost. GPU time comes
+    // from GL_TIME_ELAPSED queries (smoothed); frame time is wall-clock per frame.
+    glfwSwapInterval(0);
+    struct Sample { const char* label; double time; double mass; };
+    const Sample samples[] = {
+        {"1 cloud", 8, 1}, {"2 collapse", 32, 1}, {"3 protostar", 52, 1}, {"4 disc+jets", 72, 1},
+        {"5 main seq", 94, 1}, {"6 WD nebula", 140, 1}, {"6 supernova", 116, 15}, {"6 NS remnant", 140, 15},
+        {"6 black hole", 147, 40}};
+    int fbw = 0, fbh = 0;
+    glfwGetFramebufferSize(window_, &fbw, &fbh);
+    log::info("Benchmark at {}x{} (vsync off):", fbw, fbh);
+    double worstGpu = 0.0;
+    for (const Sample& s : samples) {
+        config_.massSolar = s.mass;
+        playback_.seek(s.time);
+        for (int i = 0; i < 30; ++i) { glfwPollEvents(); frame(1.0 / 60.0); glfwSwapBuffers(window_); }  // warm-up
+        double total = 0.0, worst = 0.0;
+        const int frames = 150;
+        for (int i = 0; i < frames; ++i) {
+            const auto start = std::chrono::steady_clock::now();
+            glfwPollEvents();
+            frame(0.0);
+            glfwSwapBuffers(window_);
+            const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+            total += ms;
+            worst = std::max(worst, ms);
+        }
+        worstGpu = std::max(worstGpu, static_cast<double>(renderer_->gpuFrameMs()));
+        log::info("  {:<14} GPU {:5.2f} ms | frame avg {:5.2f} ms ({:4.0f} fps), worst {:5.2f} ms", s.label,
+                  renderer_->gpuFrameMs(), total / frames, 1000.0 * frames / total, worst);
+    }
+    config_ = options_.config;
+    log::info("Benchmark done. Worst stage GPU time {:.2f} ms.", worstGpu);
+    return 0;
 }
 
 void App::toggleFullscreen() {

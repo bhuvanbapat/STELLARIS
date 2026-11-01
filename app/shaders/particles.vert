@@ -80,7 +80,7 @@ void coreGas(vec3 p0, vec4 s, out vec3 p, out vec3 col, out float alpha, out flo
     float tau = uCloud2.y;
     float f = tau / tff;
     float y0 = gaussian(s.z, s.w);
-    vec3 baseCol = mix(vec3(0.22, 0.26, 0.50), vec3(0.45, 0.22, 0.45), s.z) * 0.035;
+    vec3 baseCol = mix(vec3(0.22, 0.26, 0.50), vec3(0.45, 0.22, 0.45), s.z) * 0.022;
 
     if (f <= 0.0) {
         p = p0 + turbulentDrift(p0, s, TIME);

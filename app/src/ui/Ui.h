@@ -55,7 +55,9 @@ private:
     void drawAnnotations(const UiFrameInfo& info);
     void drawDiagnostics(const UiFrameInfo& info);
 
-    float  scale_ = 1.0f;
+    float  baseScale_ = 1.0f;  // monitor content scale (DPI)
+    float  layout_ = 1.0f;     // shrink factor for small windows
+    float  scale_ = 1.0f;      // baseScale_ * layout_, used for all UI metrics
     bool   visible_ = true;
     bool   labels_ = true;
     bool   initialized_ = false;
