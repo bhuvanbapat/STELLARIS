@@ -147,21 +147,21 @@ SceneState evaluateScene(double time, const ModelConfig& config) {
     s.discOuterRadius = s.discScale * mixf(0.25f, 1.0f, smooth(46, 72, t));
     s.discInnerRadius = msRadius * 1.25f;
     s.jetPresence     = smooth(58, 64, t) * (1.0f - smooth(84, 93, t));
-    s.jetLength       = 22.0f * smooth(58, 70, t);
+    s.jetLength       = 16.0f * smooth(58, 70, t);
 
     // --- Final stage ------------------------------------------------------------
     evaluateFate(s, t, msRadius);
 
     s.centralColor = blackbodyColor(s.centralTempK);
-    const float msIntensity = 7.0f * static_cast<float>(std::pow(s.ms.teffK / kSolarTeffK, 0.5));
-    s.centralIntensity = mixf(2.6f, msIntensity, ignite) * mixf(1.0f, 0.55f, s.giant);
+    const float msIntensity = 1.5f * static_cast<float>(std::pow(s.ms.teffK / kSolarTeffK, 0.35));
+    s.centralIntensity = mixf(1.6f, msIntensity, ignite) * mixf(1.0f, 0.38f, s.giant);
 
     // --- Exposure (authored "camera adaptation") ---------------------------------
-    float exposure = 1.5f;
-    exposure = mixf(exposure, 1.2f, smooth(30, 46, t));
+    float exposure = 1.0f;
+    exposure = mixf(exposure, 0.9f, smooth(30, 46, t));
     exposure = mixf(exposure, 0.95f, smooth(58, 70, t));
     exposure = mixf(exposure, 0.75f, smooth(tMS, tMS + 8, t));
-    exposure = mixf(exposure, 1.1f, smooth(tFate + 2, tFate + 20, t));
+    exposure = mixf(exposure, 0.95f, smooth(tFate + 2, tFate + 20, t));
     s.exposure = exposure / (1.0f + 5.0f * s.supernovaFlash);
 
     // --- Annotations ---------------------------------------------------------------
@@ -172,7 +172,7 @@ SceneState evaluateScene(double time, const ModelConfig& config) {
     addAnnotation(s, {0.0f, s.centralRadius, 0.0f}, "Main-sequence star", window(t, 86, 89, 99, 101));
     if (s.pathway == Pathway::WhiteDwarf) {
         addAnnotation(s, {0.0f, s.centralRadius, 0.0f}, "Red giant", window(t, fateTime(0.12), fateTime(0.18), fateTime(0.36), fateTime(0.42)));
-        addAnnotation(s, {0.0f, 4.0f + s.ejectaClock * 0.45f, 0.0f}, "Planetary nebula", window(t, fateTime(0.58), fateTime(0.64), 200, 201));
+        addAnnotation(s, {0.0f, 4.2f + s.ejectaClock * 0.4f, 0.0f}, "Planetary nebula", window(t, fateTime(0.58), fateTime(0.64), 200, 201));
         addAnnotation(s, {0.0f, 0.2f, 0.0f}, "White dwarf (enlarged)", window(t, fateTime(0.62), fateTime(0.68), 200, 201));
     } else {
         addAnnotation(s, {0.0f, s.centralRadius, 0.0f}, "Red supergiant", window(t, fateTime(0.10), fateTime(0.16), fateTime(0.26), fateTime(0.29)));

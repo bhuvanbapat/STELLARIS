@@ -43,15 +43,15 @@ void main() {
 
     // T ~ r^-3/4, anchored at the inner edge.
     float temp = 3800.0 * pow(r / inner, -0.75);
-    vec3 thermal = blackbody(temp) * pow(temp / 3800.0, 2.2) * 2.4;
+    vec3 thermal = blackbody(temp) * (0.25 + pow(temp / 3800.0, 2.2) * 3.0);
 
     // Dust on the disc surface scattering light from the central star.
     vec3 starLight = uCentralColor.rgb * uCentral.z * uCentral.x * 0.9 / (1.0 + r * r * 0.12);
-    vec3 scattered = starLight * vec3(0.85, 0.80, 0.78);
+    vec3 scattered = starLight * vec3(0.85, 0.80, 0.78) * 1.8;
 
     float layerWeight = 1.0 / float(uLayers);
     vec3 col = (thermal * 0.7 + scattered * 0.6) * sigma * layerWeight;
-    float alpha = saturate(sigma * 0.55) * layerWeight * 1.6;
+    float alpha = saturate(sigma * 0.45) * layerWeight * 0.6;
 
     // Fade where the disc meets the edges of the grid (no hard rim).
     col *= presence;

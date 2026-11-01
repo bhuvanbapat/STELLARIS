@@ -25,17 +25,17 @@ std::vector<Key> buildKeys(Pathway pathway, float starR) {
     const float ms = 9.0f + 4.0f * starR;
     std::vector<Key> k = {
         // Stage 1: wide establishing shot of the cloud, slow drift.
-        {0.0, 96.0f, -24.0f, 11.0f, 50.0f},
-        {18.0, 82.0f, -10.0f, 13.0f, 50.0f},
+        {0.0, 76.0f, -24.0f, 11.0f, 50.0f},
+        {18.0, 64.0f, -10.0f, 13.0f, 50.0f},
         // Stage 2: push in toward the collapsing core.
-        {30.0, 62.0f, 2.0f, 15.0f, 48.0f},
-        {40.0, 46.0f, 12.0f, 18.0f, 46.0f},
+        {30.0, 52.0f, 2.0f, 15.0f, 48.0f},
+        {40.0, 42.0f, 12.0f, 18.0f, 46.0f},
         // Stage 3: close on the protostar, rising to reveal the forming disc plane.
         {50.0, 34.0f, 22.0f, 21.0f, 45.0f},
         {58.0, 30.0f, 30.0f, 22.0f, 45.0f},
         // Stage 4: oblique view showing disc ellipse and vertical jets together.
-        {70.0, 30.0f, 44.0f, 17.0f, 45.0f},
-        {82.0, 24.0f, 62.0f, 13.0f, 45.0f},
+        {70.0, 30.0f, 44.0f, 23.0f, 45.0f},
+        {82.0, 25.0f, 62.0f, 18.0f, 45.0f},
         // Stage 5: portrait of the main-sequence star.
         {89.0, ms * 1.1f, 74.0f, 9.0f, 42.0f},
         {100.0, ms, 88.0f, 8.0f, 42.0f},
@@ -45,15 +45,15 @@ std::vector<Key> buildKeys(Pathway pathway, float starR) {
     switch (pathway) {
     case Pathway::WhiteDwarf:
         k.push_back({at(0.28), 26.0f, 108.0f, 12.0f, 44.0f});
-        k.push_back({at(0.56), 34.0f, 126.0f, 16.0f, 44.0f});
-        k.push_back({at(1.00), 44.0f, 150.0f, 20.0f, 44.0f});
+        k.push_back({at(0.56), 38.0f, 126.0f, 14.0f, 44.0f});
+        k.push_back({at(1.00), 60.0f, 150.0f, 12.0f, 44.0f});
         break;
     case Pathway::NeutronStar:
         k.push_back({at(0.25), 34.0f, 104.0f, 11.0f, 44.0f});
         k.push_back({at(0.31), 37.0f, 108.0f, 12.0f, 44.0f});
         k.push_back({at(0.50), 62.0f, 120.0f, 16.0f, 46.0f});
-        k.push_back({at(0.75), 50.0f, 134.0f, 17.0f, 46.0f});
-        k.push_back({at(1.00), 30.0f, 148.0f, 14.0f, 44.0f});
+        k.push_back({at(0.75), 62.0f, 134.0f, 17.0f, 46.0f});
+        k.push_back({at(1.00), 56.0f, 148.0f, 14.0f, 44.0f});
         break;
     case Pathway::BlackHole:
         k.push_back({at(0.25), 38.0f, 104.0f, 11.0f, 44.0f});

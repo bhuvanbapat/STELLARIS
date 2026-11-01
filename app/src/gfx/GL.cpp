@@ -5,13 +5,14 @@
 namespace stellaris::gl {
 
 namespace {
-void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+void GLAD_API_PTR debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                             const GLchar* message, const void* /*user*/) {
     (void)source;
     (void)length;
     if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) return;
     // 131185: NVIDIA "buffer will use VIDEO memory" informational message.
-    if (id == 131185 || id == 131204) return;
+    // 131204: texture-state notice; 131154: pixel readback sync (screenshots).
+    if (id == 131185 || id == 131204 || id == 131154) return;
     if (type == GL_DEBUG_TYPE_ERROR || severity == GL_DEBUG_SEVERITY_HIGH)
         log::error("GL [{}]: {}", id, message);
     else

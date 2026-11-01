@@ -41,7 +41,7 @@ float cloudShape(vec3 p) {
     vec3 c3 = p - vec3(6.0, 12.0, 18.0);
     float clumps = 0.7 * exp(-dot(c1, c1) / 110.0) + 0.6 * exp(-dot(c2, c2) / 90.0) +
                    0.35 * exp(-dot(c3, c3) / 70.0);
-    return max(filament * 0.85 + core * 0.9, clumps);
+    return max(filament * 1.1 + core * 0.75, clumps);
 }
 
 // Undisturbed cloud density at position p (before collapse mapping).
@@ -54,8 +54,8 @@ float baseDensity(vec3 p, float drift) {
     vec4 n1 = noiseAt(q * 0.016 + vec3(drift * 0.5, 0.0, 0.0));
     vec4 n2 = noiseAt(q * 0.052 - vec3(0.0, drift, 0.0));
     float detail = n1.r * 0.62 + n2.g * 0.28 + n2.a * 0.18;
-    float d = saturate(remap(detail, 1.0 - shape, 1.0, 0.0, 1.0));
-    return d * d * 1.6;
+    float d = saturate(remap(detail, 1.0 - shape * 0.85, 1.0, 0.0, 1.0));
+    return d * d * 2.2;
 }
 
 // Collapse mapping and outflow carving. Returns density at current position p.
@@ -78,7 +78,7 @@ float density(vec3 p) {
     q.y *= 1.0 + collapse * 1.8 * exp(-r / 11.0);
     q *= h;
 
-    float d = baseDensity(q, drift) * min(sqrt(jac), 6.0);
+    float d = baseDensity(q, drift) * min(sqrt(jac), 4.0);
 
     // Inner envelope is accreted / cleared as the disc and star form.
     float clear = uCloud.w;
@@ -92,6 +92,37 @@ float density(vec3 p) {
     d *= 1.0 - disp * 0.75 * exp(-r / 18.0);
 
     return d * uCloud.x;
+}
+
+// Emission from final-stage ejecta: a thin, clumpy shell whose radius follows
+// the same expansion law as the ejecta particles (artistic colors: ionized
+// oxygen teal inside, hydrogen-alpha red outside).
+vec3 shellEmission(vec3 p) {
+    float presence = uEjecta.x;
+    if (presence <= 0.0) return vec3(0.0);
+    float clock = uEjecta.y;
+    vec4 n = noiseAt(p * 0.045 + vec3(0.3, clock * 0.002, 0.0));
+    vec4 n2 = noiseAt(p * 0.11);
+    float clumps = smoothstep(0.35, 0.85, n.r * 0.7 + n2.a * 0.45);
+    if (uEjecta.z < 0.5) {
+        // Bipolar planetary nebula: faster expansion along the axis.
+        float dirY = abs(p.y) / max(length(p), 1e-3);
+        float stretch = 1.0 + 0.6 * dirY * dirY;
+        float R = 4.2 + 0.29 * clock;
+        float re = length(p) / stretch;
+        float rel = re / R;
+        float shell = exp(-pow((rel - 0.92) / 0.10, 2.0)) + 0.35 * exp(-pow((rel - 0.62) / 0.16, 2.0));
+        vec3 col = mix(vec3(0.15, 0.85, 0.75), vec3(1.0, 0.28, 0.22), smoothstep(0.7, 1.0, rel));
+        return col * shell * clumps * presence * uEjecta.w * 0.018;
+    }
+    float strength = uEjecta2.x;
+    float R = 0.6 + 30.0 * 0.75 * mix(0.75, 1.0, strength) * (1.0 - exp(-clock / 9.0));
+    float rel = length(p) / max(R, 0.5);
+    float shell = exp(-pow((rel - 0.95) / 0.09, 2.0));
+    vec3 col = mix(vec3(1.0, 0.30, 0.22), vec3(0.30, 0.80, 1.0), smoothstep(0.45, 0.65, n2.b));
+    float hot = exp(-clock / 2.5);
+    col = mix(col, vec3(1.0, 0.95, 0.9) * 3.0, hot);
+    return col * shell * clumps * presence * strength * 0.016;
 }
 
 float phaseHG(float cosTheta, float g) {
@@ -133,32 +164,35 @@ void main() {
         vec4 wp = uInvViewProj * vec4(ndc, depth * 2.0 - 1.0, 1.0);
         tFar = min(tFar, length(wp.xyz / wp.w - ro));
     }
-    if (tFar <= tNear || uCloud.x <= 0.001) { outColor = vec4(0.0); return; }
+    if (tFar <= tNear || (uCloud.x <= 0.001 && uEjecta.x <= 0.0)) { outColor = vec4(0.0); return; }
 
-    float stepLen = (tFar - tNear) / float(uSteps);
+    // Fixed step length: the sample pattern must not depend on where the ray
+    // ends (otherwise the star's silhouette shows up as banding in the cloud).
+    float stepLen = 2.0 * CLOUD_R / float(uSteps);
     float t = tNear + stepLen * ign(gl_FragCoord.xy);
 
     const float SIGMA = 0.20;  // extinction per unit density per scene unit
     vec3 transmittance = vec3(1.0);
     vec3 radiance = vec3(0.0);
 
-    vec3 keyColor = vec3(0.62, 0.74, 1.0) * 2.4;                  // external field
+    vec3 keyColor = vec3(0.62, 0.74, 1.0) * 0.9;                  // external field
     vec3 centralColor = uCentralColor.rgb;
-    float centralPower = uCentral.x * uCentral.z * 9.0 + uCloud.z * 7.0;
+    float centralPower = uCentral.x * uCentral.z * 1.1 + uCloud.z * 1.5;
     vec3 glowColor = mix(vec3(1.0, 0.42, 0.18), centralColor, uCentral.x);
 
     float cosKey = dot(rd, KEY_DIR);
     float phaseKey = phaseHG(cosKey, 0.35) * 4.0 * PI * 0.5 + 0.5;
 
-    for (int i = 0; i < uSteps; ++i) {
+    for (int i = 0; i < uSteps && t < tFar; ++i) {
         vec3 p = ro + rd * t;
         float d = density(p);
+        radiance += transmittance * shellEmission(p) * stepLen;
         if (d > 0.002) {
             vec3 sigmaT = SIGMA * d * EXTINCTION_TINT;
 
             // External light.
             float tauKey = opticalDepth(p, KEY_DIR, 22.0) * SIGMA;
-            vec3 lightKey = keyColor * exp(-tauKey * EXTINCTION_TINT * 1.4) * phaseKey;
+            vec3 lightKey = keyColor * exp(-tauKey * EXTINCTION_TINT * 3.0) * phaseKey;
 
             // Central source (inverse-square with softening), shadowed by the
             // gas between the point and the center.
@@ -170,7 +204,7 @@ void main() {
             vec3 lightC = glowColor * fall * exp(-tauC * EXTINCTION_TINT * 1.6) * phaseC;
 
             // Faint ambient sky light keeps shadowed regions from going pure black.
-            vec3 ambient = vec3(0.035, 0.040, 0.085) * (0.6 + 0.4 * saturate(p.y / 30.0 + 0.5));
+            vec3 ambient = vec3(0.020, 0.024, 0.055) * (0.6 + 0.4 * saturate(p.y / 30.0 + 0.5));
             // Subtle dusty-magenta emission in dense, unshadowed filaments (artistic).
             vec3 emission = vec3(0.30, 0.08, 0.26) * 0.10 * smoothstep(0.25, 0.9, d) * exp(-tauKey * 0.6);
 

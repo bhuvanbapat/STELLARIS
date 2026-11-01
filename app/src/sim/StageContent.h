@@ -9,7 +9,7 @@ namespace stellaris {
 
 struct StageContent {
     const char* process;        // the principal physical process (one line)
-    const char* concept;        // the scientific concept (2-3 sentences)
+    const char* explanation;    // the scientific concept (2-3 sentences)
     const char* approximation;  // what the visualization simplifies or invents
 };
 

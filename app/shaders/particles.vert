@@ -54,12 +54,12 @@ void ambient(vec3 p0, vec4 s, out vec3 p, out vec3 col, out float alpha, out flo
     p *= 1.0 + disp * 0.45 * exp(-length(p0) / 30.0);
     float r = length(p);
     float key = 0.55 + 0.45 * dot(normalize(p0 + 1e-3), normalize(vec3(-0.55, 0.62, 0.40)));
-    col = mix(vec3(0.20, 0.24, 0.48), vec3(0.42, 0.20, 0.42), s.z) * 0.05 * key;
+    col = mix(vec3(0.20, 0.24, 0.48), vec3(0.42, 0.20, 0.42), s.z) * 0.03 * key;
     // Warm light from the central source on nearby gas.
     float src = uCentral.x * uCentral.z * 0.6 + uCloud.z * 0.4;
-    col += mix(vec3(1.0, 0.45, 0.2), uCentralColor.rgb, uCentral.x) * src * 0.5 / (1.0 + r * r * 0.02);
-    alpha = (1.0 - disp * 0.7) * uCloud.x;
-    size = 0.20 + 0.25 * s.w;
+    col += mix(vec3(1.0, 0.45, 0.2), uCentralColor.rgb, uCentral.x) * src * 0.035 / (1.0 + r * r * 0.03);
+    alpha = 0.35 * (1.0 - disp * 0.7) * uCloud.x;
+    size = 0.15 + 0.15 * s.w;
 }
 
 void coreGas(vec3 p0, vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {
@@ -80,7 +80,7 @@ void coreGas(vec3 p0, vec4 s, out vec3 p, out vec3 col, out float alpha, out flo
     float tau = uCloud2.y;
     float f = tau / tff;
     float y0 = gaussian(s.z, s.w);
-    vec3 baseCol = mix(vec3(0.22, 0.26, 0.50), vec3(0.45, 0.22, 0.45), s.z) * 0.06;
+    vec3 baseCol = mix(vec3(0.22, 0.26, 0.50), vec3(0.45, 0.22, 0.45), s.z) * 0.035;
 
     if (f <= 0.0) {
         p = p0 + turbulentDrift(p0, s, TIME);
@@ -111,7 +111,7 @@ void coreGas(vec3 p0, vec4 s, out vec3 p, out vec3 col, out float alpha, out flo
         // Heats up as it falls in.
         float heat = smoothstep(r0, rLand, r);
         float tempK = mix(1200.0, 2600.0 * pow(max(rLand, 0.5) / 1.5, -0.6), heat);
-        col = mix(baseCol, blackbody(tempK) * 0.35 * heat, heat);
+        col = mix(baseCol, blackbody(tempK) * 0.10 * heat, heat);
         alpha = 1.0;
         if (accretes) alpha *= smoothstep(starR * 1.0, starR * 2.6, r);
         size = mix(0.22, 0.12, heat);
@@ -135,7 +135,7 @@ void coreGas(vec3 p0, vec4 s, out vec3 p, out vec3 col, out float alpha, out flo
         theta = 0.5 * PI;
         yOff = y0 * 0.045 * pow(r, 1.25);
         float tempK = 3800.0 * pow(max(r, starR * 1.25) / (starR * 1.25), -0.75);
-        col = blackbody(tempK) * (0.25 + 0.6 * pow(tempK / 3800.0, 2.0));
+        col = blackbody(tempK) * (0.10 + 0.45 * pow(tempK / 3800.0, 2.0));
         alpha = uDisc.x * smoothstep(starR * 1.15, starR * 1.8, r);
         size = 0.10 + 0.06 * s.x;
     }
@@ -152,22 +152,23 @@ void jetGas(vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {
     float phase = fract(s.x + t * rate);
     float side = s.z < 0.5 ? -1.0 : 1.0;
     float launch = uCentral.y * 1.3;
-    float y = launch + phase * 22.0;
+    float y = launch + phase * 17.0;
     if (y > len + launch) { p = vec3(0.0); col = vec3(0.0); alpha = 0.0; size = 0.0; return; }
 
     // Narrow, slightly widening stream with a slow precession of the axis.
     float bow = smoothstep(0.82, 1.0, y / (len + launch));
-    float radius = (0.06 + 0.035 * y) * sqrt(fract(s.w * 7.13)) * (1.0 + 3.5 * bow);
+    float radius = (0.14 + 0.075 * y) * sqrt(fract(s.w * 7.13)) * (1.0 + 2.0 * bow);
     float a = s.w * 6.2831853;
     vec3 lateral = vec3(cos(a), 0.0, sin(a)) * radius;
     lateral.x += sin(t * 0.35 - y * 0.12) * 0.028 * y;
+    lateral += (hash33(vec3(floor(y * 1.5 - t * 3.0), s.w * 97.0, side)) - 0.5) * 0.12 * y * 0.15;
     p = vec3(lateral.x, side * y, lateral.z);
 
     // Knots that move outward with the flow (episodic ejection).
-    float knot = 0.3 + 0.7 * pow(0.5 + 0.5 * sin((y - 22.0 * rate * t) * 0.75 + s.z * 0.5), 6.0);
-    col = mix(vec3(0.45, 0.70, 1.0), vec3(1.0, 0.36, 0.42), bow) * (0.55 + 0.9 * knot);
+    float knot = 0.35 + 0.65 * pow(0.5 + 0.5 * sin((y - 17.0 * rate * t) * 0.9 + s.z * 0.5), 3.0);
+    col = mix(vec3(0.45, 0.70, 1.0), vec3(1.0, 0.36, 0.42), bow) * (0.04 + 0.14 * knot);
     alpha = presence * smoothstep(0.0, 0.06, phase) * (1.0 - smoothstep(0.9, 1.0, phase));
-    size = 0.10 + 0.10 * knot + 0.25 * bow;
+    size = 0.08 + 0.08 * knot + 0.2 * bow;
 }
 
 void ejecta(vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {
@@ -184,7 +185,7 @@ void ejecta(vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {
         float shell = floor(s.x * 4.0);
         float age = clock - shell * 2.2 - s.w * 0.8;
         if (age <= 0.0) { p = vec3(0.0); col = vec3(0.0); alpha = 0.0; size = 0.0; return; }
-        float v = (0.36 + 0.05 * shell) * (1.0 + 0.75 * pow(abs(dir.y), 2.0));
+        float v = (0.24 + 0.035 * shell) * (1.0 + 0.6 * pow(abs(dir.y), 2.0));
         vec3 clump = hash33(floor(dir * 6.0 + shell * 3.0));
         float r = 4.2 + v * age * (0.92 + 0.16 * clump.x);
         p = dir * r;
@@ -192,9 +193,9 @@ void ejecta(vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {
         float innerness = 1.0 - shell / 3.0;
         vec3 ionized = mix(vec3(1.0, 0.30, 0.24), vec3(0.20, 0.95, 0.80), innerness * 0.8 + 0.1 * clump.y);
         vec3 dusty = vec3(0.35, 0.16, 0.10) * 0.25;
-        col = mix(dusty, ionized * (0.5 + 0.7 * clump.z), glow);
+        col = mix(dusty, ionized * (0.5 + 0.7 * clump.z), glow) * 0.08;
         alpha = presence * smoothstep(0.0, 1.5, age) * (0.55 + 0.45 * step(0.35, clump.y));
-        size = 0.22 + 0.18 * clump.z;
+        size = 0.10 + 0.10 * clump.z;
     } else {
         // Supernova: clumpy, decelerating ejecta; hot and blue-white early,
         // then filaments in hydrogen-alpha red and oxygen teal (artistic).
@@ -210,9 +211,9 @@ void ejecta(vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {
         p = dir * r;
         float hot = exp(-age / 2.5);
         vec3 filament = mix(vec3(1.0, 0.32, 0.25), vec3(0.30, 0.85, 1.0), step(0.6, s.y));
-        col = mix(filament * 0.9, vec3(0.9, 0.95, 1.0) * 6.0, hot) * strength;
+        col = mix(filament * 0.12, vec3(0.9, 0.95, 1.0) * 1.5, hot) * strength;
         alpha = presence * (0.5 + 0.5 * smoothstep(0.3, 0.7, clumpDir.x * 0.5 + 0.5));
-        size = 0.25 + 0.35 * hot + 0.15 * s.z;
+        size = 0.14 + 0.3 * hot + 0.08 * s.z;
     }
 }
 
@@ -230,8 +231,11 @@ void main() {
     // their alpha with covered area, which avoids flicker.
     float px = size * uProj[1][1] * 0.5 * uViewport.y / max(gl_Position.w, 1e-3);
     float coverage = clamp(px * px, 0.0, 1.0);
-    gl_PointSize = clamp(px, 1.0, 48.0);
+    gl_PointSize = clamp(px, 1.0, 14.0);
+    // Fade particles that pass very close to the camera so they never fill the screen.
+    float camDist = length(p - uCamPos.xyz);
+    float nearFade = smoothstep(4.0, 14.0, camDist);
     vColor = col;
-    vAlpha = alpha * (px < 1.0 ? coverage : 1.0);
+    vAlpha = alpha * nearFade * (px < 1.0 ? coverage : 1.0) * (px > 14.0 ? 14.0 * 14.0 / (px * px) : 1.0);
     if (alpha <= 0.0) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);  // clip
 }
