@@ -1,0 +1,82 @@
+#version 450
+// Generates a tileable 3D noise volume once at startup.
+//   R: gradient-noise fBm (soft billows)
+//   G: inverted Worley fBm (cellular, used for puffy detail and granulation)
+//   B: second, decorrelated gradient-noise fBm (domain warping)
+//   A: ridged fBm (filaments)
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
+layout(rgba16f, binding = 0) uniform writeonly image3D uOut;
+uniform int uSize;
+
+uvec3 pcg3d(uvec3 v) {
+    v = v * 1664525u + 1013904223u;
+    v.x += v.y * v.z; v.y += v.z * v.x; v.z += v.x * v.y;
+    v ^= v >> 16u;
+    v.x += v.y * v.z; v.y += v.z * v.x; v.z += v.x * v.y;
+    return v;
+}
+vec3 hash(ivec3 c, int period, uint seed) {
+    ivec3 w = ((c % period) + period) % period;  // wrap -> tileable
+    return vec3(pcg3d(uvec3(w) + uvec3(seed, seed * 7u, seed * 13u))) * (1.0 / 4294967295.0);
+}
+
+float gradientNoise(vec3 p, int period, uint seed) {
+    ivec3 i = ivec3(floor(p));
+    vec3 f = fract(p);
+    vec3 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+    float n[8];
+    for (int k = 0; k < 8; ++k) {
+        ivec3 o = ivec3(k & 1, (k >> 1) & 1, (k >> 2) & 1);
+        vec3 g = normalize(hash(i + o, period, seed) * 2.0 - 1.0 + 1e-4);
+        n[k] = dot(g, f - vec3(o));
+    }
+    float x00 = mix(n[0], n[1], u.x), x10 = mix(n[2], n[3], u.x);
+    float x01 = mix(n[4], n[5], u.x), x11 = mix(n[6], n[7], u.x);
+    return mix(mix(x00, x10, u.y), mix(x01, x11, u.y), u.z);  // ~[-1, 1]
+}
+
+float worley(vec3 p, int period, uint seed) {
+    ivec3 i = ivec3(floor(p));
+    vec3 f = fract(p);
+    float d = 1e9;
+    for (int z = -1; z <= 1; ++z)
+    for (int y = -1; y <= 1; ++y)
+    for (int x = -1; x <= 1; ++x) {
+        ivec3 o = ivec3(x, y, z);
+        vec3 r = vec3(o) + hash(i + o, period, seed) - f;
+        d = min(d, dot(r, r));
+    }
+    return sqrt(d);
+}
+
+void main() {
+    ivec3 id = ivec3(gl_GlobalInvocationID);
+    if (any(greaterThanEqual(id, ivec3(uSize)))) return;
+    vec3 p = (vec3(id) + 0.5) / float(uSize);  // [0,1)
+
+    float fbmA = 0.0, fbmB = 0.0, ridged = 0.0, cells = 0.0, amp = 0.5, norm = 0.0;
+    int freq = 4;
+    for (int o = 0; o < 5; ++o) {
+        vec3 q = p * float(freq);
+        fbmA   += amp * gradientNoise(q, freq, 11u);
+        fbmB   += amp * gradientNoise(q + 17.3, freq, 29u);
+        ridged += amp * (1.0 - abs(gradientNoise(q, freq, 47u)));
+        norm   += amp;
+        amp *= 0.5;
+        freq *= 2;
+    }
+    fbmA = fbmA / norm * 0.5 + 0.5;
+    fbmB = fbmB / norm * 0.5 + 0.5;
+    ridged /= norm;
+
+    amp = 0.6; norm = 0.0; freq = 4;
+    for (int o = 0; o < 3; ++o) {
+        cells += amp * (1.0 - worley(p * float(freq), freq, 71u));
+        norm += amp;
+        amp *= 0.45;
+        freq *= 2;
+    }
+    cells /= norm;
+
+    imageStore(uOut, id, vec4(fbmA, cells, fbmB, ridged));
+}

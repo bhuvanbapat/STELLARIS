@@ -1,0 +1,15 @@
+# Build output
+/build/
+/out/
+/glut_demo/build/
+
+# IDE / tool state
+.vs/
+.vscode/
+*.user
+CMakeUserPresets.json
+
+# Runtime output
+/screenshots/
+imgui.ini
+*.log
