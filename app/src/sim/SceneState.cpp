@@ -30,7 +30,7 @@ float window(double t, double a, double b, double c, double d) {
     return smooth(a, b, t) * (1.0f - smooth(c, d, t));
 }
 
-void evaluateFate(SceneState& s, double t, float msRadius) {
+void evaluateFate(SceneState& s, double t) {
     const double u = stageProgress(t, Stage::StellarFate);
     s.fateProgress = static_cast<float>(t >= stageSpan(Stage::StellarFate).start ? u : 0.0);
     const bool inFate = t >= stageSpan(Stage::StellarFate).start;
@@ -91,7 +91,6 @@ void evaluateFate(SceneState& s, double t, float msRadius) {
         break;
     }
     }
-    (void)msRadius;
 }
 
 } // namespace
@@ -150,7 +149,7 @@ SceneState evaluateScene(double time, const ModelConfig& config) {
     s.jetLength       = 16.0f * smooth(58, 70, t);
 
     // --- Final stage ------------------------------------------------------------
-    evaluateFate(s, t, msRadius);
+    evaluateFate(s, t);
 
     s.centralColor = blackbodyColor(s.centralTempK);
     const float msIntensity = 1.5f * static_cast<float>(std::pow(s.ms.teffK / kSolarTeffK, 0.15));

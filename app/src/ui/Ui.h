@@ -28,7 +28,6 @@ struct UiFrameInfo {
 struct UiRequests {
     bool recenterCamera = false;
     bool resetAll       = false;
-    bool screenshot     = false;
 };
 
 class Ui {

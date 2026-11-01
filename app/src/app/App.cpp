@@ -246,7 +246,6 @@ void App::renderScene() {
 
     if (req.recenterCamera) cameraOffset_ = {};
     if (req.resetAll) resetAll();
-    if (req.screenshot) screenshotRequested_ = true;
 }
 
 void App::resetAll() {

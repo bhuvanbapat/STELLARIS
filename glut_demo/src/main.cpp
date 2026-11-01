@@ -194,7 +194,9 @@ void drawJets(float presence) {
         const float a = ((static_cast<uint32_t>(i) * 2654435761u) >> 8 & 0xFFFF) / 65535.0f * 2.0f * kPi;
         const float knot = 0.4f + 0.6f * std::pow(0.5f + 0.5f * std::sin((y - 2.7f * g.time) * 0.8f), 3.0f);
         glColor4f(0.5f, 0.75f, 1.0f, presence * knot * (1.0f - phase));
-        glVertex3f(spread * std::cos(a), side * y, spread * std::sin(a));
+        // Fill the cone's cross-section (area-uniform), not just its surface.
+        const float rr = spread * std::sqrt(((static_cast<uint32_t>(i) * 2246822519u + 374761393u) >> 8 & 0xFFFF) / 65535.0f);
+        glVertex3f(rr * std::cos(a), side * y, rr * std::sin(a));
     }
     glEnd();
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
