@@ -109,7 +109,7 @@ void coreGas(vec3 p0, vec4 s, out vec3 p, out vec3 col, out float alpha, out flo
         phi = phi0 + acc * beta / 8.0;
         yOff = y0 * 0.045 * pow(rLand, 1.25) * (1.0 - x);
         // Heats up as it falls in.
-        float heat = smoothstep(r0, rLand, r);
+        float heat = 1.0 - smoothstep(rLand, r0, r);  // 0 at the start, 1 on landing
         float tempK = mix(1200.0, 2600.0 * pow(max(rLand, 0.5) / 1.5, -0.6), heat);
         col = mix(baseCol, blackbody(tempK) * 0.10 * heat, heat);
         alpha = 1.0;

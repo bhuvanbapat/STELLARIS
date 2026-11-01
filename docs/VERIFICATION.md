@@ -14,7 +14,7 @@ Everything below was actually run. Items not verified are listed in §6.
 
 ### 1a. Clean-build verification
 
-_Filled in below after the clean build completed._
+A fresh configure and build in `build-clean` (dependencies downloaded again) built all three targets, and `ctest` passed (exit 0). `build.bat` run from PowerShell also completed: configure, build, tests 100% passed.
 
 ## 2. Automated tests
 
@@ -83,6 +83,21 @@ Final state:
 | 6 Neutron-star path | red supergiant → supernova flash → clumpy expanding remnant → neutron star with rotating beams |
 | 6 Black-hole path | supergiant → weaker explosion → dark shadow, photon ring and lensed background inside the remnant |
 | GLUT demo | all six phases render: point cloud, collapse, lit protostar, Keplerian disc with jets, main-sequence star, wire-sphere nebula with white dwarf; HUD text, timeline and help text visible |
+
+## 4a. Code review
+
+A read-only review with the PR Review Toolkit code-reviewer agent confirmed:
+the std140 UBO layout matches; GL state is reset per pass; RAII and teardown
+order are correct; there is no hidden per-frame state affecting the scene; no
+NaN or division-by-zero sources. It found three issues, all fixed and
+re-verified (build, 28/28 tests, self-test 0 failures, GLUT capture):
+1. Clicking a stage label sought to the mouse position after the first frame
+   instead of selecting the stage (now handled with a per-press flag).
+2. The GLUT demo's fixed-function lighting had no visible effect, because the
+   only lit objects were spheres containing the light. An orbiting planet now
+   shows the terminator.
+3. Two `smoothstep` calls with edge0 > edge1 (undefined in GLSL) were rewritten
+   as `1 − smoothstep(lo, hi, x)`.
 
 ## 5. Acceptance criteria (PROJECT_SPEC §15)
 

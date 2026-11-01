@@ -46,7 +46,7 @@ that implements it.
 | GLUT bitmap text | HUD with `glutBitmapString` in an orthographic overlay |
 | GLUT primitives | `glutSolidSphere`, `glutWireSphere` |
 | Transformations and matrix stack | `glPushMatrix`/`glPopMatrix`, rotate, scale (bipolar nebula), `gluPerspective`, `gluLookAt`, `gluOrtho2D` |
-| Fixed-function lighting | positional `GL_LIGHT0` at the star, diffuse/specular, material emission, `GL_NORMALIZE` |
+| Fixed-function lighting | positional `GL_LIGHT0` at the star; an orbiting planet (phase 5) shows the diffuse day/night terminator and a specular highlight; stars use material emission; `GL_NORMALIZE` |
 | Display lists | the static cloud is compiled once with `glNewList` |
 | Blending | additive (glows, jets, disc) and alpha blending; depth-mask control |
 | Billboarding | glow discs built by removing rotation from the modelview matrix |

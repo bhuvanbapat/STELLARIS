@@ -44,7 +44,7 @@ const char* const kPhaseNotes[kPhaseCount] = {
     "Inner gas falls in first (shorter free-fall time).",
     "Accretion and contraction heat a central protostar.",
     "Angular momentum forms a rotating disc; jets leave along the axis.",
-    "Hydrogen fusion in the core: a stable, luminous star.",
+    "Hydrogen fusion in the core: a stable star. The planet (illustrative) is lit by it.",
     "One illustrative low-mass pathway (no supernova)."};
 
 // ---------------------------------------------------------------- state ----
@@ -287,6 +287,24 @@ void display() {
         b = b + (0.25f - b) * giant;
         radius *= 1.0f - 0.9f * shed;
         drawStar(radius, r, gc, b, 0.75f);
+    }
+    // An illustrative planet orbiting the main-sequence star. It is the one object
+    // lit from outside, so it shows the fixed-function lighting: the day side faces
+    // GL_LIGHT0 at the star (diffuse + specular), the night side keeps only ambient.
+    const float planet = smooth01(4.2f * kPhaseSeconds, 4.5f * kPhaseSeconds, t) * (1.0f - giant);
+    if (planet > 0.0f) {
+        const float orbit = 0.35f * t;
+        glPushMatrix();
+        glTranslatef(9.0f * std::cos(orbit), 0.0f, 9.0f * std::sin(orbit));
+        const GLfloat diffuse[] = {0.35f * planet, 0.55f * planet, 0.95f * planet, 1.0f};
+        const GLfloat specular[] = {0.6f, 0.6f, 0.6f, 1.0f};
+        glEnable(GL_LIGHTING);
+        glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, diffuse);
+        glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
+        glMaterialf(GL_FRONT, GL_SHININESS, 40.0f);
+        if (g.wireframe) glutWireSphere(1.1, 20, 14); else glutSolidSphere(1.1, 40, 28);
+        glDisable(GL_LIGHTING);
+        glPopMatrix();
     }
     drawDisc(smooth01(2.8f * kPhaseSeconds, 3.2f * kPhaseSeconds, t) * (1.0f - smooth01(4.3f * kPhaseSeconds, 4.8f * kPhaseSeconds, t)), 9.0f);
     drawJets(smooth01(3.1f * kPhaseSeconds, 3.4f * kPhaseSeconds, t) * (1.0f - smooth01(4.2f * kPhaseSeconds, 4.5f * kPhaseSeconds, t)));

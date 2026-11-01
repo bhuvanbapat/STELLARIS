@@ -20,7 +20,7 @@ changes are project-scoped (inside this repository) unless stated otherwise.
 
 | Plugin | Installed | Enabled | Notes |
 |---|---|---|---|
-| context7 | yes | yes | Its MCP server is **not connected**: status `needs_auth`. Run `/mcp` and sign in to use it. |
+| context7 | yes | yes | Its MCP server reported `needs_auth` early in the session and `connected` (2 tools) later the same session. |
 | feature-dev | yes | yes | Agents `code-explorer`, `code-architect`, `code-reviewer` are available. |
 | pr-review-toolkit | yes | yes | Six review agents available. |
 | code-simplifier | yes | yes | — |
@@ -35,7 +35,7 @@ contains no `model` or effort key and was not modified.
 |---|---|
 | Claude Docs | connected (8 tools) |
 | scheduled-tasks | connected (6 tools) |
-| context7 (plugin) | needs_auth: not usable until the user signs in |
+| context7 (plugin) | connected (2 tools), re-checked later in the session |
 
 Also available: the built-in browser pane and the desktop terminal tools.
 Claude in Chrome tools are listed but have not been exercised (unverified).

@@ -14,7 +14,7 @@ void main() {
     if (d >= 1.0) discard;
     float x = max(d / uInnerFrac, 1.0);
     float halo = exp(-(x - 1.0) * uFalloff) * 0.7 + 0.3 / (x * x * x);
-    halo *= smoothstep(1.0, 0.75, d);          // fade before the quad edge
+    halo *= 1.0 - smoothstep(0.75, 1.0, d);    // fade before the quad edge
     if (uRays == 1) {
         float a = atan(vLocal.y, vLocal.x);
         halo *= 0.75 + 0.25 * pow(abs(sin(a * 3.0)), 8.0) + 0.15 * pow(abs(sin(a * 7.0 + 1.0)), 16.0);

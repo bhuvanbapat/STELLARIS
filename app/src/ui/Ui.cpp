@@ -477,14 +477,13 @@ void Ui::drawTimeline(Playback& playback, const SceneState& s, UiRequests& req) 
     const double duration = timelineDuration();
     const float mouseX = ImGui::GetIO().MousePos.x;
     const double hoverT = std::clamp((mouseX - p0.x) / width, 0.0f, 1.0f) * duration;
+    // Clicking a stage label selects that stage (and nothing else while the button
+    // is held); clicking or dragging the track itself seeks continuously.
+    if (ImGui::IsItemActivated())
+        labelClick_ = ImGui::GetIO().MouseClickedPos[0].y > p0.y + trackH + 3.0f * scale_;
     if (ImGui::IsItemActive()) {
-        const ImVec2 clickPos = ImGui::GetIO().MouseClickedPos[0];
-        // Clicking a stage label selects that stage; clicking or dragging the
-        // track seeks continuously.
-        if (ImGui::IsItemActivated() && clickPos.y > p0.y + trackH + 3.0f * scale_)
-            playback.selectStage(stageAt(hoverT));
-        else
-            playback.seek(hoverT);
+        if (!labelClick_) playback.seek(hoverT);
+        else if (ImGui::IsItemActivated()) playback.selectStage(stageAt(hoverT));
     }
 
     ImDrawList* dl = ImGui::GetWindowDrawList();

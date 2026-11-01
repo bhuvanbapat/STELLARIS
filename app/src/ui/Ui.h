@@ -59,6 +59,7 @@ private:
     float  scale_ = 1.0f;      // baseScale_ * layout_, used for all UI metrics
     bool   visible_ = true;
     bool   labels_ = true;
+    bool   labelClick_ = false;  // current timeline press started on a stage label
     bool   initialized_ = false;
     ImFont* body_ = nullptr;
     ImFont* small_ = nullptr;
