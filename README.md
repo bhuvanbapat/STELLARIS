@@ -72,6 +72,7 @@ Useful options for `stellaris.exe`:
 | `--mass M` | initial stellar mass, 1–40 M☉ |
 | `--rotation R` | relative core rotation, 0.6–1.4 |
 | `--seed N` | procedural cloud morphology seed (default 1) |
+| `--quality Q` | `performance`, `balanced` (default), `high`, `capture`: rendering cost only |
 | `--hide-ui` | start with the interface hidden |
 | `--capture DIR T1,T2,…` | render those times to PNG files and exit |
 | `--selftest` | automated playback/seek/reset/resize checks against the real renderer |
@@ -98,7 +99,8 @@ Useful options for `stellaris.exe`:
 Scientific controls are in the right-hand panel. **Initial stellar mass** changes
 the main-sequence star's color, size and luminosity, and selects the final
 pathway. **Initial core rotation** changes the angular momentum, and with it the
-size of the accretion disc. **Cloud structure < seed >** picks another procedural cloud: same science, different
+size of the accretion disc. **Render quality** (Perf / Bala / High / Capt) changes rendering cost only.
+**Cloud structure < seed >** picks another procedural cloud: same science, different
 morphology. **3D labels** toggles the in-scene annotations.
 
 GLUT demonstration: **Space** pause, **N/P** next/previous phase, **1–6** jump,

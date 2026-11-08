@@ -14,7 +14,6 @@ namespace stellaris {
 namespace {
 
 constexpr int kNoiseSize      = 128;
-constexpr int kVolumeSteps    = 96;
 constexpr int kBloomMips      = 6;
 constexpr int kDiscLayers     = 5;
 constexpr int kBlackbodyLutN  = 256;
@@ -143,7 +142,8 @@ void Renderer::createTargets() {
         framebufferComplete(t.fbo.id(), label);
         return t;
     };
-    volumeTarget_ = makeTarget(width_ / 2, height_ / 2, GL_RGBA16F, "volume");
+    volumeTarget_ = makeTarget(static_cast<int>(width_ * quality_.volumeScale + 0.5f),
+                               static_cast<int>(height_ * quality_.volumeScale + 0.5f), GL_RGBA16F, "volume");
     lensTarget_   = makeTarget(width_, height_, GL_RGBA16F, "lens");
     bloomMips_.clear();
     int w = width_, h = height_;
@@ -182,6 +182,15 @@ void Renderer::setCloud(const CloudField& cloud) {
         glTextureParameteri(cloudStructure_.id(), wrap, GL_CLAMP_TO_BORDER);
     particles_.init(cloud);
     log::info("Cloud seed {}: structure {}^3 uploaded, {} particles", cloud.seed(), n, particles_.count());
+}
+
+void Renderer::setQuality(QualityPreset preset) {
+    if (preset == qualityPreset_) return;
+    qualityPreset_ = preset;
+    quality_ = renderQuality(preset);
+    createTargets();
+    log::info("Render quality: {} (volume x{:.2f}, {} steps, particles x{:.2f})", quality_.name,
+              quality_.volumeScale, quality_.volumeSteps, quality_.particleFraction);
 }
 
 void Renderer::createBlackbodyLut() {
@@ -310,7 +319,7 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
         glViewport(0, 0, volumeTarget_.width, volumeTarget_.height);
         glDisable(GL_DEPTH_TEST);
         volume_.use();
-        volume_.set("uSteps", kVolumeSteps);
+        volume_.set("uSteps", quality_.volumeSteps);
         volume_.set("uCloudExtent", CloudField::kExtent);
         volume_.set("uKeyDir", CloudField::keyLightDirection());
         glBindTextureUnit(1, hdrDepth_.id());
@@ -323,6 +332,7 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
         composite_.use();
         glBindTextureUnit(0, volumeTarget_.color.id());
+        glBindTextureUnit(1, hdrDepth_.id());
         drawFullscreen();
         glBindTextureUnit(0, noise3d_.id());
     }
@@ -342,6 +352,7 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
     glBlendFunc(GL_ONE, GL_ONE);
     glEnable(GL_PROGRAM_POINT_SIZE);
     particlesShader_.use();
+    particlesShader_.set("uParticleFraction", quality_.particleFraction);
     particles_.draw();
 
     if (s.pulsarBeams > 0.01f) {

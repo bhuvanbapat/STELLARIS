@@ -11,6 +11,7 @@
 #include "gfx/Geometry.h"
 #include "gfx/Shader.h"
 #include "render/ParticleSystem.h"
+#include "render/RenderQuality.h"
 #include "sim/CameraPath.h"
 #include "sim/SceneState.h"
 
@@ -36,6 +37,9 @@ public:
     bool reloadShaders();
     // Uploads the baked cloud structure and rebuilds the particles that follow it.
     void setCloud(const CloudField& cloud);
+    // Changes rendering cost only (volume resolution/steps, particle density).
+    void setQuality(QualityPreset preset);
+    QualityPreset quality() const { return qualityPreset_; }
 
     // lensShiftX shifts the projection center horizontally in NDC units, used to
     // compose the subject to the right of the information panel.
@@ -95,6 +99,8 @@ private:
 
     glm::mat4 view_{1.0f}, proj_{1.0f};
     glm::vec3 camPos_{0.0f};
+    QualityPreset qualityPreset_ = QualityPreset::Balanced;
+    RenderQuality quality_ = renderQuality(QualityPreset::Balanced);
 };
 
 } // namespace stellaris

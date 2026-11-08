@@ -2,6 +2,7 @@
 // Dear ImGui interface: stage information, quantities, model parameters,
 // transport controls, the six-stage timeline and 3D annotations.
 
+#include "render/RenderQuality.h"
 #include "sim/SceneState.h"
 #include "sim/Timeline.h"
 
@@ -21,6 +22,7 @@ struct UiFrameInfo {
     float fps = 0.0f;
     float gpuMs = 0.0f;
     bool  cameraOffsetActive = false;
+    QualityPreset quality = QualityPreset::Balanced;
     // Projects a world point to screen pixels (top-left origin), if visible.
     std::function<std::optional<glm::vec2>(const glm::vec3&)> project;
 };
@@ -28,6 +30,7 @@ struct UiFrameInfo {
 struct UiRequests {
     bool recenterCamera = false;
     bool resetAll       = false;
+    std::optional<QualityPreset> quality;  // render cost only
 };
 
 class Ui {
@@ -49,7 +52,7 @@ public:
 
 private:
     void drawInfoPanel(const SceneState& s);
-    void drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests& req, bool cameraOffset);
+    void drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests& req, const UiFrameInfo& info);
     void drawTimeline(Playback& playback, const SceneState& s, UiRequests& req);
     void drawAnnotations(const UiFrameInfo& info);
     void drawDiagnostics(const UiFrameInfo& info);

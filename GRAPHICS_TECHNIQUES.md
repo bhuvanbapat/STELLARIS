@@ -44,6 +44,8 @@ that implements it.
 | Per-component density treatment | `volume.frag` (`baseDensity`) | envelope strongly eroded by noise, filaments textured, core/globules compact |
 | Coarse density for shadow rays | `volume.frag` (`densityCoarse`) | structure field without fine noise for the 8 light samples per step; rendering approximation |
 | Empty-space skipping (shell-aware) | `volume.frag` | 2× step where the structure is empty and no ejecta shell is near; fixed step inside the cloud |
+| Joint bilateral (depth-aware) upsampling | `composite.frag` | each of the 4 nearest low-res volume texels is weighted by bilinear weight × similarity of the scene depth it was rendered with to this pixel's depth: no cloud halo across the stellar limb |
+| Render quality tiers | `render/RenderQuality.h`, `Renderer::setQuality` | Performance / Balanced / High / Capture change volume resolution (⅓, ½, ¾, full), ray steps (64–160) and particle subsampling (stable subset, brightness-compensated); scene state never changes |
 | Back-lit external illumination | `CloudField::keyLightDirection`, `volume.frag` | light from behind the cloud: rim lighting, globules seen in silhouette |
 
 Measured cost and visual evidence: `VERIFICATION.md` §8.

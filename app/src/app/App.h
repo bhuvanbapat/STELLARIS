@@ -30,6 +30,7 @@ struct AppOptions {
     bool selfTest = false;
     // Benchmark mode: render sample points of every stage without vsync, report timings, exit.
     bool benchmark = false;
+    QualityPreset quality = QualityPreset::Balanced;
 };
 
 // Parses argv. Returns false (and prints usage) on invalid input.

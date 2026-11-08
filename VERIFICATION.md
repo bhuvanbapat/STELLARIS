@@ -329,3 +329,23 @@ standard review set (six stages; 15 and 40 M☉ endings) were taken for comparis
 - Cloud bake time 445–580 ms per seed change (logged at startup and on change).
 - Not yet done for A: a reduced-resolution aliasing comparison (planned with the
   quality tiers in Workstream B/I).
+
+### 8.3 Workstream B — volume refinement and quality tiers (implemented and verified)
+
+- Depth-aware upsampling: protostar limb at t = 52 s cropped at full resolution in
+  Performance (⅓-res volume), Balanced (½) and Capture (full-res reference). The
+  limb is equally crisp in all three, with no cloud halo across it. Foreground gas
+  over the lower half matches the full-resolution reference.
+- Quality tiers, 1920×1080, vsync off (stages: cloud, collapse, protostar, disc,
+  main sequence, WD nebula, supernova, NS remnant, black hole):
+  - Performance: 2.88 3.40 3.42 3.25 3.54 5.51 5.08 5.47 4.07 ms (180–327 fps)
+  - Balanced (default): 6.61 7.77 7.49 7.17 7.26 12.79 11.73 12.79 9.17 ms (78–149 fps)
+  - High: 14.38 17.97 17.16 16.08 15.26 27.37 25.10 26.76 20.62 ms (36–69 fps).
+    **Below 60 fps** on this GPU for collapse, protostar and all stage-6 views.
+  - Capture: 25.4–50.1 ms (20–39 fps), intended for offline screenshots.
+- Tiers change only renderer settings (`Renderer::setQuality`); `SceneState`,
+  `ModelConfig` and the timeline are untouched by construction. The particle subset
+  for Performance is a fixed hash of the particle index, so it is stable over time.
+- Unit tests 35/35 after the change.
+- Not done: temporal accumulation (P3), and a multiple-scattering approximation.
+  Neither was needed for the visible failure modes found so far.

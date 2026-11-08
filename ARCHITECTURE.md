@@ -83,6 +83,8 @@ boundaries.
    alpha), 276,000 deterministic GPU particles (additive point sprites), pulsar
    beams, halos and the supernova flash (additive).
 5. **Lensing** (black-hole pathway only): screen-space point-mass deflection.
+   The composite uses joint bilateral (depth-aware) upsampling. The volume target size
+   and step count come from the render quality tier (`render/RenderQuality.h`).
 6. **Post**: 6-level bloom chain (13-tap downsample with Karis average, tent
    upsample), exposure, ACES filmic tone mapping, vignette, sRGB encoding, dither.
 7. **UI**: Dear ImGui panels and timeline, plus 3D labels projected from world anchors.

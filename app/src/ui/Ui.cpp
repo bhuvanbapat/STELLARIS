@@ -258,7 +258,7 @@ UiRequests Ui::draw(Playback& playback, ModelConfig& config, const UiFrameInfo& 
         return req;
     }
     drawInfoPanel(s);
-    drawParameterPanel(config, s, req, info.cameraOffsetActive);
+    drawParameterPanel(config, s, req, info);
     drawTimeline(playback, s, req);
     drawDiagnostics(info);
     return req;
@@ -355,7 +355,8 @@ void Ui::drawInfoPanel(const SceneState& s) {
     ImGui::End();
 }
 
-void Ui::drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests& req, bool cameraOffset) {
+void Ui::drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests& req, const UiFrameInfo& info) {
+    const bool cameraOffset = info.cameraOffsetActive;
     const float w = 300.0f * scale_;
     const float m = 18.0f * scale_;
     const ImVec2 ds = ImGui::GetIO().DisplaySize;
@@ -419,6 +420,19 @@ void Ui::drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests
     ImGui::Checkbox("3D labels", &labels_);
     ImGui::SameLine();
     if (ImGui::Button(cameraOffset ? "Recenter camera *" : "Recenter camera")) req.recenterCamera = true;
+    // Display quality: changes rendering cost only, never the model or the timeline.
+    ImGui::TextUnformatted("Render quality");
+    for (int i = 0; i < kQualityPresetCount; ++i) {
+        const QualityPreset p = static_cast<QualityPreset>(i);
+        const bool active = p == info.quality;
+        if (i > 0) ImGui::SameLine();
+        if (active) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.98f, 0.76f, 0.42f, 0.35f));
+        char label[32];
+        std::snprintf(label, sizeof(label), "%.4s##q%d", renderQuality(p).name, i);
+        if (ImGui::SmallButton(label)) req.quality = p;
+        if (active) ImGui::PopStyleColor();
+        if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s: rendering cost only; the scene is unchanged", renderQuality(p).name);
+    }
     if (ImGui::Button("Default parameters")) {
         config = ModelConfig{};
     }

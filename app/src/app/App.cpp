@@ -52,6 +52,7 @@ void printUsage() {
         "  --mass M                 initial stellar mass in solar masses (1-40)\n"
         "  --rotation R             relative core rotation (0.6-1.4)\n"
         "  --seed N                 cloud morphology seed (default 1)\n"
+        "  --quality Q              performance | balanced (default) | high | capture\n"
         "  --hide-ui                start with the interface hidden\n"
         "  --capture DIR T1,T2,...  render the listed times to DIR/*.png and exit\n"
         "  --selftest               run automated playback/seek checks and exit\n"
@@ -97,6 +98,14 @@ bool parseOptions(int argc, char** argv, AppOptions& o) {
         else if (a == "--hide-ui") o.hideUi = true;
         else if (a == "--selftest") o.selfTest = true;
         else if (a == "--benchmark") o.benchmark = true;
+        else if (a == "--quality" && i + 1 < argc) {
+            const std::string q = argv[++i];
+            if (q == "performance") o.quality = QualityPreset::Performance;
+            else if (q == "balanced") o.quality = QualityPreset::Balanced;
+            else if (q == "high") o.quality = QualityPreset::High;
+            else if (q == "capture") o.quality = QualityPreset::Capture;
+            else { std::fprintf(stderr, "Unknown quality '%s'\n\n", q.c_str()); printUsage(); return false; }
+        }
         else if (a == "--capture" && i + 2 < argc) {
             o.captureDir = argv[++i];
             std::stringstream ss(argv[++i]);
@@ -180,6 +189,7 @@ int App::run() {
         log::error("Renderer initialization failed (shader directory: {}).", shaderDir.string());
         return 1;
     }
+    renderer_->setQuality(options_.quality);
     rebuildCloudIfNeeded(true);
     float xscale = 1.0f, yscale = 1.0f;
     glfwGetWindowContentScale(window_, &xscale, &yscale);
@@ -254,10 +264,12 @@ void App::renderScene() {
     info.gpuMs = renderer_->gpuFrameMs();
     info.cameraOffsetActive = !cameraOffset_.isIdentity();
     info.project = [this](const glm::vec3& p) { return renderer_->projectToScreen(p); };
+    info.quality = renderer_->quality();
     const UiRequests req = ui_.draw(playback_, config_, info);
     ui_.endFrame();
 
     if (req.recenterCamera) cameraOffset_ = {};
+    if (req.quality) renderer_->setQuality(*req.quality);
     if (req.resetAll) resetAll();
 }
 

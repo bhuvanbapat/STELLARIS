@@ -162,3 +162,13 @@ Prioritise deeper cloud morphology, volumetric quality, layered stellar renderin
 - Workstream B (partial): coarse shadow density, central-shadow skip and shell-aware
   empty-space skipping brought the over-budget cloud back to 6.6–12.8 ms at 1080p.
 - Next: rest of B (depth-aware upsampling, quality tiers), then C (stellar layers).
+
+## 2026-11-08 — Workstream B (volume refinement, quality tiers)
+
+- **Implemented and verified:** joint bilateral upsampling of the reduced-resolution
+  volume, and four render-quality tiers (`--quality`, UI buttons). Measurements are
+  in VERIFICATION §8.3; Balanced stays at 78–149 fps at 1080p, while High is below
+  60 fps on the RTX 4050 in heavy stages (documented, not hidden).
+- **Deferred:** temporal accumulation (P3) and multiple-scattering approximation. No
+  visible failure mode currently requires them.
+- Next: Workstream C (photosphere / chromosphere / corona, spots, prominences, flare).

@@ -17,6 +17,8 @@
 layout(location = 0) in vec4 aPos0;   // xyz initial position, w population
 layout(location = 1) in vec4 aSeed;   // four uniform random numbers in [0,1)
 
+uniform float uParticleFraction;  // render-quality subsampling (cost only)
+
 out vec3 vColor;
 out float vAlpha;
 
@@ -237,5 +239,10 @@ void main() {
     float nearFade = smoothstep(4.0, 14.0, camDist);
     vColor = col;
     vAlpha = alpha * nearFade * (px < 1.0 ? coverage : 1.0) * (px > 14.0 ? 14.0 * 14.0 / (px * px) : 1.0);
+    // Quality tiers draw a stable subset of particles and compensate brightness, so
+    // the scene looks the same at lower cost (identity of the subset never changes).
+    float keep = float(pcg3d(uvec3(uint(gl_VertexID), 7u, 11u)).x) * (1.0 / 4294967295.0);
+    if (keep > uParticleFraction) alpha = 0.0;
+    vAlpha /= max(uParticleFraction, 0.05);
     if (alpha <= 0.0) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);  // clip
 }
