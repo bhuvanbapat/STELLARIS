@@ -426,7 +426,7 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
                  s.remnantIntensity * s.remnantPresence * 0.25f, false);
     }
     if (s.supernovaFlash > 0.001f) {
-        drawGlow(glm::vec3(0.0f), 34.0f, 0.03f, 0.9f, glm::vec3(0.85f, 0.92f, 1.0f), s.supernovaFlash * 60.0f, true);
+        drawGlow(glm::vec3(0.0f), 34.0f, 0.03f, 0.9f, glm::vec3(0.85f, 0.92f, 1.0f), s.supernovaFlash * 35.0f, true);
     }
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);

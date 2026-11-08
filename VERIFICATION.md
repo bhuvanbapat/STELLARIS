@@ -386,3 +386,22 @@ standard review set (six stages; 15 and 40 M☉ endings) were taken for comparis
   unchanged within noise.
 - Not done: velocity-aligned streaks, species toggles in an inspection UI (with
   Workstream G), and CME ejecta.
+
+### 8.6 Workstream F — structured supernova and remnant (implemented and verified)
+
+- Sequence captured for 15 M☉ at 114.9, 116, 118, 122, 132 and 147 s: flash; hot
+  ejecta with radial fingers; a distinct, broken shock rim with stratified ejecta
+  and fingers inside; a persistent asymmetric remnant with the neutron star and
+  beams. Also checked for 40 M☉ (weaker remnant + lensing) and 1 M☉ (no supernova).
+- Systematic debugging record: the shock first rendered as a uniform "bubble".
+  Hypothesis 1 (the outer particle layer causes it) was **rejected**: changing it had
+  no effect. Disabling the volume shell emission removed the bubble, which located
+  the cause. The filament mask thresholded the ridged noise channel, whose values
+  lie mostly above the threshold, so the mask was ≈ 1 everywhere. Fixed by
+  thresholding the fBm channel across its middle and dimming the front.
+- The NS ending camera was pulled back (56 → 76) so the larger asymmetric remnant
+  stays in frame.
+- Regression: unit tests 37/37; `--selftest` 0 failures; the standard review set is
+  intact (WD pathway unchanged). 1080p Balanced: supernova 13.88 ms, NS remnant
+  14.61 ms, black hole 11.11 ms (68–89 fps; +2–2.5 ms, because the remnant interior
+  is now sampled for ejecta emission). Other stages unchanged.

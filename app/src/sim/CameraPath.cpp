@@ -52,8 +52,8 @@ std::vector<Key> buildKeys(Pathway pathway, float starR) {
         k.push_back({at(0.25), 34.0f, 104.0f, 11.0f, 44.0f});
         k.push_back({at(0.31), 37.0f, 108.0f, 12.0f, 44.0f});
         k.push_back({at(0.50), 62.0f, 120.0f, 16.0f, 46.0f});
-        k.push_back({at(0.75), 62.0f, 134.0f, 17.0f, 46.0f});
-        k.push_back({at(1.00), 56.0f, 148.0f, 14.0f, 44.0f});
+        k.push_back({at(0.75), 66.0f, 134.0f, 17.0f, 46.0f});
+        k.push_back({at(1.00), 76.0f, 148.0f, 14.0f, 44.0f});
         break;
     case Pathway::BlackHole:
         k.push_back({at(0.25), 38.0f, 104.0f, 11.0f, 44.0f});

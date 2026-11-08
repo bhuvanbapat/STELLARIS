@@ -50,6 +50,7 @@ that implements it.
 | Chromosphere + structured corona | `corona.frag` (billboard, depth-tested) | thin reddish limb rim; smooth halo plus world-anchored radial streamers concentrated toward the stellar equator; flare brightening above the active region |
 | Prominence ribbons | `prominence.vert/.frag` | 3 instanced camera-facing triangle-strip arches anchored on active regions, depth-tested against the star; emission suppressed where seen against the disc (where real prominences appear dark) |
 | Typed particle species | `particles.vert`, `ParticleSystem` | five deterministic families (ambient dust, collapse infall → Keplerian disc, jet, final-stage ejecta, stellar wind), 290k particles. Jets: episodic knots sharing a launch phase (Gaussian-shaped clumps) inside a softer continuous outflow. Wind: radial outflow at constant presentation speed with mild streaming; hot-star or dusty-giant coloring |
+| Structured supernova remnant | `common.glsl` (`snShockRadius`, `snAsymmetry`), `particles.vert`, `volume.frag` | shared decelerating shock-radius law and fixed dipole + quadrupole asymmetry; volume: thin shock front with a sharp outer edge, broken into patches by a thresholded two-scale fBm mask, plus faint interior emission; particles: three stratified ejecta layers and radial "fingers" along 48 seeded directions (30 % of the ejecta) |
 | Back-lit external illumination | `CloudField::keyLightDirection`, `volume.frag` | light from behind the cloud: rim lighting, globules seen in silhouette |
 
 Measured cost and visual evidence: `VERIFICATION.md` §8.

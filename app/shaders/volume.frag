@@ -132,14 +132,30 @@ vec3 shellEmission(vec3 p) {
         vec3 col = mix(vec3(0.15, 0.85, 0.75), vec3(1.0, 0.28, 0.22), smoothstep(0.7, 1.0, rel));
         return col * shell * clumps * presence * uEjecta.w * 0.018;
     }
+    // Supernova: a thin shock front (sharp outer edge, softer inner edge) with
+    // filamentary brightness, plus faint emission from the ejecta inside it.
     float strength = uEjecta2.x;
-    float R = 0.6 + 30.0 * 0.75 * mix(0.75, 1.0, strength) * (1.0 - exp(-clock / 9.0));
-    float rel = length(p) / max(R, 0.5);
-    float shell = exp(-pow((rel - 0.95) / 0.09, 2.0));
-    vec3 col = mix(vec3(1.0, 0.30, 0.22), vec3(0.30, 0.80, 1.0), smoothstep(0.45, 0.65, n2.b));
-    float hot = exp(-clock / 2.5);
-    col = mix(col, vec3(1.0, 0.95, 0.9) * 3.0, hot);
-    return col * shell * clumps * presence * strength * 0.016;
+    float r = length(p);
+    vec3 dir = p / max(r, 1e-3);
+    float R = snShockRadius(clock, strength) * snAsymmetry(dir);
+    float rel = r / max(R, 0.5);
+    float front = smoothstep(0.91, 0.99, rel) * (1.0 - smoothstep(0.99, 1.015, rel));
+    // Patchy, filamentary rim: a ridged mask at two scales on the shell direction.
+    vec4 nf = noiseAt(dir * 0.9 + vec3(0.21, 0.0, clock * 0.0008));
+    vec4 nf2 = noiseAt(dir * 2.3 + vec3(0.0, 0.47, 0.13));
+    // Threshold the fBm channel (centred near 0.5) across its middle so the rim breaks
+    // into separate bright patches and dark gaps; edge-on limb brightening would
+    // otherwise smooth mild variation into a uniform bubble. (The ridged channel was
+    // tried first: its values sit mostly above any useful threshold.)
+    float filaments = 0.02 + 1.3 * smoothstep(0.53, 0.62, nf.r) * (0.3 + 1.2 * smoothstep(0.45, 0.6, nf2.r));
+    float interior = 0.22 * smoothstep(0.98, 0.45, rel) * smoothstep(0.1, 0.4, rel) * clumps;
+    vec3 shockCol = vec3(0.55, 0.75, 1.0);
+    vec3 ejectaCol = mix(vec3(1.0, 0.30, 0.22), vec3(0.30, 0.85, 0.65), smoothstep(0.45, 0.65, n2.b));
+    float hot = exp(-clock / 2.0);
+    float fade = 0.5 + 0.5 * exp(-clock / 25.0);
+    vec3 col = (shockCol * front * filaments + ejectaCol * interior) * fade;
+    col = mix(col, vec3(1.0, 0.95, 0.9) * front * 2.0, hot);
+    return col * presence * strength * 0.014;
 }
 
 // True when p is close enough to the analytic ejecta shell to need full sampling
@@ -152,9 +168,9 @@ bool nearShell(vec3 p) {
         float rel = (length(p) / (1.0 + 0.6 * dirY * dirY)) / (4.2 + 0.29 * clock);
         return rel > 0.35 && rel < 1.3;
     }
-    float R = 0.6 + 30.0 * 0.75 * mix(0.75, 1.0, uEjecta2.x) * (1.0 - exp(-clock / 9.0));
+    float R = snShockRadius(clock, uEjecta2.x);
     float rel = length(p) / max(R, 0.5);
-    return rel > 0.7 && rel < 1.25;
+    return rel > 0.05 && rel < 1.3;
 }
 
 float phaseHG(float cosTheta, float g) {

@@ -193,3 +193,10 @@ Prioritise deeper cloud morphology, volumetric quality, layered stellar renderin
   luminosity; slow dusty wind for giants) and episodic jet knots. VERIFICATION §8.5.
 - Lesson recorded: each random coordinate needs its own independent hash.
   Correlated seeds made curve and box artifacts twice (here and in the GLUT jets).
+
+## 2026-11-08 — Workstream F (supernova and remnant structure)
+
+- **Implemented and verified:** shared shock/asymmetry functions, a broken shock
+  rim, stratified ejecta, instability-inspired fingers, a fading persistent remnant.
+  VERIFICATION §8.6, including the debugging record.
+- Cost: +2–2.5 ms on remnant views (still ≥ 68 fps at 1080p Balanced).

@@ -224,23 +224,43 @@ void ejecta(vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {
         alpha = presence * smoothstep(0.0, 1.5, age) * (0.55 + 0.45 * step(0.35, clump.y));
         size = 0.10 + 0.10 * clump.z;
     } else {
-        // Supernova: clumpy, decelerating ejecta; hot and blue-white early,
-        // then filaments in hydrogen-alpha red and oxygen teal (artistic).
+        // Supernova ejecta behind the shock front, stratified in three layers
+        // (inner "oxygen-like" teal, middle "hydrogen-alpha-like" red, outer
+        // blue-white), with ~30 % of the material in radial fingers along 48 fixed
+        // directions. Instability-INSPIRED procedural morphology, not a solved
+        // Rayleigh-Taylor flow; colors are artistic.
         float strength = uEjecta2.x;
         if (s.w > mix(0.45, 1.0, saturate((strength - 0.35) / 0.65))) {
             p = vec3(0.0); col = vec3(0.0); alpha = 0.0; size = 0.0; return;
         }
-        vec3 clumpDir = hash33(floor(dir * 5.0)) * 2.0 - 1.0;
-        dir = normalize(dir + clumpDir * 0.35);
-        float v = (0.55 + 0.45 * s.x) * mix(0.75, 1.0, strength);
+        vec3 r3 = hash33(vec3(s.x * 6151.0, s.y * 3967.0, s.z * 2843.0));
         float age = clock;
-        float r = 0.6 + 30.0 * v * (1.0 - exp(-age / 9.0));
-        p = dir * r;
-        float hot = exp(-age / 2.5);
-        vec3 filament = mix(vec3(1.0, 0.32, 0.25), vec3(0.30, 0.85, 1.0), step(0.6, s.y));
-        col = mix(filament * 0.12, vec3(0.9, 0.95, 1.0) * 1.5, hot) * strength;
-        alpha = presence * (0.5 + 0.5 * smoothstep(0.3, 0.7, clumpDir.x * 0.5 + 0.5));
-        size = 0.14 + 0.3 * hot + 0.08 * s.z;
+        float shock = snShockRadius(age, strength);
+        bool finger = r3.x < 0.3;
+        float frac;
+        vec3 layerCol;
+        if (finger) {
+            vec3 fdir = normalize(hash33(vec3(floor(s.y * 48.0), 3.0, 7.0)) * 2.0 - 1.0);
+            dir = normalize(fdir + (hash33(vec3(s.z * 977.0, s.w * 331.0, 5.0)) - 0.5) * 0.07);
+            frac = mix(0.5, 0.97, r3.y);                 // spread along the finger
+            layerCol = mix(vec3(1.0, 0.30, 0.24), vec3(0.75, 0.85, 1.0), smoothstep(0.75, 0.97, frac));
+        } else {
+            vec3 clumpDir = hash33(floor(dir * 5.0)) * 2.0 - 1.0;
+            dir = normalize(dir + clumpDir * 0.3);
+            float layer = r3.y;
+            if (layer < 0.35)      { frac = mix(0.35, 0.60, r3.z); layerCol = vec3(0.30, 0.90, 0.65); }
+            else if (layer < 0.75) { frac = mix(0.60, 0.85, r3.z); layerCol = vec3(1.0, 0.30, 0.24); }
+            // Outer layer only in patches of directions: a full thin particle shell
+            // limb-brightens into a uniform "bubble"; patches read as a broken rim.
+            else if (hash33(floor(dir * 7.0) + 41.0).x < 0.35) { frac = mix(0.85, 0.97, r3.z); layerCol = vec3(0.60, 0.78, 1.0); }
+            else                   { frac = mix(0.60, 0.85, r3.z); layerCol = vec3(1.0, 0.30, 0.24); }
+        }
+        p = dir * shock * snAsymmetry(dir) * frac;
+        float hot = exp(-age / 2.0);
+        float fade = 0.55 + 0.45 * exp(-age / 25.0);           // persistent but fading remnant
+        col = mix(layerCol * 0.13 * fade, vec3(0.95, 0.95, 1.0) * 0.9, hot) * strength;
+        alpha = presence;
+        size = 0.11 + 0.18 * hot + 0.06 * s.z;
     }
 }
 

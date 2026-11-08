@@ -74,6 +74,13 @@ Selectable mass range: 1–40 M☉. Lower-mass stars live longer than about
 - **Jet knots (since 2026-11-08):** jets are drawn as discrete knots launched at a
   fixed cadence within a weaker continuous flow (episodic ejection, as in
   Herbig–Haro jets; illustrative timing).
+- **Supernova remnant structure (since 2026-11-08):** a forward shock front (with
+  a decelerating, presentation-timed radius), stratified ejecta behind it (inner
+  teal "oxygen-like", middle red "hydrogen-alpha-like", outer blue-white layers;
+  colors artistic), fixed large-scale asymmetry, clumps, and radial fingers. The
+  fingers are **instability-inspired procedural morphology**, not a solved
+  Rayleigh–Taylor flow or a hydrodynamic supernova. The white-dwarf pathway still
+  never shows a supernova (unit-tested).
 - **Collapse (volume):** a smooth prescribed mapping draws the cloud's inner
   density inward, with a Jacobian density gain, swirl and flattening. It is
   illustrative only.
@@ -165,7 +172,7 @@ The entries below are an expansion design register. They must not be merged into
 | Dipole magnetic-field lines | A specified analytical field geometry can be visualised with integrated field lines | `analytic field visualisation` | Self-consistent magnetohydrodynamics or a simulated magnetic dynamo |
 | Stellar spots/prominences/flares — **implemented 2026-11-08** (see §3) | Surface activity can be explained with localised structures and time-dependent emission | `procedural/parametric surface activity` | Solved convection, reconnection or plasma transport |
 | CME-like event | A surface-originating expanding structure can illustrate an ejection | `prescribed ejection visualisation` | A forecast or physical CME calculation |
-| Rayleigh–Taylor-like ejecta fingers | Irregular finger-like morphology can illustrate instability-shaped interfaces | `instability-inspired procedural morphology` | A numerically solved Rayleigh–Taylor instability |
+| Rayleigh–Taylor-like ejecta fingers — **implemented 2026-11-08 as procedural morphology** (see §3) | Irregular finger-like morphology can illustrate instability-shaped interfaces | `instability-inspired procedural morphology` | A numerically solved Rayleigh–Taylor instability |
 | Advanced volume scattering | More detailed light transport can improve the appearance of dusty gas | `rendering approximation` with documented parameters | A full wavelength-resolved radiative-transfer solution |
 | Multi-wavelength observation mode | Different bands reveal different observational information when genuine band data are used | `observational data view` with instrument/filter/source | A simulated X-ray/infrared/radio measurement when only a recoloured optical image is shown |
 | Comparative evolution tracks | Different model/data tracks can compare mass-dependent evolution | Identify each track as `simplified model` or named reference dataset | A precise prediction from a simplified lifetime scaling |
