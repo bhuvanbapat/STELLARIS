@@ -122,7 +122,7 @@ SceneState evaluateScene(double time, const ModelConfig& config) {
     s.infallClock  = static_cast<float>(std::max(0.0, t - tCollapse));
     s.coreGlow     = smooth(22, 44, t) * (1.0f - 0.8f * smooth(84, 102, t));
     s.cavity       = smooth(60, 80, t);
-    s.dispersal    = smooth(84, 106, t);
+    s.dispersal    = smooth(80, 96, t);
 
     // --- Central object ------------------------------------------------------
     const float msRadius   = visualStarRadius(s.ms.radiusSolar);

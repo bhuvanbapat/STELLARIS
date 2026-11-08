@@ -9,6 +9,7 @@
 // prescribed), not physical quantities. Scene distances are in arbitrary
 // "scene units" with compressed, symbolic scale.
 
+#include "sim/CloudField.h"
 #include "sim/StellarModel.h"
 #include "sim/Timeline.h"
 
@@ -21,6 +22,7 @@ namespace stellaris {
 struct ModelConfig {
     double massSolar = kDefaultMassSolar;  // initial stellar mass [M_sun], parameter
     double rotation  = 1.0;                // relative initial core rotation (dimensionless)
+    uint32_t cloudSeed = CloudField::kDefaultSeed;  // procedural cloud morphology seed
 
     static constexpr double kMinRotation = 0.6;
     static constexpr double kMaxRotation = 1.4;

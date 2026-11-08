@@ -34,6 +34,8 @@ public:
     bool init(const std::filesystem::path& shaderDir, int width, int height);
     void resize(int width, int height);
     bool reloadShaders();
+    // Uploads the baked cloud structure and rebuilds the particles that follow it.
+    void setCloud(const CloudField& cloud);
 
     // lensShiftX shifts the projection center horizontally in NDC units, used to
     // compose the subject to the right of the information panel.
@@ -77,6 +79,7 @@ private:
 
     // Resources
     gl::Texture noise3d_;
+    gl::Texture cloudStructure_;  // RGBA16F: envelope, filament, core, globule
     gl::Texture blackbodyLut_;
     gl::Buffer  frameUbo_;
     gl::Framebuffer hdrFbo_;

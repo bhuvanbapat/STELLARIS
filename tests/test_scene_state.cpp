@@ -166,9 +166,10 @@ TEST(stage_content_is_complete) {
 TEST(particle_generation_is_deterministic) {
     ParticleCounts small;
     small.ambient = 2000; small.core = 3000; small.jet = 500; small.ejecta = 700;
-    const auto a = generateParticles(small, 7u);
-    const auto b = generateParticles(small, 7u);
-    const auto c = generateParticles(small, 8u);
+    const CloudField cloud = CloudField::build(1u, 32);
+    const auto a = generateParticles(small, 7u, cloud);
+    const auto b = generateParticles(small, 7u, cloud);
+    const auto c = generateParticles(small, 8u, cloud);
     CHECK(static_cast<int>(a.size()) == small.total());
     CHECK(a.size() == b.size() && std::memcmp(a.data(), b.data(), a.size() * sizeof(ParticleVertex)) == 0);
     CHECK(std::memcmp(a.data(), c.data(), a.size() * sizeof(ParticleVertex)) != 0);

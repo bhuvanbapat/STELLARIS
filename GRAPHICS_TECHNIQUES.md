@@ -8,7 +8,7 @@ that implements it.
 | Technique | Where | Notes |
 |---|---|---|
 | Compute shader texture synthesis | `shaders/noise3d.comp` | 128³ RGBA16F tileable noise volume (gradient fBm, Worley fBm, ridged fBm) generated on the GPU at startup with integer hashing |
-| Volumetric ray marching | `shaders/volume.frag` | 72 fixed-length steps with per-pixel interleaved-gradient jitter; early exit at 1 % transmittance |
+| Volumetric ray marching | `shaders/volume.frag` | up to 96 fixed-length steps (72 before 2026-11-08) with per-pixel interleaved-gradient jitter; early exit at 1 % transmittance |
 | Single scattering with shadow rays | `volume.frag` | two lights: a distant external field and the central star; 4-sample optical-depth march toward each |
 | Henyey–Greenstein phase function | `volume.frag` | forward scattering (g = 0.35 / 0.45) |
 | Wavelength-dependent extinction | `volume.frag` | dust attenuates blue more than red (reddening) |
@@ -35,6 +35,18 @@ that implements it.
 | Uniform buffer objects | `common.glsl`, `Renderer.cpp` | std140 per-frame block shared by all programs |
 | Direct state access, debug output, timer queries | `gfx/`, `Renderer.cpp` | GL 4.5 DSA, `GL_KHR_debug`, `GL_TIME_ELAPSED` |
 | Shader preprocessing and hot reload | `gfx/Shader.cpp` | `#include` expansion; F5 reloads and keeps the old program on error |
+
+### Expansion techniques added 2026-11-08 — implemented and verified
+
+| Technique | Where | Notes |
+|---|---|---|
+| Seeded multi-component cloud structure field | `sim/CloudField.*` | CPU-evaluated envelope (blob union + value-noise modulation + voids), hub-filament network (Bézier centerlines, Plummer-like transverse profile, branches), dense core + condensations, cometary globules; baked multi-threaded to a 128³ grid (~0.45 s) and uploaded as an RGBA16F 3D texture (16 MiB). Particles sample the same grid. |
+| Per-component density treatment | `volume.frag` (`baseDensity`) | envelope strongly eroded by noise, filaments textured, core/globules compact |
+| Coarse density for shadow rays | `volume.frag` (`densityCoarse`) | structure field without fine noise for the 8 light samples per step; rendering approximation |
+| Empty-space skipping (shell-aware) | `volume.frag` | 2× step where the structure is empty and no ejecta shell is near; fixed step inside the cloud |
+| Back-lit external illumination | `CloudField::keyLightDirection`, `volume.frag` | light from behind the cloud: rim lighting, globules seen in silhouette |
+
+Measured cost and visual evidence: `VERIFICATION.md` §8.
 
 ## GLUT demonstration (`glut_demo/src/main.cpp`, fixed-function OpenGL)
 

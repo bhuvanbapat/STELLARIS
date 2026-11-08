@@ -291,3 +291,41 @@ Use representative worst-case tests: densest cloud, brightest stellar atmosphere
 ### 7.13 Evidence and completion rule
 
 A feature can move to `implemented and verified` only when the applicable tests above are run against the actual executable, results are recorded, visual evidence is retained, and the related current-state documentation is updated. Planned checks, code review, successful compilation and attractive screenshots alone are insufficient.
+
+---
+
+## 8. Expansion verification results (recorded 2026-11-08)
+
+Results in this section belong to the code state of the commit that records them.
+§§1–6 remain the historical record for 2026-11-02.
+
+### 8.1 Entry gate (IMPLEMENTATION_PLAN §19.1), before any expansion change
+
+Release build clean; unit tests 28/28; `--selftest` 0 failures; 1920×1080 benchmark
+(vsync off) 76–168 fps, GPU 5.91–13.19 ms (cloud 5.91, collapse 8.35, protostar 8.08,
+disc 7.58, main sequence 9.44, WD nebula 10.95, supernova 11.28, NS remnant 10.25,
+black hole 13.19). This matches the 2026-11-02 record. Baseline captures of the
+standard review set (six stages; 15 and 40 M☉ endings) were taken for comparison.
+
+### 8.2 Workstream A — structured molecular cloud (implemented and verified)
+
+- Unit tests (7 new; 35/35 total): same seed is bitwise identical; different seeds
+  differ; all values finite, non-negative and ≤ 1.25; the dense core is > 0.95 at the
+  hub and > 2× the mean at r = 30; filaments are strong on their centerlines and
+  weak 10 units sideways; the baked grid equals exact evaluation at voxel centers;
+  ambient particles sit in > 2× denser field than uniform samples.
+- Visual: wide shots for seeds 1, 2 and 3 show distinct envelopes, filament
+  streaks converging on the core, a darker dense core, and rim-lit cometary
+  globules in silhouette. Collapse, protostar and disc stages still read. No step
+  banding from empty-space skipping was visible in the standard review set.
+- First implementation measured 15.8–28.1 ms GPU at 1080p, over budget. After
+  coarse shadow density, central-shadow skip and shell-aware empty-space skipping:
+  cloud 6.56, collapse 7.67, protostar 7.44, disc 6.96, main sequence 7.42,
+  WD nebula 12.80, supernova 11.75, NS remnant 12.80, black hole 9.22 ms
+  (78–151 fps). Stages 1–5 are faster than the baseline; stage-6 nebula/remnant
+  views are ~1.5–2.5 ms slower than baseline but within the 60 fps budget.
+- Stage-5 haze regression found and fixed: the feedback-clearing term now reaches
+  further and starts earlier (80–96 s), and the stage-5 camera was raised to 18–20°.
+- Cloud bake time 445–580 ms per seed change (logged at startup and on change).
+- Not yet done for A: a reduced-resolution aliasing comparison (planned with the
+  quality tiers in Workstream B/I).

@@ -1,7 +1,8 @@
 #version 450
 // Ray-marched volumetric molecular cloud (rendered at reduced resolution).
 //
-// Density: procedural filament + dense core + clumps, eroded by 3D noise.
+// Density: seeded structure field (envelope, filaments, core, globules; see
+//   sim/CloudField) eroded by 3D noise detail.
 // Collapse: the density at a point is read from a larger "source" radius
 //   (r0 = r * h(r)), so material appears drawn inward, inside-out, with a
 //   Jacobian brightening of the center, a swirl (angular momentum) and a
@@ -19,52 +20,46 @@ layout(binding = 0) uniform sampler3D uNoise;
 layout(binding = 1) uniform sampler2D uSceneDepth;
 uniform int uSteps;
 
-const float CLOUD_R = 46.0;
-const vec3  KEY_DIR = normalize(vec3(-0.55, 0.62, 0.40));  // toward the external light
+uniform vec3 uKeyDir;  // toward the external light (CloudField::keyLightDirection: behind the cloud)
+#define KEY_DIR uKeyDir
 const vec3  EXTINCTION_TINT = vec3(0.80, 1.0, 1.22);       // dust extinguishes blue more
 
 vec4 noiseAt(vec3 p) { return texture(uNoise, p); }
 
-// Large-scale cloud structure (no small-scale detail).
-float cloudShape(vec3 p) {
-    // Curved filament through the origin.
-    vec3 axis = normalize(vec3(1.0, 0.22, -0.38));
-    float s = dot(p, axis);
-    vec3 perp = p - axis * s;
-    perp += vec3(0.0, 4.0 * sin(s * 0.06), 3.0 * cos(s * 0.045 + 1.0));
-    float width = 9.0 + 3.0 * sin(s * 0.09 + 2.0);
-    float filament = exp(-dot(perp, perp) / (2.0 * width * width)) * exp(-pow(s / 44.0, 2.0));
+// Large-scale structure baked on the CPU from a seed (sim/CloudField):
+// r = envelope, g = filament network, b = dense core + condensations, a = globules.
+// Normalized, dimensionless procedural densities.
+layout(binding = 2) uniform sampler3D uCloudStructure;
+uniform float uCloudExtent;
+vec4 structureAt(vec3 p) { return texture(uCloudStructure, p / (2.0 * uCloudExtent) + 0.5); }
 
-    float core = exp(-dot(p, p) / (2.0 * 7.5 * 7.5));
-    vec3 c1 = p - vec3(-20.0, 7.0, 10.0);
-    vec3 c2 = p - vec3(22.0, -6.0, -8.0);
-    vec3 c3 = p - vec3(6.0, 12.0, 18.0);
-    float clumps = 0.7 * exp(-dot(c1, c1) / 110.0) + 0.6 * exp(-dot(c2, c2) / 90.0) +
-                   0.35 * exp(-dot(c3, c3) / 70.0);
-    return max(filament * 1.1 + core * 0.75, clumps);
-}
-
-// Undisturbed cloud density at position p (before collapse mapping).
+// Undisturbed cloud density at position p (before collapse mapping). Each
+// component receives its own treatment of the shared noise detail: the envelope
+// is strongly eroded into wisps, filaments keep their ridge but gain texture,
+// the core and globules stay compact.
 float baseDensity(vec3 p, float drift) {
-    vec3 warpP = p * 0.010 + vec3(0.0, 0.0, drift);
-    vec3 warp = (noiseAt(warpP).gba - 0.5) * 14.0;
+    vec3 warp = (noiseAt(p * 0.012 + vec3(0.0, 0.0, drift)).gba - 0.5) * 5.0;
     vec3 q = p + warp;
-    float shape = cloudShape(q);
-    if (shape < 0.02) return 0.0;
+    vec4 s = structureAt(q);
+    if (s.r + s.g + s.b + s.a < 0.015) return 0.0;
     vec4 n1 = noiseAt(q * 0.016 + vec3(drift * 0.5, 0.0, 0.0));
     vec4 n2 = noiseAt(q * 0.052 - vec3(0.0, drift, 0.0));
     vec4 n3 = noiseAt(q * 0.13 + vec3(0.0, 0.0, drift));
-    // Billowy cells plus ridged filaments; the fine octave erodes the edges.
     float detail = n1.r * 0.58 + n2.g * 0.26 + n2.a * 0.16 + (n3.a - 0.5) * 0.16;
-    float d = saturate(remap(detail, 1.0 - shape * 0.85, 1.0, 0.0, 1.0));
-    return d * d * 2.2;
+    float env = saturate(remap(detail, 1.0 - s.r * 0.85, 1.0, 0.0, 1.0));
+    env = env * env * 1.6;
+    float fil = s.g * saturate(0.35 + 1.1 * detail) * 1.5;
+    float core = s.b * (0.75 + 0.5 * detail) * 1.4;
+    float glob = s.a * 3.0;
+    return env + fil + core + glob;
 }
 
-// Collapse mapping and outflow carving. Returns density at current position p.
-float density(vec3 p) {
+// Collapse mapping and outflow carving, shared by the full and the coarse density.
+// q: where in the undisturbed cloud the material now at p came from;
+// gain: Jacobian density increase from contraction; mask: clearing/cavity/feedback.
+struct Mapped { vec3 q; float gain; float mask; };
+Mapped collapseMap(vec3 p) {
     float collapse = uCloud.y;
-    float drift = TIME * 0.0012;
-
     float r = length(p);
     float A = 4.0 * collapse;
     float L = 7.0;
@@ -80,20 +75,40 @@ float density(vec3 p) {
     q.y *= 1.0 + collapse * 1.8 * exp(-r / 11.0);
     q *= h;
 
-    float d = baseDensity(q, drift) * min(sqrt(jac), 4.0);
-
     // Inner envelope is accreted / cleared as the disc and star form.
     float clear = uCloud.w;
-    d *= mix(1.0, smoothstep(2.0, 14.0, r), clear * 0.85);
+    float mask = mix(1.0, smoothstep(2.0, 14.0, r), clear * 0.85);
     // Bipolar outflow cavities along the rotation axis.
     float cosAxis = abs(p.y) / max(r, 1e-3);
     float coneCos = cos(radians(mix(8.0, 34.0, clear)));
-    d *= mix(1.0, 0.06, clear * smoothstep(coneCos - 0.06, coneCos + 0.04, cosAxis) * smoothstep(1.0, 4.0, r));
+    mask *= mix(1.0, 0.06, clear * smoothstep(coneCos - 0.06, coneCos + 0.04, cosAxis) * smoothstep(1.0, 4.0, r));
     // Feedback from the star blows the envelope outward and thins it.
-    float disp = uCloud2.x;
-    d *= 1.0 - disp * 0.75 * exp(-r / 18.0);
+    mask *= 1.0 - uCloud2.x * 0.93 * exp(-r / 28.0);
 
-    return d * uCloud.x;
+    return Mapped(q, min(sqrt(jac), 4.0), mask * uCloud.x);
+}
+
+// Full density (structure + noise detail) for the view ray.
+float density(vec3 p) {
+    Mapped m = collapseMap(p);
+    if (m.mask <= 0.0) return 0.0;
+    return baseDensity(m.q, TIME * 0.0012) * m.gain * m.mask;
+}
+
+// Coarse density for shadow rays: the structure field with the noise detail
+// replaced by its typical contribution. Shadows are soft, so the missing detail is
+// barely visible there; this is a documented rendering approximation.
+float densityCoarse(vec3 p) {
+    Mapped m = collapseMap(p);
+    if (m.mask <= 0.0) return 0.0;
+    vec4 s = structureAt(m.q);
+    return (s.r * s.r * 0.55 + s.g * 0.9 + s.b * 1.4 + s.a * 3.0) * m.gain * m.mask;
+}
+
+// True when the undisturbed structure is empty near p (used to take larger steps).
+bool emptyAt(vec3 p) {
+    vec4 s = structureAt(collapseMap(p).q);
+    return s.r + s.g + s.b + s.a < 0.01;
 }
 
 // Emission from final-stage ejecta: a thin, clumpy shell whose radius follows
@@ -127,6 +142,21 @@ vec3 shellEmission(vec3 p) {
     return col * shell * clumps * presence * strength * 0.016;
 }
 
+// True when p is close enough to the analytic ejecta shell to need full sampling
+// (mirrors the shell radii used in shellEmission).
+bool nearShell(vec3 p) {
+    if (uEjecta.x <= 0.0) return false;
+    float clock = uEjecta.y;
+    if (uEjecta.z < 0.5) {
+        float dirY = abs(p.y) / max(length(p), 1e-3);
+        float rel = (length(p) / (1.0 + 0.6 * dirY * dirY)) / (4.2 + 0.29 * clock);
+        return rel > 0.35 && rel < 1.3;
+    }
+    float R = 0.6 + 30.0 * 0.75 * mix(0.75, 1.0, uEjecta2.x) * (1.0 - exp(-clock / 9.0));
+    float rel = length(p) / max(R, 0.5);
+    return rel > 0.7 && rel < 1.25;
+}
+
 float phaseHG(float cosTheta, float g) {
     float g2 = g * g;
     return (1.0 - g2) / (4.0 * PI * pow(1.0 + g2 - 2.0 * g * cosTheta, 1.5));
@@ -136,7 +166,7 @@ float phaseHG(float cosTheta, float g) {
 float opticalDepth(vec3 from, vec3 dir, float len) {
     float tau = 0.0;
     const float f[4] = float[](0.08, 0.22, 0.45, 0.80);
-    for (int i = 0; i < 4; ++i) tau += density(from + dir * (f[i] * len));
+    for (int i = 0; i < 4; ++i) tau += densityCoarse(from + dir * (f[i] * len));
     return tau * len * 0.25;
 }
 
@@ -157,7 +187,7 @@ void main() {
     vec3 ro = uCamPos.xyz;
     vec3 rd = normalize(farP.xyz / farP.w - ro);
 
-    vec2 hit = sphereHit(ro, rd, CLOUD_R);
+    vec2 hit = sphereHit(ro, rd, uCloudExtent);
     float tNear = max(hit.x, 0.0), tFar = hit.y;
 
     // Stop at opaque geometry (the star) using the full-resolution depth buffer.
@@ -170,7 +200,7 @@ void main() {
 
     // Fixed step length: the sample pattern must not depend on where the ray
     // ends (otherwise the star's silhouette shows up as banding in the cloud).
-    float stepLen = 2.0 * CLOUD_R / float(uSteps);
+    float stepLen = 2.0 * uCloudExtent / float(uSteps);
     float t = tNear + stepLen * ign(gl_FragCoord.xy);
 
     const float SIGMA = 0.26;  // extinction per unit density per scene unit
@@ -185,8 +215,12 @@ void main() {
     float cosKey = dot(rd, KEY_DIR);
     float phaseKey = phaseHG(cosKey, 0.35) * 4.0 * PI * 0.5 + 0.5;
 
+    // Empty-space skipping: where the structure field is empty, advance two steps
+    // at once (still bounded by uSteps iterations). Inside the cloud the step stays
+    // fixed, so the sample pattern does not depend on where the ray ends.
     for (int i = 0; i < uSteps && t < tFar; ++i) {
         vec3 p = ro + rd * t;
+        if (emptyAt(p) && !nearShell(p)) { t += 2.0 * stepLen; continue; }
         float d = density(p);
         radiance += transmittance * shellEmission(p) * stepLen;
         if (d > 0.002) {
@@ -199,11 +233,14 @@ void main() {
             // Central source (inverse-square with softening), shadowed by the
             // gas between the point and the center.
             float r = length(p);
-            vec3 toC = -p / max(r, 1e-3);
-            float tauC = opticalDepth(p, toC, r * 0.92) * SIGMA;
-            float fall = centralPower / (1.0 + r * r * 0.035);
-            float phaseC = phaseHG(dot(rd, toC), 0.45) * 4.0 * PI * 0.6 + 0.4;
-            vec3 lightC = glowColor * fall * exp(-tauC * EXTINCTION_TINT * 1.6) * phaseC;
+            vec3 lightC = vec3(0.0);
+            if (centralPower > 0.005) {  // no shadow march while the central source is off
+                vec3 toC = -p / max(r, 1e-3);
+                float tauC = opticalDepth(p, toC, r * 0.92) * SIGMA;
+                float fall = centralPower / (1.0 + r * r * 0.035);
+                float phaseC = phaseHG(dot(rd, toC), 0.45) * 4.0 * PI * 0.6 + 0.4;
+                lightC = glowColor * fall * exp(-tauC * EXTINCTION_TINT * 1.6) * phaseC;
+            }
 
             // Faint ambient sky light keeps shadowed regions from going pure black.
             vec3 ambient = vec3(0.020, 0.024, 0.055) * (0.6 + 0.4 * saturate(p.y / 30.0 + 0.5));

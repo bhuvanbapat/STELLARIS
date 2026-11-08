@@ -54,6 +54,7 @@ private:
     int  runBenchmark();
     void toggleFullscreen();
     void resetAll();
+    void rebuildCloudIfNeeded(bool force);
 
     // GLFW callbacks (static trampolines -> instance).
     static void onKey(GLFWwindow* w, int key, int scancode, int action, int mods);
@@ -69,6 +70,7 @@ private:
     Playback    playback_;
     ModelConfig config_;
     SceneState  scene_;
+    CloudField  cloud_;  // baked procedural cloud for config_.cloudSeed
     UserCameraOffset cameraOffset_;
     float       lensShift_ = 0.0f;
 

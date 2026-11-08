@@ -32,6 +32,7 @@ app/
     SceneState     evaluateScene(time, config): every visual parameter, pure function
     CameraPath     authored Catmull-Rom camera(time, pathway) + user orbit offset
     StageContent   on-screen scientific text per stage
+    CloudField     seeded procedural cloud structure (envelope, filaments, core, globules), baked to a grid
   src/gfx/      OpenGL helpers: RAII handles, Shader (with #include, hot reload), procedural meshes
   src/render/   Renderer (all passes), ParticleSystem (static attributes, deterministic seed)
   src/ui/       Dear ImGui panels, transport controls, timeline, 3D annotations
@@ -75,7 +76,8 @@ boundaries.
 
 1. **Sky**: full-screen procedural star field and galactic dust band → HDR target (RGBA16F).
 2. **Opaque bodies**: star / protostar / giant sphere and compact remnant (depth written).
-3. **Volume**: ray-marched molecular cloud plus nebula/remnant shell emission, at
+3. **Volume**: ray-marched molecular cloud (structure from the baked `CloudField`
+   3D texture plus noise detail) plus nebula/remnant shell emission, at
    half resolution (RGBA16F, premultiplied), then composited over the HDR target.
 4. **Transparent structures**: accretion disc (5 instanced layers, premultiplied
    alpha), 276,000 deterministic GPU particles (additive point sprites), pulsar

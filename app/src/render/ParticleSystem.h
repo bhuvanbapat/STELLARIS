@@ -4,6 +4,7 @@
 // these attributes and the timeline time (see shaders/particles.vert).
 
 #include "gfx/GL.h"
+#include "sim/CloudField.h"
 
 #include <cstdint>
 #include <vector>
@@ -24,11 +25,13 @@ struct ParticleCounts {
 };
 
 // Pure CPU generation (unit-testable): same seed -> identical output.
-std::vector<ParticleVertex> generateParticles(const ParticleCounts& counts, uint32_t seed);
+// Ambient gas follows the envelope and filaments of `cloud`.
+std::vector<ParticleVertex> generateParticles(const ParticleCounts& counts, uint32_t seed, const CloudField& cloud);
 
 class ParticleSystem {
 public:
-    void init(const ParticleCounts& counts = {}, uint32_t seed = 20261102u);
+    // (Re)builds the particle buffer; called again when the cloud seed changes.
+    void init(const CloudField& cloud, const ParticleCounts& counts = {}, uint32_t seed = 20261102u);
     void draw() const;
     int count() const { return count_; }
 

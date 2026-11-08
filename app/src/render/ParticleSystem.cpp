@@ -20,27 +20,6 @@ struct Rng {
     float range(float a, float b) { return a + (b - a) * uniform(); }
 };
 
-// CPU twin of cloudShape() in shaders/volume.frag (large-scale structure only),
-// used so ambient particles follow the same filament and clumps as the volume.
-float cloudShape(float x, float y, float z) {
-    const float ax = 1.0f, ay = 0.22f, az = -0.38f;
-    const float an = std::sqrt(ax * ax + ay * ay + az * az);
-    const float s = (x * ax + y * ay + z * az) / an;
-    float px = x - ax / an * s, py = y - ay / an * s, pz = z - az / an * s;
-    py += 4.0f * std::sin(s * 0.06f);
-    pz += 3.0f * std::cos(s * 0.045f + 1.0f);
-    const float width = 9.0f + 3.0f * std::sin(s * 0.09f + 2.0f);
-    const float d2 = px * px + py * py + pz * pz;
-    const float filament = std::exp(-d2 / (2.0f * width * width)) * std::exp(-(s / 44.0f) * (s / 44.0f));
-    const float core = std::exp(-(x * x + y * y + z * z) / (2.0f * 7.5f * 7.5f));
-    auto blob = [&](float cx, float cy, float cz, float k) {
-        const float dx = x - cx, dy = y - cy, dz = z - cz;
-        return std::exp(-(dx * dx + dy * dy + dz * dz) / k);
-    };
-    const float clumps = std::max({0.7f * blob(-20, 7, 10, 110), 0.6f * blob(22, -6, -8, 90), 0.35f * blob(6, 12, 18, 70)});
-    return std::max(filament * 0.85f + core * 0.9f, clumps);
-}
-
 void push(std::vector<ParticleVertex>& out, float x, float y, float z, int population, Rng& rng) {
     ParticleVertex v{};
     v.pos[0] = x; v.pos[1] = y; v.pos[2] = z; v.pos[3] = static_cast<float>(population);
@@ -50,18 +29,22 @@ void push(std::vector<ParticleVertex>& out, float x, float y, float z, int popul
 
 } // namespace
 
-std::vector<ParticleVertex> generateParticles(const ParticleCounts& counts, uint32_t seed) {
+std::vector<ParticleVertex> generateParticles(const ParticleCounts& counts, uint32_t seed, const CloudField& cloud) {
     Rng rng(seed);
     std::vector<ParticleVertex> out;
     out.reserve(static_cast<size_t>(counts.total()));
 
-    // Ambient cloud gas: rejection-sampled from the cloud shape, outside the core.
-    for (int n = 0; n < counts.ambient;) {
-        const float x = rng.range(-48, 48), y = rng.range(-30, 30), z = rng.range(-40, 40);
+    // Ambient cloud gas: rejection-sampled from the same envelope + filament field the
+    // volume renderer uses, outside the collapsing core. The attempt cap only guards
+    // against a degenerate (empty) field.
+    for (int n = 0, attempts = 0; n < counts.ambient && attempts < counts.ambient * 400; ++attempts) {
+        const float e = CloudField::kExtent * 0.95f;
+        const float x = rng.range(-e, e), y = rng.range(-e * 0.6f, e * 0.6f), z = rng.range(-e * 0.8f, e * 0.8f);
         const float r = std::sqrt(x * x + y * y + z * z);
         if (r < kCoreRadius * 0.85f) continue;
-        const float p = cloudShape(x, y, z);
-        if (rng.uniform() > p * p * 1.3f) continue;
+        const CloudComponents c = cloud.sample({x, y, z});
+        const float p = std::min(c.envelope * 0.8f + c.filament, 1.0f);
+        if (rng.uniform() > p * p * 1.2f) continue;
         push(out, x, y, z, 0, rng);
         ++n;
     }
@@ -80,8 +63,8 @@ std::vector<ParticleVertex> generateParticles(const ParticleCounts& counts, uint
     return out;
 }
 
-void ParticleSystem::init(const ParticleCounts& counts, uint32_t seed) {
-    const std::vector<ParticleVertex> data = generateParticles(counts, seed);
+void ParticleSystem::init(const CloudField& cloud, const ParticleCounts& counts, uint32_t seed) {
+    const std::vector<ParticleVertex> data = generateParticles(counts, seed, cloud);
     count_ = static_cast<int>(data.size());
 
     vao_ = gl::createVertexArray();

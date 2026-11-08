@@ -37,8 +37,8 @@ std::vector<Key> buildKeys(Pathway pathway, float starR) {
         {70.0, 30.0f, 44.0f, 23.0f, 45.0f},
         {82.0, 25.0f, 62.0f, 18.0f, 45.0f},
         // Stage 5: portrait of the main-sequence star.
-        {89.0, ms * 1.1f, 74.0f, 9.0f, 42.0f},
-        {100.0, ms, 88.0f, 8.0f, 42.0f},
+        {89.0, ms * 1.1f, 74.0f, 20.0f, 42.0f},
+        {100.0, ms, 88.0f, 18.0f, 42.0f},
     };
     // Stage 6 (timeline 100-148) depends on the evolutionary pathway.
     auto at = [](double u) { return 100.0 + 48.0 * u; };

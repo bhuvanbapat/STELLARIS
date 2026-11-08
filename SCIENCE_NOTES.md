@@ -43,6 +43,15 @@ Selectable mass range: 1–40 M☉. Lower-mass stars live longer than about
   Keplerian rotation ω ∝ r^−1.5 with an exponential inward drift (a
   prescribed stand-in for viscous accretion). No pressure, magnetic fields,
   turbulence, self-gravity or hydrodynamics are computed.
+- **Cloud structure (since 2026-11-08):** a seeded procedural field with separately
+  identifiable components: an irregular envelope with voids, a hub-filament network
+  converging on the dense core (filaments have a Plummer-like transverse profile),
+  secondary condensations, and cometary globules whose tails point away from the
+  external light. All values are **normalized, dimensionless** visual densities: a
+  procedural density structure, not a turbulent-cloud or self-gravity solution. The
+  UI says "Procedural hub-filament cloud (illustrative, not a measured region)". The
+  hub-filament arrangement and cometary globule shapes are inspired by observed
+  morphology; no specific region is reproduced.
 - **Collapse (volume):** a smooth prescribed mapping draws the cloud's inner
   density inward, with a Jacobian density gain, swirl and flattening. It is
   illustrative only.
@@ -126,7 +135,7 @@ The entries below are an expansion design register. They must not be merged into
 
 | Proposed capability | Scientific meaning that may be communicated | Current/required status language | What must not be claimed |
 |---|---|---|---|
-| Filamentary molecular-cloud morphology | Molecular clouds contain structured, non-uniform density regions; procedural filaments help visualise this morphology | `procedural density structure` unless calibrated/derived from data | A calculated turbulent molecular-cloud solution |
+| Filamentary molecular-cloud morphology — **implemented 2026-11-08** (see §3) | Molecular clouds contain structured, non-uniform density regions; procedural filaments help visualise this morphology | `procedural density structure` unless calibrated/derived from data | A calculated turbulent molecular-cloud solution |
 | Multiple dense cores | A cloud region can contain multiple condensations; a selected preset can demonstrate different core arrangements | `scenario preset` or `procedural core distribution` | Self-consistent gravitational fragmentation |
 | Triggered-compression scene | An external compression front can be used to illustrate a possible route to enhanced density | `illustrative compression scenario` | Proof that the displayed shock caused star formation |
 | Binary protostar scene | Two protostellar components and their shared environment can be visualised | `prescribed binary configuration` unless a validated orbit/fragmentation model is added | A resolved binary fragmentation or hydrodynamics calculation |

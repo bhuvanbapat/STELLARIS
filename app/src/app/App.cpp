@@ -51,6 +51,7 @@ void printUsage() {
         "  --play                   start playing immediately\n"
         "  --mass M                 initial stellar mass in solar masses (1-40)\n"
         "  --rotation R             relative core rotation (0.6-1.4)\n"
+        "  --seed N                 cloud morphology seed (default 1)\n"
         "  --hide-ui                start with the interface hidden\n"
         "  --capture DIR T1,T2,...  render the listed times to DIR/*.png and exit\n"
         "  --selftest               run automated playback/seek checks and exit\n"
@@ -88,6 +89,7 @@ bool parseOptions(int argc, char** argv, AppOptions& o) {
         else if (a == "--height" && number(i, v)) o.height = static_cast<int>(v);
         else if (a == "--time" && number(i, v)) o.startTime = v;
         else if (a == "--mass" && number(i, v)) o.config.massSolar = std::clamp(v, kMinMassSolar, kMaxMassSolar);
+        else if (a == "--seed" && number(i, v)) o.config.cloudSeed = static_cast<uint32_t>(std::max(v, 0.0));
         else if (a == "--rotation" && number(i, v))
             o.config.rotation = std::clamp(v, ModelConfig::kMinRotation, ModelConfig::kMaxRotation);
         else if (a == "--fullscreen") o.fullscreen = true;
@@ -178,6 +180,7 @@ int App::run() {
         log::error("Renderer initialization failed (shader directory: {}).", shaderDir.string());
         return 1;
     }
+    rebuildCloudIfNeeded(true);
     float xscale = 1.0f, yscale = 1.0f;
     glfwGetWindowContentScale(window_, &xscale, &yscale);
     if (!ui_.init(window_, xscale)) return 1;
@@ -223,7 +226,17 @@ void App::frame(double realDt) {
     }
 }
 
+void App::rebuildCloudIfNeeded(bool force) {
+    if (!force && cloud_.seed() == config_.cloudSeed && cloud_.resolution() > 0) return;
+    const auto start = std::chrono::steady_clock::now();
+    cloud_ = CloudField::build(config_.cloudSeed);
+    renderer_->setCloud(cloud_);
+    log::info("Cloud rebuilt in {:.0f} ms",
+              std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count());
+}
+
 void App::renderScene() {
+    rebuildCloudIfNeeded(false);
     int fbw = 0, fbh = 0;
     glfwGetFramebufferSize(window_, &fbw, &fbh);
     if (fbw <= 0 || fbh <= 0) return;  // minimized

@@ -53,7 +53,7 @@ void ambient(vec3 p0, vec4 s, out vec3 p, out vec3 col, out float alpha, out flo
     float disp = uCloud2.x;
     p *= 1.0 + disp * 0.45 * exp(-length(p0) / 30.0);
     float r = length(p);
-    float key = 0.55 + 0.45 * dot(normalize(p0 + 1e-3), normalize(vec3(-0.55, 0.62, 0.40)));
+    float key = 0.55 + 0.45 * dot(normalize(p0 + 1e-3), normalize(vec3(-0.45, 0.55, -0.70)));
     col = mix(vec3(0.20, 0.24, 0.48), vec3(0.42, 0.20, 0.42), s.z) * 0.03 * key;
     // Warm light from the central source on nearby gas.
     float src = uCentral.x * uCentral.z * 0.6 + uCloud.z * 0.4;

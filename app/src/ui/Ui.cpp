@@ -404,6 +404,18 @@ void Ui::drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests
     ImGui::PopStyleColor();
 
     ImGui::Spacing();
+    ImGui::TextUnformatted("Cloud structure");
+    ImGui::SameLine();
+    if (ImGui::SmallButton("<##seed") && config.cloudSeed > 1) --config.cloudSeed;
+    ImGui::SameLine();
+    ImGui::Text("seed %u", config.cloudSeed);
+    ImGui::SameLine();
+    if (ImGui::SmallButton(">##seed")) ++config.cloudSeed;
+    ImGui::PushStyleColor(ImGuiCol_Text, kTextFaint);
+    ImGui::TextWrapped("Procedural hub-filament cloud (illustrative, not a measured region).");
+    ImGui::PopStyleColor();
+
+    ImGui::Spacing();
     ImGui::Checkbox("3D labels", &labels_);
     ImGui::SameLine();
     if (ImGui::Button(cameraOffset ? "Recenter camera *" : "Recenter camera")) req.recenterCamera = true;

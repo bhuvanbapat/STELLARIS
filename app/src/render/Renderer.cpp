@@ -14,7 +14,7 @@ namespace stellaris {
 namespace {
 
 constexpr int kNoiseSize      = 128;
-constexpr int kVolumeSteps    = 72;
+constexpr int kVolumeSteps    = 96;
 constexpr int kBloomMips      = 6;
 constexpr int kDiscLayers     = 5;
 constexpr int kBlackbodyLutN  = 256;
@@ -96,9 +96,8 @@ bool Renderer::init(const std::filesystem::path& shaderDir, int width, int heigh
 
     createNoiseVolume();
     createBlackbodyLut();
-    particles_.init();
     createTargets();
-    log::info("Renderer ready: {} particles, noise volume {}^3, {}x{}", particles_.count(), kNoiseSize, width_, height_);
+    log::info("Renderer ready: noise volume {}^3, {}x{}", kNoiseSize, width_, height_);
     return true;
 }
 
@@ -168,6 +167,21 @@ void Renderer::createNoiseVolume() {
     glBindImageTexture(0, noise3d_.id(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
     glDispatchCompute(kNoiseSize / 8, kNoiseSize / 8, kNoiseSize / 8);
     glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+}
+
+void Renderer::setCloud(const CloudField& cloud) {
+    const int n = cloud.resolution();
+    cloudStructure_ = gl::createTexture(GL_TEXTURE_3D);
+    glTextureStorage3D(cloudStructure_.id(), 1, GL_RGBA16F, n, n, n);
+    glTextureSubImage3D(cloudStructure_.id(), 0, 0, 0, 0, n, n, n, GL_RGBA, GL_FLOAT, cloud.voxels().data());
+    glTextureParameteri(cloudStructure_.id(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(cloudStructure_.id(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    const float zero[4] = {0, 0, 0, 0};
+    glTextureParameterfv(cloudStructure_.id(), GL_TEXTURE_BORDER_COLOR, zero);
+    for (GLenum wrap : {GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T, GL_TEXTURE_WRAP_R})
+        glTextureParameteri(cloudStructure_.id(), wrap, GL_CLAMP_TO_BORDER);
+    particles_.init(cloud);
+    log::info("Cloud seed {}: structure {}^3 uploaded, {} particles", cloud.seed(), n, particles_.count());
 }
 
 void Renderer::createBlackbodyLut() {
@@ -297,7 +311,10 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
         glDisable(GL_DEPTH_TEST);
         volume_.use();
         volume_.set("uSteps", kVolumeSteps);
+        volume_.set("uCloudExtent", CloudField::kExtent);
+        volume_.set("uKeyDir", CloudField::keyLightDirection());
         glBindTextureUnit(1, hdrDepth_.id());
+        glBindTextureUnit(2, cloudStructure_.id());
         drawFullscreen();
 
         glBindFramebuffer(GL_FRAMEBUFFER, hdrFbo_.id());

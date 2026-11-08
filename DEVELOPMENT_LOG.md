@@ -142,3 +142,23 @@ This entry records a documentation update only. No C++ source, GLSL shader, buil
 ### Direction established
 
 Prioritise deeper cloud morphology, volumetric quality, layered stellar rendering and deterministic particle species before broad optional scenarios. Treat magnetic fields, supernova instability-inspired structures, scientific inspection, observational integration and multi-wavelength views as separate systems with explicit scientific labels. Binary/cluster/triggered scenarios and comparative evolutionary tracks are later extensions.
+
+## 2026-11-08 — Adopted expansion docs; entry gate; Workstream A (cloud structure)
+
+- Adopted the user's `NEW MD SET` as the authoritative documentation (all changes
+  additive). Per CLAUDE.md §20 the doc set now lives at the repository root; the old
+  `docs/` copies were retired through git (history keeps them). The §18 path text was
+  updated to match.
+- Entry gate passed with numbers identical to the 2026-11-02 record (VERIFICATION §8.1).
+- **Workstream A — implemented and verified.** New `sim/CloudField`: a seeded CPU
+  field with envelope / hub-filament network / core + condensations / cometary
+  globules, baked to a 128³ RGBA16F texture. Particles and renderer share it. New
+  scenario input `ModelConfig::cloudSeed` (UI stepper, `--seed`).
+- Decision: CPU bake instead of a GPU compute bake, because it is deterministic
+  across machines, unit-testable, and lets particles and future cross-sections
+  sample the identical field. Cost: ~0.5 s per seed change.
+- Decision: key light moved behind the cloud. Front lighting made globules look like
+  bright "planets", which VISUAL_DESIGN §20.2.3 rejects.
+- Workstream B (partial): coarse shadow density, central-shadow skip and shell-aware
+  empty-space skipping brought the over-budget cloud back to 6.6–12.8 ms at 1080p.
+- Next: rest of B (depth-aware upsampling, quality tiers), then C (stellar layers).
