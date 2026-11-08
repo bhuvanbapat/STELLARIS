@@ -216,3 +216,16 @@ Prioritise deeper cloud morphology, volumetric quality, layered stellar renderin
 - **Deferred (P2):** Workstream H (binary/cluster/triggered scenarios, comparative
   laboratory). P0/P1 systems are now in place; H should start only after the user
   has reviewed this round.
+
+## 2026-11-08 — Observation view (after the user approved downloads)
+
+- Curated 7 authentic images linked to stages/pathways, including one genuine two-band
+  pair (Pillars: Hubble visible + Webb near-infrared). Each source page and licence was
+  checked first, and JSON provenance sidecars with SHA-256 checksums were written. A
+  checker tool runs as a CTest test.
+- New dependency: stb_image 2.30, pinned by commit and SHA-256 (JPEG decoding only).
+- New `sim/ObservationCatalog` (sidecars are the single source of truth), a
+  `gfx/ImageTexture` loader, a three-way view mode (Cinematic / Scientific /
+  Observation) and `--observation`. Image credits were added to README §9.
+- Evidence: VERIFICATION §8.11. Remaining deferred: Workstream H (scenarios,
+  comparative laboratory).

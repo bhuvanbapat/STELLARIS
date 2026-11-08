@@ -5,9 +5,12 @@
 #include "sim/CameraPath.h"
 #include "sim/SceneState.h"
 #include "sim/Timeline.h"
+#include "gfx/ImageTexture.h"
+#include "sim/ObservationCatalog.h"
 #include "ui/Ui.h"
 
 #include <filesystem>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -33,6 +36,7 @@ struct AppOptions {
     QualityPreset quality = QualityPreset::Balanced;
     bool fieldLines = false;
     bool scientific = false;
+    bool observation = false;
 };
 
 // Parses argv. Returns false (and prints usage) on invalid input.
@@ -74,6 +78,8 @@ private:
     ModelConfig config_;
     SceneState  scene_;
     CloudField  cloud_;  // baked procedural cloud for config_.cloudSeed
+    std::vector<Observation> observations_;              // attributed images (sidecar catalog)
+    std::map<std::string, ImageTexture> observationTextures_;  // loaded on first use; freed before the GL context
     UserCameraOffset cameraOffset_;
     float       lensShift_ = 0.0f;
 

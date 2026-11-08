@@ -6,7 +6,8 @@ add_library(stellaris_core STATIC
     src/sim/CameraPath.cpp
     src/sim/StageContent.cpp
     src/sim/CloudField.cpp
-    src/sim/MagneticField.cpp)
+    src/sim/MagneticField.cpp
+    src/sim/ObservationCatalog.cpp)
 target_include_directories(stellaris_core PUBLIC src)
 target_link_libraries(stellaris_core PUBLIC glm::glm)
 
@@ -19,11 +20,12 @@ add_executable(stellaris
     src/gfx/GL.cpp
     src/gfx/Shader.cpp
     src/gfx/Geometry.cpp
+    src/gfx/ImageTexture.cpp
     src/render/FieldLines.cpp
     src/render/ParticleSystem.cpp
     src/render/Renderer.cpp
     src/ui/Ui.cpp)
-target_link_libraries(stellaris PRIVATE stellaris_core glad glfw imgui opengl32)
+target_link_libraries(stellaris PRIVATE stellaris_core glad glfw imgui stb_image opengl32)
 
 foreach(target stellaris_core stellaris)
     if(MSVC)
@@ -39,5 +41,10 @@ add_custom_command(TARGET stellaris POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_CURRENT_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:stellaris>/shaders
     COMMENT "Copying shaders next to the executable")
+# Attributed observation images and their provenance sidecars (assets/observations).
+add_custom_command(TARGET stellaris POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${PROJECT_SOURCE_DIR}/assets/observations $<TARGET_FILE_DIR:stellaris>/assets/observations
+    COMMENT "Copying observation assets next to the executable")
 
 set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT stellaris)

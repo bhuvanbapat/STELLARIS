@@ -7,6 +7,7 @@
 #   GLFW  3.4     window, OpenGL context, input
 #   GLM   1.0.1   vector / matrix math
 #   ImGui 1.91.5  immediate-mode user interface
+#   stb_image 2.30 JPEG decoding for attributed observation images (pinned commit + SHA-256)
 #
 # The OpenGL loader (glad) is generated once and vendored in third_party/glad.
 
@@ -46,3 +47,13 @@ add_library(imgui STATIC
 target_include_directories(imgui PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
 target_link_libraries(imgui PUBLIC glfw)
 target_compile_definitions(imgui PUBLIC IMGUI_DISABLE_OBSOLETE_FUNCTIONS)
+
+# --- stb_image v2.30 (JPEG/PNG decoding for the observation view) ----------
+# Single header, MIT or public domain (choice of licence stated in the file).
+FetchContent_Declare(stb_image
+    URL https://raw.githubusercontent.com/nothings/stb/4e9b368bfc071e97206ea5c6adba68dd0cbf8897/stb_image.h
+    URL_HASH SHA256=594c2fe35d49488b4382dbfaec8f98366defca819d916ac95becf3e75f4200b3
+    DOWNLOAD_NO_EXTRACT TRUE)
+FetchContent_MakeAvailable(stb_image)
+add_library(stb_image INTERFACE)
+target_include_directories(stb_image INTERFACE ${stb_image_SOURCE_DIR})

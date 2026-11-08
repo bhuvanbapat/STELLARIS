@@ -191,7 +191,7 @@ The entries below are an expansion design register. They must not be merged into
 | CME-like event | A surface-originating expanding structure can illustrate an ejection | `prescribed ejection visualisation` | A forecast or physical CME calculation |
 | Rayleigh–Taylor-like ejecta fingers — **implemented 2026-11-08 as procedural morphology** (see §3) | Irregular finger-like morphology can illustrate instability-shaped interfaces | `instability-inspired procedural morphology` | A numerically solved Rayleigh–Taylor instability |
 | Advanced volume scattering | More detailed light transport can improve the appearance of dusty gas | `rendering approximation` with documented parameters | A full wavelength-resolved radiative-transfer solution |
-| Multi-wavelength observation mode | Different bands reveal different observational information when genuine band data are used | `observational data view` with instrument/filter/source | A simulated X-ray/infrared/radio measurement when only a recoloured optical image is shown |
+| Multi-wavelength observation mode — **implemented 2026-11-08 as an Observation view** (see §9.5) | Different bands reveal different observational information when genuine band data are used | `observational data view` with instrument/filter/source | A simulated X-ray/infrared/radio measurement when only a recoloured optical image is shown |
 | Comparative evolution tracks | Different model/data tracks can compare mass-dependent evolution | Identify each track as `simplified model` or named reference dataset | A precise prediction from a simplified lifetime scaling |
 
 ### 9.1 Required provenance for observational data
@@ -213,3 +213,23 @@ Potential sources for future reference tracks or observational material include 
 ### 9.4 Expansion science review gate
 
 Before a new phenomenon is included in a scientific label or presentation, record: the physical concept; the simplified representation; any equation/field/parameter; the units; the assumptions; what is omitted; the exact phrase shown to the user; and the reference supporting the scientific explanation. If a phenomenon is only procedural, use wording such as `visual representation inspired by ...`, not `simulation of ...`.
+
+### 9.5 Observation view as implemented (2026-11-08)
+
+Seven authentic images, each with a JSON provenance record (source page, file URL,
+credit, licence, instrument, band, band kind, image kind, processing notes, original
+and local dimensions, derivative operations, intended use, retrieval date, SHA-256):
+Pillars of Creation in visible light (Hubble) and in the near-infrared (Webb NIRCam), for
+the cloud/collapse stages and as a genuine two-band pair of the same object; HH 211
+(Webb), for protostar/jets; an SDO/AIA 304 Å limb prominence, for the main sequence;
+the Southern Ring Nebula (Webb NIRCam + MIRI), for the white-dwarf ending; the Crab
+Nebula (Hubble), for the neutron-star ending; and M87* (EHT, 1.3 mm), for the black-hole
+ending. That last one is labelled as a supermassive, not stellar-mass, black hole.
+
+The images are shown unmodified, each with its credit and band. False-colour and
+composite products are identified as such. No band is simulated by recolouring.
+The STELLARIS scene beside each image is captioned "a conceptual visualization, not
+a 3D reconstruction". The images are references only: nothing in the model reads
+them. Licences: CC BY 4.0 (ESA/Hubble, ESA/Webb, ESO), checked on each source page
+and the institutions' usage pages on 2026-11-08, and public domain (NASA SVS). The
+retrieved files are the 1024–1280 px "screensize" versions, sized for a side panel.

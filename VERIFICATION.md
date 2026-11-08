@@ -465,7 +465,31 @@ standard review set (six stages; 15 and 40 M☉ endings) were taken for comparis
 | Magnetic lines use an identified analytic model | verified | §8.7, on-screen label |
 | Supernova morphology not claimed as hydrodynamics | verified | SCIENCE_NOTES §3, code comments |
 | Overlays show real fields with units/normalization | verified for the density cross-section | §8.8 |
-| Observation assets with provenance | **not implemented** (deferred: needs approval to download) | §8.8 |
+| Observation assets with provenance | verified (added after approval) | §8.11, provenance check |
 | Optional scenarios do not break default | **not implemented** (Workstream H deferred) | — |
 | Comparative laboratory sources | **not implemented** (Workstream H deferred) | — |
 | Performance measured at a stated resolution/preset | verified | §8.3, §8.9 |
+
+### 8.11 Observation view (implemented and verified, 2026-11-08)
+
+- The user approved downloads. Seven images (1.9 MB total) were retrieved from the
+  ESA/Hubble, ESA/Webb, ESO and NASA SVS CDNs into `assets/observations/`. Each
+  source page and institutional licence page was read before downloading (CC BY 4.0
+  ×6, public domain ×1).
+- `tools/check_observations.py` (CTest test `observation_provenance`): 7 records,
+  7 images, 0 problems. All required fields are present, the SHA-256 checksums match,
+  and the JPEG header dimensions match the records. Every image has a sidecar.
+- Unit tests (4 new; 44/44): flat-JSON parser (escapes, malformed input); the catalog
+  loads all 7 records with credit/licence/band; stage and pathway linkage (two-band
+  Pillars pair for stages 1–2, HH 211 for 3–4, SDO for 5, one image per final
+  pathway); records without credit are rejected.
+- Visual: Observation view captured for stages 1, 4, 5 and all three endings. Images
+  display at native aspect ratio with the credit directly below, and instrument, band,
+  image type, licence, source and caption are legible at 1600×900. GPU memory 3.9–8.7
+  MiB per image, loaded on first use (logged).
+- `--selftest` passes with 0 failures in both the default and the Observation view.
+- Not verified by clicking: the two-band toggle button for the Pillars pair. Its data
+  linkage is unit-tested; the button itself was not exercised automatically.
+- One recorded discrepancy: for weic2216a the source page lists 1200×1200 px as the
+  original, but the screensize file served is 1280×1280 px. Recorded verbatim in the
+  sidecar.

@@ -73,6 +73,7 @@ Useful options for `stellaris.exe`:
 | `--rotation R` | relative core rotation, 0.6–1.4 |
 | `--seed N` | procedural cloud morphology seed (default 1) |
 | `--field-lines` | start with the analytic dipole field-line overlay on |
+| `--observation` | start in the Observation view (authentic credited image beside the scene) |
 | `--scientific` | start in the Scientific view (density cross-section, field lines, labels) |
 | `--quality Q` | `performance`, `balanced` (default), `high`, `capture`: rendering cost only |
 | `--hide-ui` | start with the interface hidden |
@@ -101,8 +102,10 @@ Useful options for `stellaris.exe`:
 Scientific controls are in the right-hand panel. **Initial stellar mass** changes
 the main-sequence star's color, size and luminosity, and selects the final
 pathway. **Initial core rotation** changes the angular momentum, and with it the
-size of the accretion disc. **Cinematic / Scientific** switches the view: Scientific adds a normalized density
+size of the accretion disc. **Cinematic / Scientific / Observation** switches the view. Scientific adds a normalized density
 cross-section through the core (same field as the volume) plus field lines and labels.
+Observation shows an authentic, credited astronomical image for the current stage beside
+the scene (with a band toggle where two genuine bands exist).
 **Magnetic field (analytic dipole)** shows normalized dipole field lines around the
 main-sequence star and the neutron star (a visualization, not MHD).
 **Render quality** (Perf / Bala / High / Capt) changes rendering cost only.
@@ -171,3 +174,22 @@ These are not claims that the application solves full hydrodynamics, MHD, stella
 | `CLAUDE_SETUP.md` | Tooling and Claude Code setup notes from the recorded audit |
 
 Do not treat roadmap items as current functionality. For current build instructions and controls, use the earlier sections of this README and validate against the current executable.
+
+## 9. Image credits (Observation view)
+
+The Observation view shows these authentic images unmodified, each with its full credit
+line beside it. Full provenance (source page, instrument, band, processing, licence,
+SHA-256) is in `assets/observations/*.json`; `tools/check_observations.py` validates it
+and runs as a CTest test.
+
+| Image | Credit | Licence |
+|---|---|---|
+| Pillars of Creation, visible (heic1501a) | NASA, ESA/Hubble and the Hubble Heritage Team | CC BY 4.0 |
+| Pillars of Creation, NIRCam (weic2216a) | NASA, ESA, CSA, STScI; J. DePasquale, A. Koekemoer, A. Pagan (STScI) | CC BY 4.0 |
+| HH 211, NIRCam (weic2322a) | ESA/Webb, NASA, CSA, T. Ray (Dublin Institute for Advanced Studies) | CC BY 4.0 |
+| Solar limb prominence, SDO/AIA 304 Å (SVS 4277) | NASA's Scientific Visualization Studio, the SDO Science Team, and the Virtual Solar Observatory | Public domain |
+| Southern Ring Nebula, NIRCam + MIRI (weic2207a) | NASA, ESA, CSA, STScI, and the Webb ERO Production Team | CC BY 4.0 |
+| Crab Nebula (heic0515a) | NASA, ESA and Allison Loll/Jeff Hester (Arizona State University). Acknowledgement: Davide De Martin | CC BY 4.0 |
+| M87* black hole (eso1907a) | EHT Collaboration | CC BY 4.0 |
+
+Third-party code: stb_image 2.30 (Sean Barrett), MIT / public domain.

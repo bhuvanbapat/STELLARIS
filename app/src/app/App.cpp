@@ -102,6 +102,7 @@ bool parseOptions(int argc, char** argv, AppOptions& o) {
         else if (a == "--benchmark") o.benchmark = true;
         else if (a == "--field-lines") o.fieldLines = true;
         else if (a == "--scientific") o.scientific = true;
+        else if (a == "--observation") o.observation = true;
         else if (a == "--quality" && i + 1 < argc) {
             const std::string q = argv[++i];
             if (q == "performance") o.quality = QualityPreset::Performance;
@@ -134,6 +135,7 @@ App::App(AppOptions options) : options_(std::move(options)), config_(options_.co
 App::~App() {
     if (uiReady_) ui_.shutdown();
     if (window_) {
+        observationTextures_.clear();
         renderer_.reset();  // GL resources must be released while the context is current
         glfwDestroyWindow(window_);
     }
@@ -204,6 +206,13 @@ int App::run() {
     if (options_.hideUi) ui_.toggleVisible();
     ui_.setFieldLines(options_.fieldLines);
     if (options_.scientific) ui_.setScientificView(true);
+    if (options_.observation) ui_.setViewMode(Ui::ViewMode::Observation);
+    {
+        std::vector<std::string> errors;
+        observations_ = loadObservationCatalog(executableDir() / "assets" / "observations", &errors);
+        for (const std::string& e : errors) log::warn("Observation catalog: {}", e);
+        log::info("Observation catalog: {} attributed images", observations_.size());
+    }
     if (options_.fullscreen) toggleFullscreen();
     lensShift_ = ui_.compositionShift();
 
@@ -273,6 +282,18 @@ void App::renderScene() {
     info.cameraOffsetActive = !cameraOffset_.isIdentity();
     info.project = [this](const glm::vec3& p) { return renderer_->projectToScreen(p); };
     info.quality = renderer_->quality();
+    if (ui_.observationView()) {
+        for (const Observation& o : observations_) {
+            if (!o.matches(scene_.stage, scene_.pathway)) continue;
+            auto it = observationTextures_.find(o.get("id"));
+            if (it == observationTextures_.end()) {
+                auto loaded = loadImageTexture(o.imagePath);
+                if (!loaded) continue;
+                it = observationTextures_.emplace(o.get("id"), std::move(*loaded)).first;
+            }
+            info.observations.push_back({&o, it->second.texture.id(), it->second.width, it->second.height});
+        }
+    }
     const UiRequests req = ui_.draw(playback_, config_, info);
     ui_.endFrame();
 

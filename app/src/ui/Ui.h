@@ -3,6 +3,7 @@
 // transport controls, the six-stage timeline and 3D annotations.
 
 #include "render/RenderQuality.h"
+#include "sim/ObservationCatalog.h"
 #include "sim/SceneState.h"
 #include "sim/Timeline.h"
 
@@ -17,12 +18,20 @@ struct ImFont;
 
 namespace stellaris {
 
+// One authentic observation ready for display (texture owned by the App).
+struct ObservationItem {
+    const Observation* observation = nullptr;
+    unsigned texture = 0;
+    int width = 0, height = 0;
+};
+
 struct UiFrameInfo {
     const SceneState* scene = nullptr;
     float fps = 0.0f;
     float gpuMs = 0.0f;
     bool  cameraOffsetActive = false;
     QualityPreset quality = QualityPreset::Balanced;
+    std::vector<ObservationItem> observations;  // filled only in the Observation view
     // Projects a world point to screen pixels (top-left origin), if visible.
     std::function<std::optional<glm::vec2>(const glm::vec3&)> project;
 };
@@ -47,12 +56,16 @@ public:
     void toggleVisible() { visible_ = !visible_; }
     bool labelsEnabled() const { return labels_; }
     bool fieldLinesEnabled() const { return fieldLines_; }
-    bool scientificView() const { return scientific_; }
-    void setScientificView(bool on);
+    enum class ViewMode { Cinematic, Scientific, Observation };
+    ViewMode viewMode() const { return mode_; }
+    void setViewMode(ViewMode mode);
+    bool scientificView() const { return mode_ == ViewMode::Scientific; }
+    bool observationView() const { return mode_ == ViewMode::Observation; }
+    void setScientificView(bool on) { setViewMode(on ? ViewMode::Scientific : ViewMode::Cinematic); }
     void setFieldLines(bool on) { fieldLines_ = on; }
 
     // Horizontal NDC lens shift that keeps the subject clear of the left panel.
-    float compositionShift() const { return visible_ ? 0.14f : 0.0f; }
+    float compositionShift() const { return visible_ ? (mode_ == ViewMode::Observation ? 0.42f : 0.14f) : 0.0f; }
 
 private:
     void drawInfoPanel(const SceneState& s);
@@ -61,6 +74,7 @@ private:
     void drawAnnotations(const UiFrameInfo& info);
     void drawDiagnostics(const UiFrameInfo& info);
     void drawSectionLegend(const SceneState& s);
+    void drawObservationPanel(const UiFrameInfo& info);
 
     float  baseScale_ = 1.0f;  // monitor content scale (DPI)
     float  layout_ = 1.0f;     // shrink factor for small windows
@@ -68,7 +82,8 @@ private:
     bool   visible_ = true;
     bool   labels_ = true;
     bool   fieldLines_ = false;
-    bool   scientific_ = false;  // Cinematic (false) or Scientific inspection view
+    ViewMode mode_ = ViewMode::Cinematic;
+    int    observationIndex_ = 0;  // selected band when several observations match
     bool   labelClick_ = false;  // current timeline press started on a stage label
     bool   initialized_ = false;
     ImFont* body_ = nullptr;

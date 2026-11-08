@@ -242,11 +242,99 @@ void Ui::endFrame() {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void Ui::setScientificView(bool on) {
-    scientific_ = on;
-    // The scientific view turns on the explanatory overlays; cinematic leaves them
-    // as the user set them individually.
-    if (on) { fieldLines_ = true; labels_ = true; }
+void Ui::setViewMode(ViewMode mode) {
+    mode_ = mode;
+    // The scientific view turns on the explanatory overlays; the other views leave
+    // them as the user set them individually.
+    if (mode == ViewMode::Scientific) { fieldLines_ = true; labels_ = true; }
+}
+
+void Ui::drawObservationPanel(const UiFrameInfo& info) {
+    const ImVec2 ds = ImGui::GetIO().DisplaySize;
+    const float m = 18.0f * scale_;
+    const float w = ds.x * 0.40f;
+    ImGui::SetNextWindowPos(ImVec2(m, m));
+    ImGui::SetNextWindowSize(ImVec2(w, ds.y - 104.0f * scale_ - 3.0f * m));
+    ImGui::Begin("##observation", nullptr,
+                 ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                     ImGuiWindowFlags_NoFocusOnAppearing);
+    ImGui::PushFont(title_);
+    ImGui::PushStyleColor(ImGuiCol_Text, kTextFaint);
+    ImGui::TextUnformatted("OBSERVATION  \u00b7  AUTHENTIC ASTRONOMICAL IMAGE");
+    ImGui::PopStyleColor();
+    ImGui::PopFont();
+    if (info.observations.empty()) {
+        ImGui::TextWrapped("No curated observation is linked to this stage.");
+        ImGui::End();
+        return;
+    }
+    observationIndex_ = std::clamp(observationIndex_, 0, static_cast<int>(info.observations.size()) - 1);
+    if (info.observations.size() > 1) {
+        ImGui::PushFont(small_);
+        for (int i = 0; i < static_cast<int>(info.observations.size()); ++i) {
+            const Observation& o = *info.observations[i].observation;
+            std::string instrument = o.get("observatory_instrument");
+            instrument = instrument.substr(0, instrument.find(','));
+            const std::string label = o.get("band_kind") + " \u00b7 " + instrument + "##band" + std::to_string(i);
+            if (i > 0) ImGui::SameLine();
+            const bool active = i == observationIndex_;
+            if (active) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.98f, 0.76f, 0.42f, 0.35f));
+            if (ImGui::SmallButton(label.c_str())) observationIndex_ = i;
+            if (active) ImGui::PopStyleColor();
+        }
+        ImGui::PopFont();
+    }
+    const ObservationItem& item = info.observations[observationIndex_];
+    const Observation& o = *item.observation;
+
+    ImGui::PushFont(heading_);
+    ImGui::TextWrapped("%s", o.get("object").c_str());
+    ImGui::PopFont();
+
+    // Image at its own aspect ratio, never stretched beyond its native size.
+    const float availW = ImGui::GetContentRegionAvail().x;
+    const float maxH = ImGui::GetContentRegionAvail().y * 0.55f;
+    float iw = std::min(availW, static_cast<float>(item.width));
+    float ih = iw * static_cast<float>(item.height) / std::max(item.width, 1);
+    if (ih > maxH) { iw *= maxH / ih; ih = maxH; }
+    ImGui::Image(static_cast<ImTextureID>(item.texture), ImVec2(iw, ih));
+
+    // Credit exactly as given by the source, directly under the image.
+    ImGui::PushStyleColor(ImGuiCol_Text, kAccent);
+    ImGui::TextWrapped("Credit: %s", o.get("credit").c_str());
+    ImGui::PopStyleColor();
+
+    ImGui::PushFont(small_);
+    if (ImGui::BeginTable("##obsmeta", 2, ImGuiTableFlags_SizingStretchProp)) {
+        ImGui::TableSetupColumn("k", ImGuiTableColumnFlags_WidthStretch, 0.32f);
+        ImGui::TableSetupColumn("v", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+        auto row = [&](const char* k, const std::string& v) {
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::PushStyleColor(ImGuiCol_Text, kTextDim);
+            ImGui::TextUnformatted(k);
+            ImGui::PopStyleColor();
+            ImGui::TableSetColumnIndex(1);
+            ImGui::TextWrapped("%s", v.c_str());
+        };
+        row("Image", o.get("title"));
+        row("Instrument", o.get("observatory_instrument"));
+        row("Band", o.get("band"));
+        row("Image type", o.get("image_kind"));
+        row("Licence", o.get("license"));
+        row("Source", o.get("source_page"));
+        ImGui::EndTable();
+    }
+    ImGui::PushStyleColor(ImGuiCol_Text, kTextFaint);
+    ImGui::TextWrapped("%s", o.get("processing_notes").c_str());
+    ImGui::PopStyleColor();
+    ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Text, kAccent);
+    ImGui::TextWrapped("Right: the STELLARIS scene for this stage, a conceptual visualization, not a 3D "
+                       "reconstruction of this object.");
+    ImGui::PopStyleColor();
+    ImGui::PopFont();
+    ImGui::End();
 }
 
 namespace {
@@ -267,7 +355,7 @@ ImVec4 viridis(float t) {
 } // namespace
 
 void Ui::drawSectionLegend(const SceneState& s) {
-    if (!scientific_ || s.cloudDensity <= 0.01f) return;
+    if (mode_ != ViewMode::Scientific || s.cloudDensity <= 0.01f) return;
     ImDrawList* dl = ImGui::GetForegroundDrawList();
     const ImVec2 ds = ImGui::GetIO().DisplaySize;
     const float w = 260.0f * scale_, h = 10.0f * scale_;
@@ -318,7 +406,8 @@ UiRequests Ui::draw(Playback& playback, ModelConfig& config, const UiFrameInfo& 
                     "H  show interface");
         return req;
     }
-    drawInfoPanel(s);
+    if (mode_ == ViewMode::Observation) drawObservationPanel(info);
+    else drawInfoPanel(s);
     drawParameterPanel(config, s, req, info);
     drawTimeline(playback, s, req);
     drawDiagnostics(info);
@@ -427,18 +516,22 @@ void Ui::drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests
                  ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing);
     ImGui::PushFont(small_);
-    // View mode: Cinematic (clean) or Scientific (cross-section + field lines + labels).
+    // View mode: Cinematic (clean), Scientific (cross-section + overlays) or
+    // Observation (authentic image beside the scene).
     {
-        const float half = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
-        if (!scientific_) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.98f, 0.76f, 0.42f, 0.35f));
-        if (ImGui::Button("Cinematic", ImVec2(half, 0))) setScientificView(false);
-        if (!scientific_) ImGui::PopStyleColor();
-        ImGui::SameLine();
-        if (scientific_) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.98f, 0.76f, 0.42f, 0.35f));
-        if (ImGui::Button("Scientific", ImVec2(half, 0))) setScientificView(true);
-        if (scientific_) ImGui::PopStyleColor();
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Density cross-section (when the cloud is present), field lines and labels");
+        const float third = (ImGui::GetContentRegionAvail().x - 2.0f * ImGui::GetStyle().ItemSpacing.x) / 3.0f;
+        const struct { const char* label; ViewMode mode; const char* tip; } modes[] = {
+            {"Cinematic", ViewMode::Cinematic, "Clean presentation"},
+            {"Scientific", ViewMode::Scientific, "Density cross-section (when the cloud is present), field lines and labels"},
+            {"Observation", ViewMode::Observation, "An authentic, credited astronomical image for this stage beside the scene"}};
+        for (int i = 0; i < 3; ++i) {
+            if (i > 0) ImGui::SameLine();
+            const bool active = mode_ == modes[i].mode;
+            if (active) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.98f, 0.76f, 0.42f, 0.35f));
+            if (ImGui::Button(modes[i].label, ImVec2(third, 0))) setViewMode(modes[i].mode);
+            if (active) ImGui::PopStyleColor();
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", modes[i].tip);
+        }
     }
     ImGui::PushStyleColor(ImGuiCol_Text, kTextFaint);
     ImGui::TextUnformatted("MODEL PARAMETERS");
