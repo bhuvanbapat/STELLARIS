@@ -13,6 +13,27 @@ namespace stellaris {
 
 namespace {
 
+// Pulsar magnetic axis: tilted from the spin axis (+Y) and rotating with the star.
+// The rotation rate is slowed enormously for visibility. Shared by the beams and
+// the neutron-star field lines so the two always agree.
+glm::vec3 pulsarAxis(double time) {
+    const float spin = static_cast<float>(time) * 2.4f;
+    const float tilt = glm::radians(35.0f);
+    return glm::normalize(glm::vec3(std::sin(tilt) * std::cos(spin), std::cos(tilt), std::sin(tilt) * std::sin(spin)));
+}
+
+// Orthonormal frame whose Y axis is `axis`, scaled by `scale`.
+glm::mat4 axisFrame(const glm::vec3& axis, float scale) {
+    const glm::vec3 ref = std::abs(axis.y) < 0.99f ? glm::vec3(0, 1, 0) : glm::vec3(1, 0, 0);
+    const glm::vec3 x = glm::normalize(glm::cross(ref, axis));
+    const glm::vec3 z = glm::cross(x, axis);
+    glm::mat4 m(1.0f);
+    m[0] = glm::vec4(x * scale, 0.0f);
+    m[1] = glm::vec4(axis * scale, 0.0f);
+    m[2] = glm::vec4(z * scale, 0.0f);
+    return m;
+}
+
 constexpr int kNoiseSize      = 128;
 constexpr int kBloomMips      = 6;
 constexpr int kDiscLayers     = 5;
@@ -77,9 +98,10 @@ bool Renderer::init(const std::filesystem::path& shaderDir, int width, int heigh
     bloomUp_         = Shader("bloom_up", {{GL_VERTEX_SHADER, "fullscreen.vert"}, {GL_FRAGMENT_SHADER, "bloom_up.frag"}});
     final_           = Shader("final", {{GL_VERTEX_SHADER, "fullscreen.vert"}, {GL_FRAGMENT_SHADER, "final.frag"}});
     corona_          = Shader("corona", {{GL_VERTEX_SHADER, "glow.vert"}, {GL_FRAGMENT_SHADER, "corona.frag"}});
+    fieldline_       = Shader("fieldline", {{GL_VERTEX_SHADER, "fieldline.vert"}, {GL_FRAGMENT_SHADER, "fieldline.frag"}});
     prominence_      = Shader("prominence", {{GL_VERTEX_SHADER, "prominence.vert"}, {GL_FRAGMENT_SHADER, "prominence.frag"}});
     allShaders_ = {&noiseGen_, &sky_, &volume_, &composite_, &star_, &glow_, &disc_,
-                   &particlesShader_, &beam_, &lens_, &bloomDown_, &bloomUp_, &final_, &corona_, &prominence_};
+                   &particlesShader_, &beam_, &lens_, &bloomDown_, &bloomUp_, &final_, &corona_, &prominence_, &fieldline_};
 
     bool ok = true;
     for (Shader* s : allShaders_) ok = s->load(shaderDir_) && ok;
@@ -97,6 +119,7 @@ bool Renderer::init(const std::filesystem::path& shaderDir, int width, int heigh
     glGenQueries(static_cast<GLsizei>(timeQueries_.size()), timeQueries_.data());
 
     createNoiseVolume();
+    fieldLines_.init();
     createBlackbodyLut();
     createTargets();
     log::info("Renderer ready: noise volume {}^3, {}x{}", kNoiseSize, width_, height_);
@@ -366,12 +389,7 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
     particles_.draw();
 
     if (s.pulsarBeams > 0.01f) {
-        // Magnetic axis tilted from the spin axis (+Y), rotating with the star.
-        // The rotation rate is slowed enormously for visibility.
-        const float spin = static_cast<float>(s.time) * 2.4f;
-        const float tilt = glm::radians(35.0f);
-        const glm::vec3 axis = glm::normalize(glm::vec3(std::sin(tilt) * std::cos(spin), std::cos(tilt),
-                                                        std::sin(tilt) * std::sin(spin)));
+        const glm::vec3 axis = pulsarAxis(s.time);
         beam_.use();
         beam_.set("uIntensity", s.pulsarBeams * 0.45f);
         for (float sign : {1.0f, -1.0f}) {
@@ -386,6 +404,29 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
             beam_.set("uModel", model);
             beam_.set("uAxis", a);
             cone_.draw();
+        }
+    }
+
+    // Analytic dipole field lines (explanatory overlay; normalized geometry, not MHD).
+    if (showFieldLines_) {
+        fieldline_.use();
+        fieldline_.set("uWidthPx", 0.9f);
+        if (s.atmosphere > 0.05f && s.centralRadius > 0.01f) {
+            // Main-sequence star: dipole along the rotation axis, turning with the star.
+            const float spin = -static_cast<float>(s.time) * 0.02f;  // = STAR_SPIN in stellar_activity.glsl
+            glm::mat4 model = glm::rotate(glm::mat4(1.0f), spin, glm::vec3(0, 1, 0));
+            model = glm::scale(model, glm::vec3(s.centralRadius));
+            fieldline_.set("uModel", model);
+            fieldline_.set("uIntensity", 0.5f * s.atmosphere);
+            fieldline_.set("uFadeRadius", 5.0f);
+            fieldLines_.draw(FieldLines::Set::Star);
+        }
+        if (s.pulsarBeams > 0.05f) {
+            // Neutron star: tilted dipole sharing the pulsar beams' magnetic axis.
+            fieldline_.set("uModel", axisFrame(pulsarAxis(s.time), s.remnantRadius * (0.6f + 0.4f * s.remnantPresence)));
+            fieldline_.set("uIntensity", 0.6f * s.pulsarBeams);
+            fieldline_.set("uFadeRadius", 45.0f);
+            fieldLines_.draw(FieldLines::Set::NeutronStar);
         }
     }
 

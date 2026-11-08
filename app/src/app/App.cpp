@@ -53,6 +53,7 @@ void printUsage() {
         "  --rotation R             relative core rotation (0.6-1.4)\n"
         "  --seed N                 cloud morphology seed (default 1)\n"
         "  --quality Q              performance | balanced (default) | high | capture\n"
+        "  --field-lines            show the analytic dipole field-line overlay\n"
         "  --hide-ui                start with the interface hidden\n"
         "  --capture DIR T1,T2,...  render the listed times to DIR/*.png and exit\n"
         "  --selftest               run automated playback/seek checks and exit\n"
@@ -98,6 +99,7 @@ bool parseOptions(int argc, char** argv, AppOptions& o) {
         else if (a == "--hide-ui") o.hideUi = true;
         else if (a == "--selftest") o.selfTest = true;
         else if (a == "--benchmark") o.benchmark = true;
+        else if (a == "--field-lines") o.fieldLines = true;
         else if (a == "--quality" && i + 1 < argc) {
             const std::string q = argv[++i];
             if (q == "performance") o.quality = QualityPreset::Performance;
@@ -198,6 +200,7 @@ int App::run() {
 
     playback_.seek(options_.startTime);
     if (options_.hideUi) ui_.toggleVisible();
+    ui_.setFieldLines(options_.fieldLines);
     if (options_.fullscreen) toggleFullscreen();
     lensShift_ = ui_.compositionShift();
 
@@ -255,6 +258,7 @@ void App::renderScene() {
     scene_ = evaluateScene(playback_.time(), config_);
     const OrbitParams orbit = authoredOrbit(playback_.time(), scene_.pathway, visualStarRadius(scene_.ms.radiusSolar));
     const CameraPose pose = poseFromOrbit(orbit, cameraOffset_);
+    renderer_->setFieldLines(ui_.fieldLinesEnabled());
     renderer_->render(scene_, pose, lensShift_);
 
     ui_.beginFrame();

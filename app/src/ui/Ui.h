@@ -46,6 +46,8 @@ public:
     bool visible() const { return visible_; }
     void toggleVisible() { visible_ = !visible_; }
     bool labelsEnabled() const { return labels_; }
+    bool fieldLinesEnabled() const { return fieldLines_; }
+    void setFieldLines(bool on) { fieldLines_ = on; }
 
     // Horizontal NDC lens shift that keeps the subject clear of the left panel.
     float compositionShift() const { return visible_ ? 0.14f : 0.0f; }
@@ -62,6 +64,7 @@ private:
     float  scale_ = 1.0f;      // baseScale_ * layout_, used for all UI metrics
     bool   visible_ = true;
     bool   labels_ = true;
+    bool   fieldLines_ = false;
     bool   labelClick_ = false;  // current timeline press started on a stage label
     bool   initialized_ = false;
     ImFont* body_ = nullptr;

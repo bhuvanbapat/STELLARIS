@@ -81,6 +81,15 @@ Selectable mass range: 1–40 M☉. Lower-mass stars live longer than about
   fingers are **instability-inspired procedural morphology**, not a solved
   Rayleigh–Taylor flow or a hydrodynamic supernova. The white-dwarf pathway still
   never shows a supernova (unit-tested).
+- **Magnetic field lines (since 2026-11-08, optional overlay, off by default):** an
+  ideal dipole B = (1/r³)[3(m·r̂)r̂ − m] with μ₀/4π dropped (**normalized**; unit
+  moment, unit stellar radius). Lines are RK4 integral curves of B/|B| (step 0.02 R;
+  closed lines end at the bisected surface crossing; open lines are cut at 5 R, or
+  45 R for the neutron star; at most 2000–4000 steps). Main-sequence star: dipole
+  along the rotation axis. Neutron star: dipole tilted 35° and rotating with the
+  pulsar beams. The on-screen label reads "ANALYTIC DIPOLE FIELD — VISUALIZATION ·
+  normalized geometry, not MHD". The lines are field geometry, not particle paths;
+  nothing couples them to the jets, activity or evolution.
 - **Collapse (volume):** a smooth prescribed mapping draws the cloud's inner
   density inward, with a Jacobian density gain, swirl and flattening. It is
   illustrative only.
@@ -169,7 +178,7 @@ The entries below are an expansion design register. They must not be merged into
 | Triggered-compression scene | An external compression front can be used to illustrate a possible route to enhanced density | `illustrative compression scenario` | Proof that the displayed shock caused star formation |
 | Binary protostar scene | Two protostellar components and their shared environment can be visualised | `prescribed binary configuration` unless a validated orbit/fragmentation model is added | A resolved binary fragmentation or hydrodynamics calculation |
 | Clustered formation | Several stars/cores can be shown at different stages | `procedural cluster scenario` | N-body cluster dynamics or a statistically representative cluster |
-| Dipole magnetic-field lines | A specified analytical field geometry can be visualised with integrated field lines | `analytic field visualisation` | Self-consistent magnetohydrodynamics or a simulated magnetic dynamo |
+| Dipole magnetic-field lines — **implemented 2026-11-08** (see §3) | A specified analytical field geometry can be visualised with integrated field lines | `analytic field visualisation` | Self-consistent magnetohydrodynamics or a simulated magnetic dynamo |
 | Stellar spots/prominences/flares — **implemented 2026-11-08** (see §3) | Surface activity can be explained with localised structures and time-dependent emission | `procedural/parametric surface activity` | Solved convection, reconnection or plasma transport |
 | CME-like event | A surface-originating expanding structure can illustrate an ejection | `prescribed ejection visualisation` | A forecast or physical CME calculation |
 | Rayleigh–Taylor-like ejecta fingers — **implemented 2026-11-08 as procedural morphology** (see §3) | Irregular finger-like morphology can illustrate instability-shaped interfaces | `instability-inspired procedural morphology` | A numerically solved Rayleigh–Taylor instability |

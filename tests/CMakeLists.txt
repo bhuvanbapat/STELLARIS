@@ -6,6 +6,7 @@ add_executable(stellaris_tests
     test_stellar_model.cpp
     test_scene_state.cpp
     test_cloud_field.cpp
+    test_magnetic_field.cpp
     ${PROJECT_SOURCE_DIR}/app/src/render/ParticleSystem.cpp)
 target_link_libraries(stellaris_tests PRIVATE stellaris_core glad)
 target_include_directories(stellaris_tests PRIVATE ${PROJECT_SOURCE_DIR}/app/src)

@@ -200,3 +200,9 @@ Prioritise deeper cloud morphology, volumetric quality, layered stellar renderin
   rim, stratified ejecta, instability-inspired fingers, a fading persistent remnant.
   VERIFICATION §8.6, including the debugging record.
 - Cost: +2–2.5 ms on remnant views (still ≥ 68 fps at 1080p Balanced).
+
+## 2026-11-08 — Workstream E (analytic magnetic-field overlay)
+
+- **Implemented and verified:** `sim/MagneticField` (dipole, RK4 tracer),
+  `render/FieldLines` (SSBO + instanced quads), UI checkbox, `--field-lines`, and the
+  mandatory model label. VERIFICATION §8.7 (includes the end-point debugging record).

@@ -249,6 +249,17 @@ UiRequests Ui::draw(Playback& playback, ModelConfig& config, const UiFrameInfo& 
     UiRequests req;
     const SceneState& s = *info.scene;
     if (labels_) drawAnnotations(info);
+    if (fieldLines_ && (s.atmosphere > 0.05f || s.pulsarBeams > 0.05f)) {
+        // Mandatory model label whenever the overlay is visible (VISUAL_DESIGN §20.6).
+        const char* label = "ANALYTIC DIPOLE FIELD \u2014 VISUALIZATION  \u00b7  normalized geometry, not MHD";
+        ImDrawList* dl = ImGui::GetForegroundDrawList();
+        const ImVec2 ds = ImGui::GetIO().DisplaySize;
+        const ImVec2 ts = small_->CalcTextSizeA(small_->FontSize * layout_, FLT_MAX, 0.0f, label);
+        const ImVec2 pos((ds.x - ts.x) * 0.5f, ds.y - (visible_ ? 150.0f : 40.0f) * scale_);
+        dl->AddRectFilled(ImVec2(pos.x - 8 * scale_, pos.y - 4 * scale_), ImVec2(pos.x + ts.x + 8 * scale_, pos.y + ts.y + 4 * scale_),
+                          col32(ImVec4(0.02f, 0.03f, 0.06f, 0.6f)), 4.0f * scale_);
+        dl->AddText(small_, small_->FontSize * layout_, pos, col32(ImVec4(0.6f, 0.8f, 1.0f, 1.0f)), label);
+    }
     if (!visible_) {
         // Minimal hint so the presenter knows how to bring the interface back.
         ImDrawList* dl = ImGui::GetForegroundDrawList();
@@ -417,6 +428,9 @@ void Ui::drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests
     ImGui::PopStyleColor();
 
     ImGui::Spacing();
+    ImGui::Checkbox("Magnetic field (analytic dipole)", &fieldLines_);
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Field lines of an ideal dipole (normalized). A visualization of field geometry,\nnot a magnetohydrodynamic model; shown for the main-sequence star and the neutron star.");
     ImGui::Checkbox("3D labels", &labels_);
     ImGui::SameLine();
     if (ImGui::Button(cameraOffset ? "Recenter camera *" : "Recenter camera")) req.recenterCamera = true;

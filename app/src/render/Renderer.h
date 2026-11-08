@@ -10,6 +10,7 @@
 #include "gfx/GL.h"
 #include "gfx/Geometry.h"
 #include "gfx/Shader.h"
+#include "render/FieldLines.h"
 #include "render/ParticleSystem.h"
 #include "render/RenderQuality.h"
 #include "sim/CameraPath.h"
@@ -40,6 +41,8 @@ public:
     // Changes rendering cost only (volume resolution/steps, particle density).
     void setQuality(QualityPreset preset);
     QualityPreset quality() const { return qualityPreset_; }
+    // Explanatory analytic dipole field-line overlay (off by default).
+    void setFieldLines(bool enabled) { showFieldLines_ = enabled; }
 
     // lensShiftX shifts the projection center horizontally in NDC units, used to
     // compose the subject to the right of the information panel.
@@ -74,13 +77,15 @@ private:
 
     // Shaders
     Shader noiseGen_, sky_, volume_, composite_, star_, glow_, disc_, particlesShader_, beam_, lens_,
-        bloomDown_, bloomUp_, final_, corona_, prominence_;
+        bloomDown_, bloomUp_, final_, corona_, prominence_, fieldline_;
     std::vector<Shader*> allShaders_;
 
     // Geometry
     Mesh sphere_, annulus_, cone_;
     gl::VertexArray emptyVao_;
     ParticleSystem particles_;
+    FieldLines fieldLines_;
+    bool showFieldLines_ = false;
 
     // Resources
     gl::Texture noise3d_;

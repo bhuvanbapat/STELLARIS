@@ -405,3 +405,19 @@ standard review set (six stages; 15 and 40 M☉ endings) were taken for comparis
   intact (WD pathway unchanged). 1080p Balanced: supernova 13.88 ms, NS remnant
   14.61 ms, black hole 11.11 ms (68–89 fps; +2–2.5 ms, because the remnant interior
   is now sampled for ejecta emission). Other stages unchanged.
+
+### 8.7 Workstream E — analytic magnetic-field overlay (implemented and verified)
+
+- Unit tests (3 new; 40/40): field vectors equal hand-computed values (axis r = 2:
+  (0, 0.25, 0); equator r = 2: (0, −0.125, 0); r⁻³ falloff; zero at the singular
+  point). Every integrated point of closed lines from 30°, 45° and 60° footpoints
+  satisfies the analytic dipole relation r = L sin²θ to < 0.2 %. Lines close at the
+  mirrored latitude (±0.002) with apex r = L (±2 %). Generation is deterministic,
+  bounded by maxSteps/maxRadius, and high-latitude lines are open.
+- Debugging record: the first run failed the 1 % tolerance. A diagnostic showed
+  zero error along every line body and 1.1–1.5 % only at the end point, caused by a
+  radial snap onto the surface. Fixed in the integrator (bisection along the last
+  step). The test was tightened to 0.2 % on every point.
+- Visual: 1 M☉ at 97 s shows thin closed loops and open polar lines, hidden behind
+  the star; 15 M☉ at 140 s shows the tilted neutron-star field aligned with the
+  beams. The model label is visible at the bottom. 7,984 + 34,672 segments.

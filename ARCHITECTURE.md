@@ -32,6 +32,7 @@ app/
     SceneState     evaluateScene(time, config): every visual parameter, pure function
     CameraPath     authored Catmull-Rom camera(time, pathway) + user orbit offset
     StageContent   on-screen scientific text per stage
+    MagneticField  analytic dipole field and RK4 field-line integration (overlay)
     CloudField     seeded procedural cloud structure (envelope, filaments, core, globules), baked to a grid
   src/gfx/      OpenGL helpers: RAII handles, Shader (with #include, hot reload), procedural meshes
   src/render/   Renderer (all passes), ParticleSystem (static attributes, deterministic seed)

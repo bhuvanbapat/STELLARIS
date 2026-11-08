@@ -5,7 +5,8 @@ add_library(stellaris_core STATIC
     src/sim/SceneState.cpp
     src/sim/CameraPath.cpp
     src/sim/StageContent.cpp
-    src/sim/CloudField.cpp)
+    src/sim/CloudField.cpp
+    src/sim/MagneticField.cpp)
 target_include_directories(stellaris_core PUBLIC src)
 target_link_libraries(stellaris_core PUBLIC glm::glm)
 
@@ -18,6 +19,7 @@ add_executable(stellaris
     src/gfx/GL.cpp
     src/gfx/Shader.cpp
     src/gfx/Geometry.cpp
+    src/render/FieldLines.cpp
     src/render/ParticleSystem.cpp
     src/render/Renderer.cpp
     src/ui/Ui.cpp)
