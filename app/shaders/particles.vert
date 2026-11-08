@@ -22,6 +22,15 @@ uniform float uParticleFraction;  // render-quality subsampling (cost only)
 
 out vec3 vColor;
 out float vAlpha;
+out vec4 vStreak;  // motion streak in sprite space: direction xy, half length, half width
+
+// Motion streaks: every population is a pure function of time, so the position a
+// moment earlier is evaluated exactly by shifting the clock by gDt. The sprite is
+// stretched along the on-screen motion over STREAK_DT seconds of timeline.
+float gDt = 0.0;
+#undef TIME
+#define TIME (uCamPos.w - gDt)
+const float STREAK_DT = 0.12;
 
 const float R_CORE = 13.0;      // radius of the collapsing core (scene units)
 const float KEPLER_K = 5.0;     // must match disc.frag
@@ -80,7 +89,7 @@ void coreGas(vec3 p0, vec4 s, out vec3 p, out vec3 col, out float alpha, out flo
     bool accretes = rc < starR * 1.1;
     float rLand = max(rc, starR * 0.8);
 
-    float tau = uCloud2.y;
+    float tau = uCloud2.y - gDt;  // infall clock runs at timeline rate
     float f = tau / tff;
     float y0 = gaussian(s.z, s.w);
     vec3 baseCol = mix(vec3(0.22, 0.26, 0.50), vec3(0.45, 0.22, 0.45), s.z) * 0.022;
@@ -151,7 +160,9 @@ void jetGas(vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {
     float len = uMisc.x;
     if (presence <= 0.0 || len <= 0.1) { p = vec3(0.0); col = vec3(0.0); alpha = 0.0; size = 0.0; return; }
     float t = TIME;
-    float rate = 0.11 + 0.04 * s.y;
+    // Fast flow: protostellar jets move at ~100-500 km/s, far faster than the
+    // infalling gas, so the jet gas crosses its length in ~2-3 s of timeline.
+    float rate = 0.34 + 0.10 * s.y;
     float phase = fract(s.x + t * rate);
     float side = s.z < 0.5 ? -1.0 : 1.0;
     float launch = uCentral.y * 1.3;
@@ -160,48 +171,37 @@ void jetGas(vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {
 
     // Narrow, slightly widening stream with a slow precession of the axis.
     float bow = smoothstep(0.82, 1.0, y / (len + launch));
-    float radius = (0.14 + 0.075 * y) * sqrt(fract(s.w * 7.13)) * (1.0 + 2.0 * bow);
+    // ~15% of the gas forms a hot, very narrow spine along the axis.
+    bool spine = fract(s.w * 53.1) < 0.15;
+    float radius = (0.14 + 0.075 * y) * sqrt(fract(s.w * 7.13)) * (1.0 + 2.0 * bow) * (spine ? 0.18 : 1.0);
     float a = s.w * 6.2831853;
     vec3 lateral = vec3(cos(a), 0.0, sin(a)) * radius;
     lateral.x += sin(t * 0.35 - y * 0.12) * 0.028 * y;
     lateral += (hash33(vec3(floor(y * 1.5 - t * 3.0), s.w * 97.0, side)) - 0.5) * 0.12 * y * 0.15;
     p = vec3(lateral.x, side * y, lateral.z);
 
-    // Episodic ejection: half of the particles belong to discrete knots launched every
-    // KNOT_PERIOD seconds; all members of a knot share its phase, so the knot travels
-    // as a compact clump. The other half forms the softer continuous outflow.
-    float knot = 0.0;
-    if (s.y < 0.5) {
-        const float KNOT_PERIOD = 1.9, KNOT_SPEED = 2.6;
-        float slot = floor(fract(s.x * 7.31) * 9.0);           // 9 knots in flight
-        float age = mod(t - slot * KNOT_PERIOD, 9.0 * KNOT_PERIOD);
-        // Independent random numbers for each coordinate (correlated ones draw curves).
-        vec3 r3 = hash33(vec3(s.x * 9187.0, s.w * 7703.0, s.z * 5011.0));
-        // Gaussian offsets give a soft ellipsoidal knot (uniform ones give a box).
-        vec3 r4 = hash33(r3 * 4099.0 + 17.0);
-        float gy = gaussian(max(r3.x, 1e-3), r4.x);
-        float gr = abs(gaussian(max(r3.y, 1e-3), r4.y));
-        float ky = launch + age * KNOT_SPEED + gy * 0.22;
-        if (ky > len + launch) { p = vec3(0.0); col = vec3(0.0); alpha = 0.0; size = 0.0; return; }
-        float kb = smoothstep(0.82, 1.0, ky / (len + launch));
-        float kr = (0.05 + 0.025 * ky) * min(gr, 2.5) * (1.0 + 2.0 * kb);
-        float ka = r3.z * 6.2831853;
-        vec3 kl = vec3(cos(ka), 0.0, sin(ka)) * kr;
-        kl.x += sin(t * 0.35 - ky * 0.12) * 0.028 * ky;
-        p = vec3(kl.x, side * ky, kl.z);
-        bow = kb;
-        knot = 1.0;
-        phase = age / (9.0 * KNOT_PERIOD);
-    }
-    col = mix(vec3(0.45, 0.70, 1.0), vec3(1.0, 0.36, 0.42), bow) * (0.05 + 0.14 * knot);
-    alpha = presence * smoothstep(0.0, 0.04, phase) * (1.0 - smoothstep(0.92, 1.0, phase));
-    size = 0.07 + 0.07 * knot + 0.2 * bow;
+    // Continuous, collimated beam. Internal shocks ("knots", as in Herbig-Haro jets)
+    // are brightness enhancements that travel outward with the gas; the particles
+    // themselves stay evenly spread so the beam never breaks into separate clumps.
+    float kw = sin((y - 6.6 * t) * 0.8 + side * 1.3);
+    float knot = pow(0.5 + 0.5 * kw, 4.0);
+    // Colour after observed protostellar jets: hot, bluish-white gas near the
+    // source, H-alpha/[S II] rose-red along the beam, deep red-orange bow shock.
+    float along = smoothstep(0.0, 0.45, (y - launch) / max(len, 1e-3));
+    vec3 beam = mix(vec3(0.70, 0.80, 1.0), vec3(1.0, 0.42, 0.52), along);
+    // A quarter of the particles are large and faint: their overlap forms the diffuse
+    // glow of the beam, so it reads as gas rather than a string of dots.
+    bool halo = !spine && fract(s.w * 31.7) < 0.25;
+    if (spine) beam = mix(vec3(0.85, 0.92, 1.0), beam, 0.5 * along);
+    col = mix(beam, vec3(1.0, 0.36, 0.20), bow) * (0.045 + 0.08 * knot + 0.05 * bow) * (halo ? 0.35 : spine ? 1.8 : 1.0);
+    alpha = presence * smoothstep(0.0, 0.06, phase) * (1.0 - smoothstep(0.9, 1.0, phase));
+    size = (halo ? 0.38 : 0.13) + 0.06 * knot + 0.25 * bow;
 }
 
 void ejecta(vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {
     float presence = uEjecta.x;
     if (presence <= 0.0) { p = vec3(0.0); col = vec3(0.0); alpha = 0.0; size = 0.0; return; }
-    float clock = uEjecta.y;
+    float clock = uEjecta.y - gDt;  // ejecta clock runs at timeline rate
     float z = s.y * 2.0 - 1.0;
     float a = s.z * 6.2831853;
     vec3 dir = vec3(sqrt(1.0 - z * z) * cos(a), z, sqrt(1.0 - z * z) * sin(a));
@@ -294,12 +294,37 @@ void main() {
     else if (pop == 3) ejecta(aSeed, p, col, alpha, size);
     else               wind(aSeed, p, col, alpha, size);
 
+    // Earlier position for the motion streak (all moving populations).
+    vec3 pPrev = p;
+    if (alpha > 0.0 && (pop >= 1)) {
+        vec3 c2; float a2, s2;
+        gDt = STREAK_DT;
+        if (pop == 1)      coreGas(aPos0.xyz, aSeed, pPrev, c2, a2, s2);
+        else if (pop == 2) jetGas(aSeed, pPrev, c2, a2, s2);
+        else if (pop == 3) ejecta(aSeed, pPrev, c2, a2, s2);
+        else               wind(aSeed, pPrev, c2, a2, s2);
+        gDt = 0.0;
+        if (a2 <= 0.0 || distance(p, pPrev) > 6.0) pPrev = p;  // no streak across a respawn
+    }
+
     gl_Position = uViewProj * vec4(p, 1.0);
     // World-space size -> pixels. Sub-pixel particles keep size 1 px and fade
     // their alpha with covered area, which avoids flicker.
     float px = size * uProj[1][1] * 0.5 * uViewport.y / max(gl_Position.w, 1e-3);
     float coverage = clamp(px * px, 0.0, 1.0);
-    gl_PointSize = clamp(px, 1.0, 14.0);
+    vec4 prevClip = uViewProj * vec4(pPrev, 1.0);
+    vec2 motion = (gl_Position.xy / max(gl_Position.w, 1e-3) - prevClip.xy / max(prevClip.w, 1e-3)) * 0.5 * uViewport.xy;
+    float streakLen = min(length(motion), 40.0);
+    float pxc = clamp(px, 1.0, 14.0);
+    vStreak = vec4(0.0);
+    if (streakLen > 0.75 * pxc && prevClip.w > 0.0) {
+        float sprite = streakLen + pxc;
+        vec2 dir = motion / max(length(motion), 1e-4);
+        vStreak = vec4(dir.x, -dir.y, streakLen / sprite, pxc / sprite);
+        gl_PointSize = sprite;
+    } else {
+        gl_PointSize = pxc;
+    }
     // Fade particles that pass very close to the camera so they never fill the screen.
     float camDist = length(p - uCamPos.xyz);
     float nearFade = smoothstep(4.0, 14.0, camDist);

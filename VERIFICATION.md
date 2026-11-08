@@ -512,3 +512,20 @@ standard review set (six stages; 15 and 40 M☉ endings) were taken for comparis
   multi-subject renderer, camera composition and new prescribed dynamics (P2 cost,
   regression risk to the verified single-star path). Reference tracks (MIST/PARSEC)
   are also deferred: they need dataset provenance and a download approval.
+
+### 8.13 Realism and energy pass (implemented and verified, 2026-11-08)
+
+- User report: jets looked like broken, periodic streams. Cause: the Workstream D
+  knot code moved half of the jet particles into 9 separate clumps. Fixed by
+  restoring the continuous beam; knots are now brightness only.
+- Changes: faster jets with a hot spine; motion streaks for infall, disc, jets, wind
+  and ejecta; three accretion bursts; compressional core glow; dust albedo 0.5,
+  H-alpha rims and [O III] envelope; residual cloud 18% → 8%; extinction 0.26 → 0.32.
+- Tests: 46/46 unit tests (new `accretion_bursts_only_while_a_protostar_accretes`;
+  `accretionBurst` added to the continuity check) and the provenance test pass.
+  `--selftest` reports 0 failures.
+- Visual: standard review set captured before and after at 1600×900. Jets are
+  continuous with streaks; the core heats visibly between t = 24, 30 and 36; the
+  15 M☉ supernova at t = 116/118/121 expands with radial streaks.
+- Benchmark (1080p, default tier): 4.9–11.0 ms per stage. The worst case is the NS
+  remnant at 11.0 ms (91 fps), within the earlier 6.6–14.6 ms range.

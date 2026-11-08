@@ -47,6 +47,7 @@ struct SceneState {
     float collapse     = 0.0f;  // normalized collapse progress, 0..1 (prescribed)
     float infallClock  = 0.0f;  // timeline seconds since collapse began (drives particles)
     float coreGlow     = 0.0f;  // embedded central emission inside the cloud (artistic)
+    float accretionBurst = 0.0f;  // episodic accretion outburst of the protostar, 0..1 (prescribed)
     float cavity       = 0.0f;  // bipolar outflow cavity opening, 0..1
     float dispersal    = 0.0f;  // envelope cleared by stellar feedback, 0..1
 

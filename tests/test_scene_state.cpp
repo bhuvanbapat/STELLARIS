@@ -17,7 +17,7 @@ namespace {
 std::vector<float> continuousFields(const SceneState& s) {
     return {s.cloudDensity, s.collapse, s.coreGlow, s.cavity, s.dispersal, s.centralPresence,
             s.protostarVeil, s.discPresence, s.jetPresence, s.giant, s.ejectaPresence, s.ejectaGlow,
-            s.supernovaFlash, s.remnantPresence, s.pulsarBeams, s.blackHole, s.activity, s.flare, s.atmosphere};
+            s.supernovaFlash, s.remnantPresence, s.pulsarBeams, s.blackHole, s.activity, s.flare, s.atmosphere, s.accretionBurst};
 }
 
 bool sameState(const SceneState& a, const SceneState& b) {
@@ -210,4 +210,18 @@ TEST(flare_is_a_single_deterministic_event) {
     CHECK(evaluateScene(90.0, cfg).flare == 0.0f);
     CHECK(evaluateScene(105.0, cfg).flare < 0.01f);
     CHECK(evaluateScene(91.4, cfg).flare == evaluateScene(91.4, cfg).flare);
+}
+
+TEST(accretion_bursts_only_while_a_protostar_accretes) {
+    const ModelConfig cfg{1.0, 1.0};
+    float peak = 0.0f;
+    for (double t = 0.0; t <= timelineDuration(); t += 0.05) {
+        const float b = evaluateScene(t, cfg).accretionBurst;
+        CHECK(b >= 0.0f && b <= 1.0f);
+        if (t < 40.0 || t > 90.0) CHECK(b == 0.0f);
+        peak = std::max(peak, b);
+    }
+    CHECK(peak > 0.5f);
+    // A burst brightens the embedded source relative to the quiet state just before it.
+    CHECK(evaluateScene(61.6, cfg).coreGlow > evaluateScene(60.9, cfg).coreGlow);
 }

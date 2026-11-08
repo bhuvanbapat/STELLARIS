@@ -71,9 +71,22 @@ Selectable mass range: 1–40 M☉. Lower-mass stars live longer than about
   reflecting that hot massive stars drive far stronger winds. During the giant
   phase it becomes a slow, dusty mass-loss wind. Speeds and densities are
   presentation values, not mass-loss rates.
-- **Jet knots (since 2026-11-08):** jets are drawn as discrete knots launched at a
-  fixed cadence within a weaker continuous flow (episodic ejection, as in
-  Herbig–Haro jets; illustrative timing).
+- **Jets (revised 2026-11-08, realism pass):** a continuous, collimated beam with a
+  hot, narrow spine. Internal shocks ("knots", as in Herbig–Haro jets) are travelling
+  brightness enhancements, not separate clumps; the discrete-clump version broke the
+  beam into gaps and was removed at the user's request. The flow is ~3× faster than
+  before, to reflect that jets (~100–500 km/s) far outpace the infalling gas.
+  Colours follow observed jets: bluish-white near the source, H-alpha/[S II] rose
+  along the beam, a red-orange bow shock. Presentation speeds, not physical ones.
+- **Accretion bursts (2026-11-08):** three prescribed outbursts (t = 47, 61, 73.5 s;
+  fast rise, ~3 s decay) brighten the protostar and its embedded glow, after
+  FU Orionis / EX Lupi-type episodic accretion. Timing and amplitude illustrative.
+- **Cloud appearance (2026-11-08):** dust albedo lowered to ~0.5 (typical of
+  interstellar grains in the visible); H-alpha emission on cloud surfaces facing the
+  external stars (photo-ionised rims, as on the Pillars of Creation); faint [O III]
+  teal in thin envelope gas; a compressional-heating glow in the dense core that
+  grows with collapse (artistic). The residual cloud after dispersal is reduced from
+  18% to 8%.
 - **Supernova remnant structure (since 2026-11-08):** a forward shock front (with
   a decelerating, presentation-timed radius), stratified ejecta behind it (inner
   teal "oxygen-like", middle red "hydrogen-alpha-like", outer blue-white layers;

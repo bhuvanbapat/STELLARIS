@@ -237,3 +237,13 @@ Prioritise deeper cloud morphology, volumetric quality, layered stellar renderin
   select. `--compare` flag. One new unit test. Evidence: VERIFICATION §8.12.
 - Deferred, with reasons recorded: binary, cluster and triggered-compression
   scenarios, and published reference tracks.
+
+## 2026-11-08 — Realism and energy pass (user request)
+
+- Jets: the discrete-knot clumps (Workstream D) broke the beam into gaps. Restored a
+  continuous beam; knots are now brightness only. Faster flow, hot spine, observed
+  jet colours.
+- Motion streaks for every moving particle family (exact earlier-time evaluation).
+- Accretion bursts (sim layer, tested); compressional core heating glow; more
+  realistic dust albedo, H-alpha rims, [O III] envelope; less residual fog.
+- Evidence: VERIFICATION §8.13.

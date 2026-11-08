@@ -128,11 +128,11 @@ void main() {
     float stepLen = 2.0 * uCloudExtent / float(uSteps);
     float t = tNear + stepLen * ign(gl_FragCoord.xy);
 
-    const float SIGMA = 0.26;  // extinction per unit density per scene unit
+    const float SIGMA = 0.32;  // extinction per unit density per scene unit
     vec3 transmittance = vec3(1.0);
     vec3 radiance = vec3(0.0);
 
-    vec3 keyColor = vec3(0.62, 0.74, 1.0) * 0.9;                  // external field
+    vec3 keyColor = vec3(0.80, 0.86, 1.0) * 0.85;                 // external OB-star field
     vec3 centralColor = uCentralColor.rgb;
     float centralPower = uCentral.x * uCentral.z * 1.1 + uCloud.z * 1.5;
     vec3 glowColor = mix(vec3(1.0, 0.42, 0.18), centralColor, uCentral.x);
@@ -169,10 +169,24 @@ void main() {
 
             // Faint ambient sky light keeps shadowed regions from going pure black.
             vec3 ambient = vec3(0.020, 0.024, 0.055) * (0.6 + 0.4 * saturate(p.y / 30.0 + 0.5));
-            // Subtle dusty-magenta emission in dense, unshadowed filaments (artistic).
-            vec3 emission = vec3(0.30, 0.08, 0.26) * 0.10 * smoothstep(0.25, 0.9, d) * exp(-tauKey * 0.6);
+            // Photo-ionised skin: surfaces facing the external stars glow in H-alpha
+            // (rose-red), as on the rims of the Pillars of Creation. Only the thin
+            // unshadowed layer emits; the interior stays dark dust.
+            float skin = exp(-tauKey * 3.0) * smoothstep(0.05, 0.35, d);
+            vec3 emission = vec3(0.95, 0.30, 0.36) * 0.55 * skin;
+            // Thin, ionised envelope gas: faint [O III] teal, as in HII regions.
+            emission += vec3(0.20, 0.55, 0.58) * 0.10 * (1.0 - smoothstep(0.03, 0.25, d));
+            // Compressional heating: the densest gas in the contracting core glows
+            // from within, deep red at the edge to orange-white at the centre
+            // (artistic rendering of a hot, compressed core; brightens in bursts).
+            // Heating follows the collapse itself (compression), then the embedded source.
+            float squeeze = max(uCloud.z, uCloud.y * 0.7) * (1.0 + 0.12 * sin(TIME * 2.3));
+            float hot = squeeze * exp(-r / 2.8);
+            emission += mix(vec3(0.9, 0.18, 0.05), vec3(1.0, 0.62, 0.30), exp(-r / 1.4)) * 2.4 * hot * min(d, 2.0);
 
-            vec3 albedo = vec3(0.62, 0.70, 0.92);
+            // Interstellar dust grains: visible albedo ~0.5, slightly bluer when
+            // scattering (reddening comes from EXTINCTION_TINT on the light paths).
+            vec3 albedo = vec3(0.56, 0.50, 0.45);
             vec3 S = (albedo * (lightKey + lightC + ambient) + emission) * sigmaT;
             vec3 Tstep = exp(-sigmaT * stepLen);
             // Energy-conserving integration of in-scattering over the step.

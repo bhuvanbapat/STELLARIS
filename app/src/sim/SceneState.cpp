@@ -117,7 +117,7 @@ SceneState evaluateScene(double time, const ModelConfig& config) {
     const double tFate     = stageSpan(Stage::StellarFate).start;  // 100
 
     // --- Cloud and collapse --------------------------------------------------
-    s.cloudDensity = 1.0f - 0.55f * smooth(84, 100, t) - 0.27f * smooth(100, 114, t);
+    s.cloudDensity = 1.0f - 0.55f * smooth(84, 100, t) - 0.37f * smooth(100, 114, t);
     s.collapse     = smooth(tCollapse, 54, t);
     s.infallClock  = static_cast<float>(std::max(0.0, t - tCollapse));
     s.coreGlow     = smooth(22, 44, t) * (1.0f - 0.8f * smooth(84, 102, t));
@@ -159,6 +159,24 @@ SceneState evaluateScene(double time, const ModelConfig& config) {
     // differences are carried by size and color, and tone mapping keeps the limb visible.
     const float msIntensity = 1.35f;
     s.centralIntensity = mixf(1.6f, msIntensity, ignite) * mixf(1.0f, 0.38f, s.giant);
+
+    // Episodic accretion: young protostars accrete in bursts (FU Orionis / EX Lupi
+    // type outbursts), brightening by up to several magnitudes. Three prescribed
+    // events, fast rise and slower decay; times and amplitudes are illustrative.
+    {
+        constexpr double kBurstTimes[] = {47.0, 61.0, 73.5};
+        constexpr float kBurstPeaks[] = {0.7f, 1.0f, 0.8f};
+        float burst = 0.0f;
+        for (int i = 0; i < 3; ++i) {
+            const double b = kBurstTimes[i];
+            const float rise = smooth(b, b + 0.5, t);
+            const float decay = static_cast<float>(std::exp(-std::max(0.0, t - b - 0.5) / 3.0));
+            burst = std::max(burst, kBurstPeaks[i] * rise * decay);
+        }
+        s.accretionBurst = burst * protostar * (1.0f - ignite);
+        s.coreGlow *= 1.0f + 1.2f * s.accretionBurst;
+        s.centralIntensity *= 1.0f + 1.0f * s.accretionBurst;
+    }
 
     // --- Surface activity of the main-sequence star (illustrative) -------------------
     // Present while the star is on the main sequence and not yet a giant; one flare
