@@ -41,10 +41,10 @@ add_custom_command(TARGET stellaris POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_CURRENT_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:stellaris>/shaders
     COMMENT "Copying shaders next to the executable")
-# Attributed observation images and their provenance sidecars (assets/observations).
+# Attributed images and their provenance sidecars (assets/observations, assets/sky).
 add_custom_command(TARGET stellaris POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${PROJECT_SOURCE_DIR}/assets/observations $<TARGET_FILE_DIR:stellaris>/assets/observations
-    COMMENT "Copying observation assets next to the executable")
+            ${PROJECT_SOURCE_DIR}/assets $<TARGET_FILE_DIR:stellaris>/assets
+    COMMENT "Copying attributed image assets next to the executable")
 
 set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT stellaris)

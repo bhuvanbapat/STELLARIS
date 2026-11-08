@@ -16,7 +16,7 @@
 
 namespace stellaris {
 
-std::optional<ImageTexture> loadImageTexture(const std::filesystem::path& path) {
+std::optional<ImageTexture> loadImageTexture(const std::filesystem::path& path, bool srgb) {
     std::ifstream in(path, std::ios::binary);
     if (!in) {
         log::error("Cannot open image {}", path.string());
@@ -34,16 +34,16 @@ std::optional<ImageTexture> loadImageTexture(const std::filesystem::path& path) 
     img.height = h;
     img.texture = gl::createTexture(GL_TEXTURE_2D);
     const int levels = 1 + static_cast<int>(std::floor(std::log2(std::max(w, h))));
-    glTextureStorage2D(img.texture.id(), levels, GL_RGBA8, w, h);
+    glTextureStorage2D(img.texture.id(), levels, srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8, w, h);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTextureSubImage2D(img.texture.id(), 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
     glGenerateTextureMipmap(img.texture.id());
     glTextureParameteri(img.texture.id(), GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTextureParameteri(img.texture.id(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(img.texture.id(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(img.texture.id(), GL_TEXTURE_WRAP_S, srgb ? GL_REPEAT : GL_CLAMP_TO_EDGE);
     glTextureParameteri(img.texture.id(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     stbi_image_free(pixels);
-    log::info("Loaded observation image {} ({}x{}, ~{:.1f} MiB on GPU)", path.filename().string(), w, h,
+    log::info("Loaded image {} ({}x{}, ~{:.1f} MiB on GPU)", path.filename().string(), w, h,
               w * h * 4.0 * 4.0 / 3.0 / (1024.0 * 1024.0));
     return img;
 }

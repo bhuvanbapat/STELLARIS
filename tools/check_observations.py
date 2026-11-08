@@ -1,6 +1,6 @@
 """Validates the provenance records of the observation assets (CLAUDE.md §19.7).
 
-For every assets/observations/*.json sidecar: required fields are present and
+For every assets/observations/*.json and assets/sky/*.json sidecar: required fields are present and
 non-empty, the referenced image exists, its SHA-256 matches the recorded checksum,
 and its pixel dimensions (read from the JPEG header) match the record. Every image
 in the folder must have a sidecar. Exit code 0 = all good.
@@ -15,7 +15,8 @@ import os
 import struct
 import sys
 
-ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "observations")
+ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets")
+ROOTS = [os.path.join(ASSETS, "observations"), os.path.join(ASSETS, "sky")]
 
 REQUIRED = [
     "id", "title", "object", "stage", "pathway", "source_institution", "source_page", "file_url",
@@ -57,15 +58,27 @@ def sha256(path):
 
 
 def main():
+    total_records = total_images = 0
+    errors = []
+    for ROOT in ROOTS:
+        r, i = check_dir(ROOT, errors)
+        total_records += r
+        total_images += i
+    for e in errors:
+        print("ERROR", e)
+    print(f"{total_records} records, {total_images} images, {len(errors)} problem(s)")
+    return 1 if errors else 0
+
+
+def check_dir(ROOT, errors):
     images = sorted(f for f in os.listdir(ROOT) if f.lower().endswith(".jpg"))
     if "--facts" in sys.argv:
         for f in images:
             p = os.path.join(ROOT, f)
             w, h = jpeg_size(p)
             print(f"{f}: {w}x{h} sha256={sha256(p)}")
-        return 0
+        return 0, 0
 
-    errors = []
     sidecars = sorted(f for f in os.listdir(ROOT) if f.endswith(".json"))
     covered = set()
     for name in sidecars:
@@ -90,10 +103,7 @@ def main():
     for img in images:
         if img not in covered:
             errors.append(f"{img}: no provenance sidecar")
-    for e in errors:
-        print("ERROR", e)
-    print(f"{len(sidecars)} records, {len(images)} images, {len(errors)} problem(s)")
-    return 1 if errors else 0
+    return len(sidecars), len(images)
 
 
 if __name__ == "__main__":

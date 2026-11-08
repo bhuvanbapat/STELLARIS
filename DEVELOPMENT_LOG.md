@@ -247,3 +247,10 @@ Prioritise deeper cloud morphology, volumetric quality, layered stellar renderin
 - Accretion bursts (sim layer, tested); compressional core heating glow; more
   realistic dust albedo, H-alpha rims, [O III] envelope; less residual fog.
 - Evidence: VERIFICATION §8.13.
+
+## 2026-11-08 — Real Milky Way sky
+
+- ESO/S. Brunier all-sky panorama (6000×3000, CC BY 4.0) is now the background of every
+  stage, mapped in galactic coordinates with an on-screen credit; `--procedural-sky`
+  turns it off. sRGB texture loading was added to `ImageTexture`; the whole `assets/`
+  folder is copied next to the executable. Evidence: VERIFICATION §8.14.

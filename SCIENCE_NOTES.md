@@ -246,3 +246,13 @@ a 3D reconstruction". The images are references only: nothing in the model reads
 them. Licences: CC BY 4.0 (ESA/Hubble, ESA/Webb, ESO), checked on each source page
 and the institutions' usage pages on 2026-11-08, and public domain (NASA SVS). The
 retrieved files are the 1024–1280 px "screensize" versions, sized for a side panel.
+
+### 9.6 Real sky background (2026-11-08)
+
+The background is the ESO/S. Brunier Milky Way panorama (eso0932a, CC BY 4.0), a real
+visible-light photograph of the whole sky. We map it in galactic coordinates. The
+scene's galactic plane follows the band that was already there, so the stellar nursery
+sits against the Milky Way disc, where molecular clouds actually are. That placement is
+a presentation choice, not a real sky position for the simulated star. A sparse layer
+of procedural point stars is drawn over it so star cores stay sharp. The credit is on
+screen at all times. `--procedural-sky` restores the fully procedural sky.

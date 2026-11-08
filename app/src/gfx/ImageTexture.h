@@ -15,6 +15,8 @@ struct ImageTexture {
     int width = 0, height = 0;
 };
 
-std::optional<ImageTexture> loadImageTexture(const std::filesystem::path& path);
+// srgb = true stores the texture as GL_SRGB8_ALPHA8 so shaders sample linear values
+// (used for the sky photograph rendered into the linear HDR target).
+std::optional<ImageTexture> loadImageTexture(const std::filesystem::path& path, bool srgb = false);
 
 } // namespace stellaris

@@ -64,6 +64,7 @@ public:
     void setScientificView(bool on) { setViewMode(on ? ViewMode::Scientific : ViewMode::Cinematic); }
     void setFieldLines(bool on) { fieldLines_ = on; }
     void setCompare(bool on) { compare_ = on; }
+    void setSkyCredit(const char* credit) { skyCredit_ = credit; }
 
     // Horizontal NDC lens shift that keeps the subject clear of the left panel.
     float compositionShift() const { return visible_ ? (mode_ == ViewMode::Observation ? 0.42f : 0.14f) : 0.0f; }
@@ -85,6 +86,7 @@ private:
     bool   labels_ = true;
     bool   fieldLines_ = false;
     bool   compare_ = false;   // mass-comparison table visible
+    const char* skyCredit_ = nullptr;  // always-visible credit of the sky photograph
     ViewMode mode_ = ViewMode::Cinematic;
     int    observationIndex_ = 0;  // selected band when several observations match
     bool   labelClick_ = false;  // current timeline press started on a stage label

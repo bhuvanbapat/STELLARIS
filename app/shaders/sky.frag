@@ -6,6 +6,31 @@
 in vec2 vUV;
 out vec4 outColor;
 layout(binding = 0) uniform sampler3D uNoise;
+// Real sky: ESO/S. Brunier all-sky Milky Way panorama (eso0932a, CC BY 4.0), a
+// plate-carree map in galactic coordinates with the galactic centre in the middle
+// and longitude increasing to the left. Sampled as sRGB, so values are linear.
+layout(binding = 1) uniform sampler2D uSkyMap;
+uniform int uHasSkyMap;
+
+// Scene-to-galactic frame: the galactic plane is placed along the same tilted great
+// circle as the procedural band, so the stellar nursery sits against the Milky Way
+// (molecular clouds lie in the galactic disc).
+const vec3 GAL_NORTH = normalize(vec3(0.25, 1.0, -0.4));
+const vec3 GAL_CENTRE_HINT = vec3(0.3, 0.0, -1.0);
+const float SKY_GAIN = 0.16;     // photograph (display-referred) -> scene radiance
+
+vec3 skyPhoto(vec3 dir, float pixelAngle) {
+    vec3 gc = normalize(GAL_CENTRE_HINT - GAL_NORTH * dot(GAL_CENTRE_HINT, GAL_NORTH));
+    vec3 east = cross(GAL_NORTH, gc);
+    float l = atan(dot(dir, east), dot(dir, gc));          // galactic longitude
+    float b = asin(clamp(dot(dir, GAL_NORTH), -1.0, 1.0)); // galactic latitude
+    vec2 uv = vec2(0.5 - l / (2.0 * PI), 0.5 - b / PI);
+    // Explicit LOD from the angular pixel size: implicit derivatives jump at the
+    // longitude seam and would draw a line of the smallest mip there.
+    float texelsPerRad = float(textureSize(uSkyMap, 0).x) / (2.0 * PI);
+    float lod = max(0.0, log2(pixelAngle * texelsPerRad));
+    return textureLod(uSkyMap, uv, lod).rgb * SKY_GAIN;
+}
 
 vec3 viewDir(vec2 uv) {
     vec4 farP = uInvViewProj * vec4(uv * 2.0 - 1.0, 1.0, 1.0);
@@ -32,6 +57,14 @@ void main() {
     float pixelAngle = 2.0 / (uProj[1][1] * uViewport.y);  // radians per pixel (approx.)
 
     vec3 col = vec3(0.0);
+    if (uHasSkyMap != 0) {
+        // The photograph carries the real star field and Milky Way. A sparse layer of
+        // bright procedural point stars keeps star cores crisp at screen resolution.
+        col = skyPhoto(dir, pixelAngle);
+        col += starLayer(dir, 34.0, 0.10, pixelAngle, 0.6);
+        outColor = vec4(col, 1.0);
+        return;
+    }
     col += starLayer(dir, 90.0, 0.10, pixelAngle, 0.9);
     col += starLayer(dir, 200.0, 0.05, pixelAngle, 0.5);
     col += starLayer(dir, 34.0, 0.10, pixelAngle, 1.6);

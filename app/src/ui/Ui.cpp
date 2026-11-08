@@ -452,6 +452,16 @@ UiRequests Ui::draw(Playback& playback, ModelConfig& config, const UiFrameInfo& 
                           col32(ImVec4(0.02f, 0.03f, 0.06f, 0.6f)), 4.0f * scale_);
         dl->AddText(small_, small_->FontSize * layout_, pos, col32(ImVec4(0.6f, 0.8f, 1.0f, 1.0f)), label);
     }
+    if (skyCredit_) {
+        // CC BY 4.0 requires a clear, visible credit next to the image: always drawn,
+        // also when the interface is hidden and in captures.
+        ImDrawList* dl = ImGui::GetForegroundDrawList();
+        const ImVec2 ds = ImGui::GetIO().DisplaySize;
+        const float fs = small_->FontSize * layout_ * 0.9f;
+        const ImVec2 ts = small_->CalcTextSizeA(fs, FLT_MAX, 0.0f, skyCredit_);
+        const float y = visible_ ? 6.0f * scale_ : ds.y - ts.y - 8.0f * scale_;
+        dl->AddText(small_, fs, ImVec2((ds.x - ts.x) * 0.5f, y), col32(kTextFaint, 0.85f), skyCredit_);
+    }
     if (!visible_) {
         // Minimal hint so the presenter knows how to bring the interface back.
         ImDrawList* dl = ImGui::GetForegroundDrawList();

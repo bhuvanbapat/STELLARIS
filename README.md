@@ -74,6 +74,7 @@ Useful options for `stellaris.exe`:
 | `--seed N` | procedural cloud morphology seed (default 1) |
 | `--field-lines` | start with the analytic dipole field-line overlay on |
 | `--compare` | start with the mass-comparison table open |
+| `--procedural-sky` | use the procedural star field instead of the ESO Milky Way photograph |
 | `--observation` | start in the Observation view (authentic credited image beside the scene) |
 | `--scientific` | start in the Scientific view (density cross-section, field lines, labels) |
 | `--quality Q` | `performance`, `balanced` (default), `high`, `capture`: rendering cost only |
@@ -192,5 +193,6 @@ and runs as a CTest test.
 | Southern Ring Nebula, NIRCam + MIRI (weic2207a) | NASA, ESA, CSA, STScI, and the Webb ERO Production Team | CC BY 4.0 |
 | Crab Nebula (heic0515a) | NASA, ESA and Allison Loll/Jeff Hester (Arizona State University). Acknowledgement: Davide De Martin | CC BY 4.0 |
 | M87* black hole (eso1907a) | EHT Collaboration | CC BY 4.0 |
+| Milky Way panorama, background sky of every stage (eso0932a, `assets/sky/`) | ESO/S. Brunier | CC BY 4.0 |
 
 Third-party code: stb_image 2.30 (Sean Barrett), MIT / public domain.

@@ -311,6 +311,8 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
     glClearDepth(1.0);
     glClear(GL_DEPTH_BUFFER_BIT);
     sky_.use();
+    sky_.set("uHasSkyMap", skyTexture_ != 0 ? 1 : 0);
+    if (skyTexture_ != 0) glBindTextureUnit(1, skyTexture_);
     drawFullscreen();
 
     // --- 2. Opaque bodies ----------------------------------------------------------

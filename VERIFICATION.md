@@ -529,3 +529,20 @@ standard review set (six stages; 15 and 40 M☉ endings) were taken for comparis
   15 M☉ supernova at t = 116/118/121 expands with radial streaks.
 - Benchmark (1080p, default tier): 4.9–11.0 ms per stage. The worst case is the NS
   remnant at 11.0 ms (91 fps), within the earlier 6.6–14.6 ms range.
+
+### 8.14 Real Milky Way sky (implemented and verified, 2026-11-08)
+
+- Downloaded after the user approved it: ESO eso0932a, the 6000×3000 large JPEG (8.2 MB).
+  Licence checked on ESO's copyright page (CC BY 4.0, visible unaltered credit,
+  modifications indicated); no exception is noted on the image page. Sidecar
+  `assets/sky/eso0932a.json`; the provenance checker now covers `assets/sky` (8 records,
+  8 images, 0 problems).
+- Visual: the review set at 1600×900 shows the Milky Way band with dust lanes and the
+  bulge behind the cloud in stages 1–3. The credit "Milky Way: ESO/S. Brunier (CC BY 4.0)"
+  is legible at the top (UI shown) or bottom (UI hidden). No seam line was seen.
+- `--selftest` passes with 0 failures with and without `--procedural-sky`. Benchmark per
+  stage: 4.8–11.0 ms, unchanged within noise. GPU memory: the texture is 91.6 MiB (logged);
+  2.3 GB of 6 GB was in use during the run (nvidia-smi).
+- Not done: larger versions of the 7 Observation images. The panel displays at about
+  700 px and the current files are 1024–1280 px, so they would add memory and no
+  visible detail.

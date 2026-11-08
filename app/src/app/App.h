@@ -38,6 +38,7 @@ struct AppOptions {
     bool scientific = false;
     bool observation = false;
     bool compare = false;       // show the mass-comparison table
+    bool proceduralSky = false; // do not load the real Milky Way photograph
 };
 
 // Parses argv. Returns false (and prints usage) on invalid input.
@@ -80,6 +81,7 @@ private:
     SceneState  scene_;
     CloudField  cloud_;  // baked procedural cloud for config_.cloudSeed
     std::vector<Observation> observations_;              // attributed images (sidecar catalog)
+    std::optional<ImageTexture> skyTexture_;                  // ESO all-sky panorama (credited)
     std::map<std::string, ImageTexture> observationTextures_;  // loaded on first use; freed before the GL context
     UserCameraOffset cameraOffset_;
     float       lensShift_ = 0.0f;

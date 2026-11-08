@@ -55,6 +55,7 @@ void printUsage() {
         "  --quality Q              performance | balanced (default) | high | capture\n"
         "  --field-lines            show the analytic dipole field-line overlay\n"
         "  --compare                show the mass-comparison table\n"
+        "  --procedural-sky         use the procedural star field instead of the ESO Milky Way photograph\n"
         "  --scientific             start in the Scientific view (density cross-section, overlays)\n"
         "  --hide-ui                start with the interface hidden\n"
         "  --capture DIR T1,T2,...  render the listed times to DIR/*.png and exit\n"
@@ -105,6 +106,7 @@ bool parseOptions(int argc, char** argv, AppOptions& o) {
         else if (a == "--scientific") o.scientific = true;
         else if (a == "--observation") o.observation = true;
         else if (a == "--compare") o.compare = true;
+        else if (a == "--procedural-sky") o.proceduralSky = true;
         else if (a == "--quality" && i + 1 < argc) {
             const std::string q = argv[++i];
             if (q == "performance") o.quality = QualityPreset::Performance;
@@ -138,6 +140,7 @@ App::~App() {
     if (uiReady_) ui_.shutdown();
     if (window_) {
         observationTextures_.clear();
+        skyTexture_.reset();
         renderer_.reset();  // GL resources must be released while the context is current
         glfwDestroyWindow(window_);
     }
@@ -215,6 +218,13 @@ int App::run() {
         observations_ = loadObservationCatalog(executableDir() / "assets" / "observations", &errors);
         for (const std::string& e : errors) log::warn("Observation catalog: {}", e);
         log::info("Observation catalog: {} attributed images", observations_.size());
+    }
+    if (!options_.proceduralSky) {
+        // Real sky: ESO/S. Brunier all-sky panorama (CC BY 4.0); credit shown on screen.
+        skyTexture_ = loadImageTexture(executableDir() / "assets" / "sky" / "eso0932a.jpg", true);
+        if (!skyTexture_) log::warn("Sky photograph unavailable; using the procedural star field");
+        renderer_->setSkyTexture(skyTexture_ ? skyTexture_->texture.id() : 0);
+        ui_.setSkyCredit(skyTexture_ ? "Milky Way: ESO/S. Brunier (CC BY 4.0)" : nullptr);
     }
     if (options_.fullscreen) toggleFullscreen();
     lensShift_ = ui_.compositionShift();
