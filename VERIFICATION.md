@@ -349,3 +349,25 @@ standard review set (six stages; 15 and 40 M☉ endings) were taken for comparis
 - Unit tests 35/35 after the change.
 - Not done: temporal accumulation (P3), and a multiple-scattering approximation.
   Neither was needed for the visible failure modes found so far.
+
+### 8.4 Workstream C — layered stellar atmosphere (implemented and verified)
+
+- Unit tests (2 new; 37/37): activity, flare and atmosphere are present for 1 M☉ on
+  the main sequence, and activity is 0 for 15 M☉ (no outer convection zone) while its
+  smooth atmosphere remains. Neither appears before the main sequence or as a
+  giant. The flare is a single event peaking at 91–92 s, zero before, < 0.01 after
+  105 s, and repeatable. The new fields pass the 5 ms continuity test.
+- Visual, full-resolution crops around the star: at t = 97 (1 M☉) granulation, dark
+  spots, the chromosphere rim and prominence arches beyond both limbs are visible.
+  At t = 91.8 the flare is a localized kernel at the active region, not a full-frame
+  flash. 4 and 15 M☉ stars are blue-white, smooth and limb-darkened, with no spots.
+- Defects found and fixed during review: flare site rotated away from the camera at
+  flare time (spot layout changed); edge-on prominences looked like "horns" (wider
+  span, taller, thicker); leftover disc washed out the star (disc/jets now fade by
+  89–91 s); hot stars washed out (equal surface brightness, stage-5 exposure
+  0.75 → 0.6); a bright prominence ring over the disc (emission suppressed in front
+  of the photosphere).
+- Regression gate: standard review set intact; `--selftest` 0 failures; 1080p
+  Balanced 6.48–12.76 ms (78–154 fps), main sequence 6.48 ms (was 7.26).
+- Not done: CME-like ejection (optional per spec), and multi-distance aliasing
+  inspection beyond the authored camera distances.

@@ -64,6 +64,7 @@ private:
     void createBlackbodyLut();
     void uploadFrameUniforms(const SceneState& s, const CameraPose& cam, float lensShiftX);
     void drawFullscreen();
+    float pixelsPerUnitAt(const glm::vec3& world, const CameraPose& cam) const;
     void drawGlow(const glm::vec3& center, float size, float innerFrac, float falloff,
                   const glm::vec3& color, float intensity, bool rays);
     void bloom(GLuint source);
@@ -73,7 +74,7 @@ private:
 
     // Shaders
     Shader noiseGen_, sky_, volume_, composite_, star_, glow_, disc_, particlesShader_, beam_, lens_,
-        bloomDown_, bloomUp_, final_;
+        bloomDown_, bloomUp_, final_, corona_, prominence_;
     std::vector<Shader*> allShaders_;
 
     // Geometry

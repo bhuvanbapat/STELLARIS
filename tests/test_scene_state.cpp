@@ -17,7 +17,7 @@ namespace {
 std::vector<float> continuousFields(const SceneState& s) {
     return {s.cloudDensity, s.collapse, s.coreGlow, s.cavity, s.dispersal, s.centralPresence,
             s.protostarVeil, s.discPresence, s.jetPresence, s.giant, s.ejectaPresence, s.ejectaGlow,
-            s.supernovaFlash, s.remnantPresence, s.pulsarBeams, s.blackHole};
+            s.supernovaFlash, s.remnantPresence, s.pulsarBeams, s.blackHole, s.activity, s.flare, s.atmosphere};
 }
 
 bool sameState(const SceneState& a, const SceneState& b) {
@@ -182,4 +182,32 @@ TEST(particle_generation_is_deterministic) {
         for (float s : v.seed) CHECK(s >= 0.0f && s < 1.0f);
     }
     CHECK(core == small.core);
+}
+
+TEST(surface_activity_only_for_convective_main_sequence_stars) {
+    const SceneState sun = evaluateScene(94.0, {1.0, 1.0});
+    CHECK(sun.convective > 0.99f && sun.activity > 0.9f && sun.atmosphere > 0.9f);
+    // Hot, massive stars have no outer convection zone: no spots/prominences/flare.
+    const SceneState hot = evaluateScene(94.0, {15.0, 1.0});
+    CHECK(hot.convective == 0.0f && hot.activity == 0.0f && hot.flare == 0.0f);
+    CHECK(hot.atmosphere > 0.9f);  // still has a (smooth) outer atmosphere layer
+    // Not before the main sequence, not as a giant.
+    CHECK(evaluateScene(60.0, {1.0, 1.0}).activity == 0.0f);
+    CHECK(evaluateScene(60.0, {1.0, 1.0}).atmosphere == 0.0f);
+    CHECK(evaluateScene(120.0, {1.0, 1.0}).activity == 0.0f);
+}
+
+TEST(flare_is_a_single_deterministic_event) {
+    const ModelConfig cfg{1.0, 1.0};
+    float peak = 0.0f;
+    double peakT = 0.0;
+    for (double t = 80.0; t < 110.0; t += 0.01) {
+        const float f = evaluateScene(t, cfg).flare;
+        if (f > peak) { peak = f; peakT = t; }
+    }
+    CHECK(peak > 0.9f);
+    CHECK(peakT > 91.0 && peakT < 92.0);
+    CHECK(evaluateScene(90.0, cfg).flare == 0.0f);
+    CHECK(evaluateScene(105.0, cfg).flare < 0.01f);
+    CHECK(evaluateScene(91.4, cfg).flare == evaluateScene(91.4, cfg).flare);
 }

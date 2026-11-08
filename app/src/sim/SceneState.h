@@ -58,6 +58,14 @@ struct SceneState {
     float     centralIntensity = 0.0f;  // HDR emission multiplier (artistic)
     float     turbulence       = 0.0f;  // surface-pattern contrast/scale (artistic)
     float     protostarVeil    = 0.0f;  // obscuring envelope over a young protostar
+    // Sun-like magnetic activity needs an outer convection zone, which stars hotter
+    // than roughly 6200-7000 K lack. `convective` (0..1) is derived from the
+    // calculated T_eff; `activity` gates spots, prominences, flare and structured
+    // corona (parametric visual representations, not plasma simulation).
+    float     convective       = 0.0f;
+    float     activity         = 0.0f;
+    float     flare            = 0.0f;  // deterministic flare pulse, 0..1 (presentation)
+    float     atmosphere       = 0.0f;  // presence of the main-sequence chromosphere/corona layers
 
     // --- Disc and jets ----------------------------------------------------
     float rotation        = 1.0f;  // copy of the config parameter

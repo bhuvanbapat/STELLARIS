@@ -52,6 +52,19 @@ Selectable mass range: 1–40 M☉. Lower-mass stars live longer than about
   UI says "Procedural hub-filament cloud (illustrative, not a measured region)". The
   hub-filament arrangement and cometary globule shapes are inspired by observed
   morphology; no specific region is reproduced.
+- **Stellar atmosphere and activity (since 2026-11-08):** the main-sequence star has
+  a photosphere (blackbody color of the calculated T_eff, linear limb darkening
+  u = 0.6, granulation-like pattern), a thin chromospheric rim, a corona and, only
+  for stars with an outer convection zone, starspots, three prominence loops and one
+  flare event (t ≈ 91–95 s). The convection-zone factor is derived from the
+  calculated T_eff: 1 below 6200 K, 0 above 7000 K, smooth in between. This
+  reflects that Sun-like magnetic activity needs an outer convection zone, which
+  hotter, more massive stars lack; the transition is approximate. Spot layout,
+  loop shapes, flare timing and corona streamers are **parametric visual
+  representations**: no convection, flux emergence, reconnection or plasma
+  transport is simulated, and no flare energy is implied. Every main-sequence star
+  is drawn with the same surface brightness (artistic). Luminosity differences are
+  shown through size and color.
 - **Collapse (volume):** a smooth prescribed mapping draws the cloud's inner
   density inward, with a Jacobian density gain, swirl and flattening. It is
   illustrative only.
@@ -141,7 +154,7 @@ The entries below are an expansion design register. They must not be merged into
 | Binary protostar scene | Two protostellar components and their shared environment can be visualised | `prescribed binary configuration` unless a validated orbit/fragmentation model is added | A resolved binary fragmentation or hydrodynamics calculation |
 | Clustered formation | Several stars/cores can be shown at different stages | `procedural cluster scenario` | N-body cluster dynamics or a statistically representative cluster |
 | Dipole magnetic-field lines | A specified analytical field geometry can be visualised with integrated field lines | `analytic field visualisation` | Self-consistent magnetohydrodynamics or a simulated magnetic dynamo |
-| Stellar spots/prominences/flares | Surface activity can be explained with localised structures and time-dependent emission | `procedural/parametric surface activity` | Solved convection, reconnection or plasma transport |
+| Stellar spots/prominences/flares — **implemented 2026-11-08** (see §3) | Surface activity can be explained with localised structures and time-dependent emission | `procedural/parametric surface activity` | Solved convection, reconnection or plasma transport |
 | CME-like event | A surface-originating expanding structure can illustrate an ejection | `prescribed ejection visualisation` | A forecast or physical CME calculation |
 | Rayleigh–Taylor-like ejecta fingers | Irregular finger-like morphology can illustrate instability-shaped interfaces | `instability-inspired procedural morphology` | A numerically solved Rayleigh–Taylor instability |
 | Advanced volume scattering | More detailed light transport can improve the appearance of dusty gas | `rendering approximation` with documented parameters | A full wavelength-resolved radiative-transfer solution |

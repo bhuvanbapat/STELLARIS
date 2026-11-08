@@ -75,8 +75,10 @@ bool Renderer::init(const std::filesystem::path& shaderDir, int width, int heigh
     bloomDown_       = Shader("bloom_down", {{GL_VERTEX_SHADER, "fullscreen.vert"}, {GL_FRAGMENT_SHADER, "bloom_down.frag"}});
     bloomUp_         = Shader("bloom_up", {{GL_VERTEX_SHADER, "fullscreen.vert"}, {GL_FRAGMENT_SHADER, "bloom_up.frag"}});
     final_           = Shader("final", {{GL_VERTEX_SHADER, "fullscreen.vert"}, {GL_FRAGMENT_SHADER, "final.frag"}});
+    corona_          = Shader("corona", {{GL_VERTEX_SHADER, "glow.vert"}, {GL_FRAGMENT_SHADER, "corona.frag"}});
+    prominence_      = Shader("prominence", {{GL_VERTEX_SHADER, "prominence.vert"}, {GL_FRAGMENT_SHADER, "prominence.frag"}});
     allShaders_ = {&noiseGen_, &sky_, &volume_, &composite_, &star_, &glow_, &disc_,
-                   &particlesShader_, &beam_, &lens_, &bloomDown_, &bloomUp_, &final_};
+                   &particlesShader_, &beam_, &lens_, &bloomDown_, &bloomUp_, &final_, &corona_, &prominence_};
 
     bool ok = true;
     for (Shader* s : allShaders_) ok = s->load(shaderDir_) && ok;
@@ -298,6 +300,9 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
         star_.set("uVeil", s.protostarVeil);
         star_.set("uLimbU", 0.6f);
         star_.set("uSeed", 0.17f);
+        star_.set("uActivity", s.activity);
+        star_.set("uFlare", s.flare);
+        star_.set("uPixelsPerRadius", pixelsPerUnitAt(glm::vec3(0.0f), cam) * s.centralRadius);
         sphere_.draw();
     }
     if (s.remnantPresence > 0.01f) {
@@ -310,6 +315,9 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
         star_.set("uVeil", 0.0f);
         star_.set("uLimbU", 0.25f);
         star_.set("uSeed", 0.61f);
+        star_.set("uActivity", 0.0f);
+        star_.set("uFlare", 0.0f);
+        star_.set("uPixelsPerRadius", pixelsPerUnitAt(glm::vec3(0.0f), cam) * s.remnantRadius);
         sphere_.draw();
     }
 
@@ -379,13 +387,37 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
         }
     }
 
+    // Main-sequence atmosphere: prominences, then chromosphere + corona. Depth-tested
+    // so the stellar sphere hides whatever lies behind its disc.
+    if (s.atmosphere > 0.01f && s.centralRadius > 0.01f) {
+        if (s.activity > 0.01f) {
+            constexpr int kSegments = 48;
+            prominence_.use();
+            prominence_.set("uRadius", s.centralRadius);
+            prominence_.set("uSegments", kSegments);
+            prominence_.set("uIntensity", s.activity * s.atmosphere * s.centralIntensity * 0.9f);
+            glBindVertexArray(emptyVao_.id());
+            glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 2 * (kSegments + 1), 3);
+        }
+        corona_.use();
+        corona_.set("uCenter", glm::vec3(0.0f));
+        corona_.set("uSize", s.centralRadius * 4.5f);
+        corona_.set("uRadius", s.centralRadius);
+        corona_.set("uColor", s.centralColor);
+        corona_.set("uIntensity", s.centralIntensity * s.atmosphere * 0.32f);
+        corona_.set("uActivity", s.activity);
+        corona_.set("uFlare", s.flare);
+        glBindVertexArray(emptyVao_.id());
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    }
+
     // Halos (drawn without depth test: they are optical glare around the source).
     glDisable(GL_DEPTH_TEST);
     if (s.centralPresence > 0.01f) {
         const glm::vec3 haloColor = glm::mix(s.centralColor, glm::vec3(1.0f, 0.4f, 0.15f), s.protostarVeil);
         const float haloScale = 5.0f - 3.2f * s.giant;  // giants: thin halo, not a flood of light
         drawGlow(glm::vec3(0.0f), s.centralRadius * haloScale, 1.0f / haloScale, 2.8f, haloColor,
-                 s.centralIntensity * s.centralPresence * 0.16f, false);
+                 s.centralIntensity * s.centralPresence * 0.16f * (1.0f - 0.75f * s.atmosphere), false);
     }
     if (s.remnantPresence > 0.01f) {
         drawGlow(glm::vec3(0.0f), s.remnantRadius * 30.0f, 1.0f / 30.0f, 0.35f, s.remnantColor,
@@ -461,6 +493,10 @@ void Renderer::bloom(GLuint source) {
         drawFullscreen();
     }
     glDisable(GL_BLEND);
+}
+
+float Renderer::pixelsPerUnitAt(const glm::vec3& world, const CameraPose& cam) const {
+    return proj_[1][1] * 0.5f * static_cast<float>(height_) / std::max(glm::length(world - cam.position), 1e-3f);
 }
 
 std::optional<glm::vec2> Renderer::projectToScreen(const glm::vec3& world) const {

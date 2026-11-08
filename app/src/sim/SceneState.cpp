@@ -136,30 +136,47 @@ SceneState evaluateScene(double time, const ModelConfig& config) {
     s.centralPresence  = protostar;
     s.centralRadius    = mixf(protoRadius, msRadius, ignite);
     s.centralTempK     = mixf(protoTemp, static_cast<float>(s.ms.teffK), ignite);
-    s.turbulence       = mixf(1.0f, 0.35f, ignite);
+    // Convective outer envelope: present below ~6200 K, absent above ~7000 K (the
+    // transition is gradual and approximate). Hot stars get a smooth surface.
+    s.convective = 1.0f - smooth(6200.0, 7000.0, s.ms.teffK);
+    s.turbulence = mixf(1.0f, mixf(0.08f, 0.35f, s.convective), ignite);
     s.protostarVeil    = protostar * (1.0f - smooth(58, tMS, t)) * 0.75f;
 
     // --- Disc and jets -------------------------------------------------------
     // Centrifugal radius r_c = j^2 / (G M) scales as (initial angular velocity)^2.
     s.discScale       = std::clamp(7.0f * s.rotation * s.rotation, 2.5f, 11.0f);
-    s.discPresence    = smooth(48, 60, t) * (1.0f - smooth(86, 98, t));
+    s.discPresence    = smooth(48, 60, t) * (1.0f - smooth(83, 91, t));
     s.discOuterRadius = s.discScale * mixf(0.25f, 1.0f, smooth(46, 72, t));
     s.discInnerRadius = msRadius * 1.25f;
-    s.jetPresence     = smooth(58, 64, t) * (1.0f - smooth(84, 93, t));
+    s.jetPresence     = smooth(58, 64, t) * (1.0f - smooth(82, 89, t));
     s.jetLength       = 16.0f * smooth(58, 70, t);
 
     // --- Final stage ------------------------------------------------------------
     evaluateFate(s, t);
 
     s.centralColor = blackbodyColor(s.centralTempK);
-    const float msIntensity = 1.5f * static_cast<float>(std::pow(s.ms.teffK / kSolarTeffK, 0.15));
+    // Same surface brightness for every main-sequence star (artistic): luminosity
+    // differences are carried by size and color, and tone mapping keeps the limb visible.
+    const float msIntensity = 1.35f;
     s.centralIntensity = mixf(1.6f, msIntensity, ignite) * mixf(1.0f, 0.38f, s.giant);
+
+    // --- Surface activity of the main-sequence star (illustrative) -------------------
+    // Present while the star is on the main sequence and not yet a giant; one flare
+    // event with a fixed time window, so seeking reproduces it exactly.
+    s.activity = s.convective * smooth(tMS + 2.0, tMS + 7.0, t) * (1.0f - smooth(tFate + 1.0, tFate + 9.0, t));
+    {
+        const double flareStart = tMS + 9.0;  // 91 s
+        const float rise = smooth(flareStart, flareStart + 0.6, t);
+        const float decay = static_cast<float>(std::exp(-std::max(0.0, t - flareStart - 0.6) / 2.2));
+        s.flare = s.activity * rise * decay;
+    }
+    s.atmosphere = ignite * (1.0f - s.giant) * s.centralPresence;
 
     // --- Exposure (authored "camera adaptation") ---------------------------------
     float exposure = 1.0f;
     exposure = mixf(exposure, 0.9f, smooth(30, 46, t));
     exposure = mixf(exposure, 0.95f, smooth(58, 70, t));
-    exposure = mixf(exposure, 0.75f, smooth(tMS, tMS + 8, t));
+    exposure = mixf(exposure, 0.6f, smooth(tMS, tMS + 8, t));
     exposure = mixf(exposure, 0.95f, smooth(tFate + 2, tFate + 20, t));
     s.exposure = exposure / (1.0f + 5.0f * s.supernovaFlash);
 

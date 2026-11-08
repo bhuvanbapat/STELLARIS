@@ -52,8 +52,9 @@ StageContent stageContent(Stage stage, Pathway pathway) {
             "most of its life. More massive stars are hotter, far more luminous and much "
             "shorter-lived.",
             "Luminosity, radius, temperature and lifetime come from simple scaling relations; the "
-            "color is the computed blackbody color. The surface pattern is artistic, not simulated "
-            "convection, and the star's size on screen is strongly compressed.",
+            "color is the computed blackbody color. Surface pattern, spots, prominences and the flare "
+            "are illustrative (shown only for stars with an outer convection zone), not simulated; "
+            "the star's size on screen is strongly compressed.",
         };
     case Stage::StellarFate:
         switch (pathway) {

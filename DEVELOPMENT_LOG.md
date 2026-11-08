@@ -172,3 +172,17 @@ Prioritise deeper cloud morphology, volumetric quality, layered stellar renderin
 - **Deferred:** temporal accumulation (P3) and multiple-scattering approximation. No
   visible failure mode currently requires them.
 - Next: Workstream C (photosphere / chromosphere / corona, spots, prominences, flare).
+
+## 2026-11-08 — Workstream C (layered stellar atmosphere)
+
+- **Implemented and verified:** photosphere (granulation with sub-pixel fade,
+  starspots, flare footpoint), chromosphere rim, structured corona, three prominence
+  arches, one deterministic flare. New scene fields: `convective`, `activity`,
+  `flare`, `atmosphere`. Evidence: VERIFICATION §8.4.
+- Scientific decision: Sun-like activity is gated by an outer-convection-zone
+  factor derived from the calculated T_eff (≈6200–7000 K transition), so massive
+  hot stars show no spots or prominences. The UI approximation text was updated.
+- Artistic decision: equal surface brightness for every main-sequence star, and
+  stage-5 exposure lowered to 0.6, so tone mapping keeps the limb and surface
+  detail visible.
+- **Deferred:** CME-like ejection (optional per PROJECT_SPEC §18.5).

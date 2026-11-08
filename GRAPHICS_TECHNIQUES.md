@@ -46,6 +46,9 @@ that implements it.
 | Empty-space skipping (shell-aware) | `volume.frag` | 2× step where the structure is empty and no ejecta shell is near; fixed step inside the cloud |
 | Joint bilateral (depth-aware) upsampling | `composite.frag` | each of the 4 nearest low-res volume texels is weighted by bilinear weight × similarity of the scene depth it was rendered with to this pixel's depth: no cloud halo across the stellar limb |
 | Render quality tiers | `render/RenderQuality.h`, `Renderer::setQuality` | Performance / Balanced / High / Capture change volume resolution (⅓, ½, ¾, full), ray steps (64–160) and particle subsampling (stable subset, brightness-compensated); scene state never changes |
+| Layered photosphere | `star.frag`, `stellar_activity.glsl` | limb darkening; two-scale granulation-like pattern that fades below ~2–6 px per cell (no aliasing); umbra/penumbra starspots with noise-perturbed edges at fixed positions in the rotating stellar frame; flare footpoint kernel |
+| Chromosphere + structured corona | `corona.frag` (billboard, depth-tested) | thin reddish limb rim; smooth halo plus world-anchored radial streamers concentrated toward the stellar equator; flare brightening above the active region |
+| Prominence ribbons | `prominence.vert/.frag` | 3 instanced camera-facing triangle-strip arches anchored on active regions, depth-tested against the star; emission suppressed where seen against the disc (where real prominences appear dark) |
 | Back-lit external illumination | `CloudField::keyLightDirection`, `volume.frag` | light from behind the cloud: rim lighting, globules seen in silhouette |
 
 Measured cost and visual evidence: `VERIFICATION.md` §8.
