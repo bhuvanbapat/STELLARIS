@@ -186,3 +186,10 @@ Prioritise deeper cloud morphology, volumetric quality, layered stellar renderin
   stage-5 exposure lowered to 0.6, so tone mapping keeps the limb and surface
   detail visible.
 - **Deferred:** CME-like ejection (optional per PROJECT_SPEC §18.5).
+
+## 2026-11-08 — Workstream D (particle species)
+
+- **Implemented and verified:** stellar-wind species (strength from calculated
+  luminosity; slow dusty wind for giants) and episodic jet knots. VERIFICATION §8.5.
+- Lesson recorded: each random coordinate needs its own independent hash.
+  Correlated seeds made curve and box artifacts twice (here and in the GLUT jets).

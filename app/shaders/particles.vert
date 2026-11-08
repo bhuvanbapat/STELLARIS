@@ -12,6 +12,7 @@
 //      angular velocity while drifting inward (prescribed viscous drift)
 //   2  jet gas: streams along the rotation axis with moving knots
 //   3  final-stage ejecta: planetary-nebula shells or supernova ejecta
+//   4  stellar wind: sparse radial outflow (main sequence; slow dusty wind of giants)
 #include "common.glsl"
 
 layout(location = 0) in vec4 aPos0;   // xyz initial position, w population
@@ -166,11 +167,35 @@ void jetGas(vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {
     lateral += (hash33(vec3(floor(y * 1.5 - t * 3.0), s.w * 97.0, side)) - 0.5) * 0.12 * y * 0.15;
     p = vec3(lateral.x, side * y, lateral.z);
 
-    // Knots that move outward with the flow (episodic ejection).
-    float knot = 0.35 + 0.65 * pow(0.5 + 0.5 * sin((y - 17.0 * rate * t) * 0.9 + s.z * 0.5), 3.0);
-    col = mix(vec3(0.45, 0.70, 1.0), vec3(1.0, 0.36, 0.42), bow) * (0.04 + 0.14 * knot);
-    alpha = presence * smoothstep(0.0, 0.06, phase) * (1.0 - smoothstep(0.9, 1.0, phase));
-    size = 0.08 + 0.08 * knot + 0.2 * bow;
+    // Episodic ejection: half of the particles belong to discrete knots launched every
+    // KNOT_PERIOD seconds; all members of a knot share its phase, so the knot travels
+    // as a compact clump. The other half forms the softer continuous outflow.
+    float knot = 0.0;
+    if (s.y < 0.5) {
+        const float KNOT_PERIOD = 1.9, KNOT_SPEED = 2.6;
+        float slot = floor(fract(s.x * 7.31) * 9.0);           // 9 knots in flight
+        float age = mod(t - slot * KNOT_PERIOD, 9.0 * KNOT_PERIOD);
+        // Independent random numbers for each coordinate (correlated ones draw curves).
+        vec3 r3 = hash33(vec3(s.x * 9187.0, s.w * 7703.0, s.z * 5011.0));
+        // Gaussian offsets give a soft ellipsoidal knot (uniform ones give a box).
+        vec3 r4 = hash33(r3 * 4099.0 + 17.0);
+        float gy = gaussian(max(r3.x, 1e-3), r4.x);
+        float gr = abs(gaussian(max(r3.y, 1e-3), r4.y));
+        float ky = launch + age * KNOT_SPEED + gy * 0.22;
+        if (ky > len + launch) { p = vec3(0.0); col = vec3(0.0); alpha = 0.0; size = 0.0; return; }
+        float kb = smoothstep(0.82, 1.0, ky / (len + launch));
+        float kr = (0.05 + 0.025 * ky) * min(gr, 2.5) * (1.0 + 2.0 * kb);
+        float ka = r3.z * 6.2831853;
+        vec3 kl = vec3(cos(ka), 0.0, sin(ka)) * kr;
+        kl.x += sin(t * 0.35 - ky * 0.12) * 0.028 * ky;
+        p = vec3(kl.x, side * ky, kl.z);
+        bow = kb;
+        knot = 1.0;
+        phase = age / (9.0 * KNOT_PERIOD);
+    }
+    col = mix(vec3(0.45, 0.70, 1.0), vec3(1.0, 0.36, 0.42), bow) * (0.05 + 0.14 * knot);
+    alpha = presence * smoothstep(0.0, 0.04, phase) * (1.0 - smoothstep(0.92, 1.0, phase));
+    size = 0.07 + 0.07 * knot + 0.2 * bow;
 }
 
 void ejecta(vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {
@@ -219,6 +244,26 @@ void ejecta(vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {
     }
 }
 
+void wind(vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {
+    float strength = uWind.x;
+    if (strength <= 0.0 || uCentral.y <= 0.0) { p = vec3(0.0); col = vec3(0.0); alpha = 0.0; size = 0.0; return; }
+    // Each particle repeatedly leaves the surface along a fixed direction; the radius
+    // grows linearly with phase (constant terminal speed, presentation scale).
+    float R = uCentral.y;
+    float span = 6.0 * R + 10.0;
+    float phase = fract(s.x + TIME * uWind.y / span);
+    float z = s.y * 2.0 - 1.0, az = s.z * 6.2831853;
+    vec3 dir = vec3(sqrt(1.0 - z * z) * cos(az), z, sqrt(1.0 - z * z) * sin(az));
+    vec3 clump = hash33(floor(dir * 9.0)) - 0.5;          // mild streams, not confetti
+    dir = normalize(dir + clump * 0.18);
+    p = dir * (R * 1.03 + phase * span);
+    vec3 hot = mix(uCentralColor.rgb, vec3(0.75, 0.85, 1.0), 0.5);
+    vec3 dusty = vec3(0.9, 0.45, 0.25);
+    col = mix(hot, dusty, uWind.z) * 0.2;
+    alpha = strength * smoothstep(0.0, 0.05, phase) * (1.0 - phase) * (1.0 - phase) * (0.4 + 0.6 * s.w);
+    size = 0.07 + 0.08 * s.w;
+}
+
 void main() {
     int pop = int(aPos0.w + 0.5);
     vec3 p, col;
@@ -226,7 +271,8 @@ void main() {
     if (pop == 0)      ambient(aPos0.xyz, aSeed, p, col, alpha, size);
     else if (pop == 1) coreGas(aPos0.xyz, aSeed, p, col, alpha, size);
     else if (pop == 2) jetGas(aSeed, p, col, alpha, size);
-    else               ejecta(aSeed, p, col, alpha, size);
+    else if (pop == 3) ejecta(aSeed, p, col, alpha, size);
+    else               wind(aSeed, p, col, alpha, size);
 
     gl_Position = uViewProj * vec4(p, 1.0);
     // World-space size -> pixels. Sub-pixel particles keep size 1 px and fade

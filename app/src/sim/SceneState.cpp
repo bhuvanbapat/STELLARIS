@@ -171,6 +171,13 @@ SceneState evaluateScene(double time, const ModelConfig& config) {
         s.flare = s.activity * rise * decay;
     }
     s.atmosphere = ignite * (1.0f - s.giant) * s.centralPresence;
+    {
+        const float msWind = std::clamp(static_cast<float>(std::log10(s.ms.luminositySolar)) / 5.5f, 0.12f, 1.0f);
+        const float giantWind = s.giant * s.centralPresence * 0.8f;
+        s.wind      = std::max(s.atmosphere * msWind, giantWind);
+        s.windSpeed = mixf(1.5f + 2.0f * msWind, 0.7f, s.giant);
+        s.windDusty = s.giant;
+    }
 
     // --- Exposure (authored "camera adaptation") ---------------------------------
     float exposure = 1.0f;

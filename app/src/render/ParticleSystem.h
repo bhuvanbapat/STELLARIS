@@ -21,7 +21,8 @@ struct ParticleCounts {
     int core    = 110000;
     int jet     = 16000;
     int ejecta  = 60000;
-    int total() const { return ambient + core + jet + ejecta; }
+    int wind    = 14000;
+    int total() const { return ambient + core + jet + ejecta + wind; }
 };
 
 // Pure CPU generation (unit-testable): same seed -> identical output.

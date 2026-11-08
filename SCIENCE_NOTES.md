@@ -65,6 +65,15 @@ Selectable mass range: 1–40 M☉. Lower-mass stars live longer than about
   transport is simulated, and no flare energy is implied. Every main-sequence star
   is drawn with the same surface brightness (artistic). Luminosity differences are
   shown through size and color.
+- **Stellar wind (since 2026-11-08):** a particle species showing outflow from the
+  star. On the main sequence its visual strength is clamp(log10(L/L☉)/5.5, 0.12, 1)
+  of the calculated luminosity: weak for the Sun, strong for massive stars,
+  reflecting that hot massive stars drive far stronger winds. During the giant
+  phase it becomes a slow, dusty mass-loss wind. Speeds and densities are
+  presentation values, not mass-loss rates.
+- **Jet knots (since 2026-11-08):** jets are drawn as discrete knots launched at a
+  fixed cadence within a weaker continuous flow (episodic ejection, as in
+  Herbig–Haro jets; illustrative timing).
 - **Collapse (volume):** a smooth prescribed mapping draws the cloud's inner
   density inward, with a Jacobian density gain, swirl and flattening. It is
   illustrative only.

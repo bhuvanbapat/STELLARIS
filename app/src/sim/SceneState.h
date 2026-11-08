@@ -66,6 +66,11 @@ struct SceneState {
     float     activity         = 0.0f;
     float     flare            = 0.0f;  // deterministic flare pulse, 0..1 (presentation)
     float     atmosphere       = 0.0f;  // presence of the main-sequence chromosphere/corona layers
+    // Stellar wind particle species (illustrative strength/speed, see SCIENCE_NOTES):
+    // on the main sequence it scales with log10(L); giants lose mass in a slow wind.
+    float     wind             = 0.0f;
+    float     windSpeed        = 0.0f;  // scene units per timeline second
+    float     windDusty        = 0.0f;  // 0 = hot ionized wind color, 1 = cool dusty giant wind
 
     // --- Disc and jets ----------------------------------------------------
     float rotation        = 1.0f;  // copy of the config parameter

@@ -371,3 +371,18 @@ standard review set (six stages; 15 and 40 M☉ endings) were taken for comparis
   Balanced 6.48–12.76 ms (78–154 fps), main sequence 6.48 ms (was 7.26).
 - Not done: CME-like ejection (optional per spec), and multi-distance aliasing
   inspection beyond the authored camera distances.
+
+### 8.5 Workstream D — typed particle species (implemented and verified)
+
+- New stellar-wind family (14,000 particles, population 4) and episodic jet knots.
+  Particle generation stays deterministic (existing tests, 37/37).
+- Visual crops: at t = 72 s the jets show compact soft knots inside a faint
+  collimated stream. At 96 s (15 M☉) the hot-star wind shows as sparse outward
+  flecks. At 112 s (1 M☉) the giant's dusty mass-loss wind is reddish.
+- Defects found and fixed: knots first drew S-shaped curves (all coordinates came
+  from one random number) and then boxes (uniform offsets). They now use
+  independent Gaussian offsets.
+- Regression: `--selftest` 0 failures; 1080p Balanced 6.48–12.81 ms (78–153 fps),
+  unchanged within noise.
+- Not done: velocity-aligned streaks, species toggles in an inspection UI (with
+  Workstream G), and CME ejecta.

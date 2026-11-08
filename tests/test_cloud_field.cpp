@@ -92,7 +92,7 @@ TEST(cloud_field_bake_matches_exact_evaluation) {
 TEST(ambient_particles_follow_the_cloud_field) {
     const CloudField f = CloudField::build(1u, 32);
     ParticleCounts counts;
-    counts.ambient = 3000; counts.core = 0; counts.jet = 0; counts.ejecta = 0;
+    counts.ambient = 3000; counts.core = 0; counts.jet = 0; counts.ejecta = 0; counts.wind = 0;
     const auto particles = generateParticles(counts, 11u, f);
     double onParticles = 0.0;
     for (const ParticleVertex& v : particles) onParticles += f.sample({v.pos[0], v.pos[1], v.pos[2]}).envelope +

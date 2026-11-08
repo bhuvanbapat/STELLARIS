@@ -33,8 +33,9 @@ struct FrameUniforms {
     glm::vec4 ejecta2;      // strength, flash, remnantPresence, remnantRadius
     glm::vec4 remnantColor; // rgb, intensity
     glm::vec4 blackHole;    // presence, shadowR, einsteinR, pulsarBeams
+    glm::vec4 wind;         // strength, speed, dusty, unused
 };
-static_assert(sizeof(FrameUniforms) == 4 * 64 + 12 * 16, "FrameUniforms must match std140 layout");
+static_assert(sizeof(FrameUniforms) == 4 * 64 + 13 * 16, "FrameUniforms must match std140 layout");
 
 gl::Texture makeTexture2D(int w, int h, GLenum format, GLenum filter) {
     gl::Texture t = gl::createTexture(GL_TEXTURE_2D);
@@ -237,6 +238,7 @@ void Renderer::uploadFrameUniforms(const SceneState& s, const CameraPose& cam, f
     u.ejecta2 = {s.ejectaStrength, s.supernovaFlash, s.remnantPresence, s.remnantRadius};
     u.remnantColor = glm::vec4(s.remnantColor, s.remnantIntensity);
     u.blackHole = {s.blackHole, s.bhShadowRadius, s.bhEinsteinRadius, s.pulsarBeams};
+    u.wind = {s.wind, s.windSpeed, s.windDusty, 0.0f};
     glNamedBufferSubData(frameUbo_.id(), 0, sizeof(u), &u);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, frameUbo_.id());
 }

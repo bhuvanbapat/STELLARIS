@@ -60,6 +60,7 @@ std::vector<ParticleVertex> generateParticles(const ParticleCounts& counts, uint
     }
     for (int n = 0; n < counts.jet; ++n) push(out, 0, 0, 0, 2, rng);
     for (int n = 0; n < counts.ejecta; ++n) push(out, 0, 0, 0, 3, rng);
+    for (int n = 0; n < counts.wind; ++n) push(out, 0, 0, 0, 4, rng);
     return out;
 }
 

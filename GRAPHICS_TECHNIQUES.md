@@ -17,7 +17,7 @@ that implements it.
 | Procedural deformation of a density field | `volume.frag` | collapse mapping r₀ = r·h(r) with a Jacobian density gain, swirl and flattening |
 | Reduced-resolution rendering + upsampled composite | `Renderer.cpp`, `composite.frag` | volume at ½ resolution, premultiplied "over" blend |
 | Depth-aware ray termination | `volume.frag` | rays stop at the star using the full-resolution depth buffer |
-| Deterministic GPU particles (stateless) | `shaders/particles.vert` | 276k particles; positions computed in closed form from seed and time (free-fall trajectory, Keplerian orbit, jets, ejecta) |
+| Deterministic GPU particles (stateless) | `shaders/particles.vert` | 276k particles (290k with the stellar wind since 2026-11-08); positions computed in closed form from seed and time (free-fall trajectory, Keplerian orbit, jets, ejecta) |
 | Point sprites with size attenuation and coverage fading | `particles.vert/.frag` | sub-pixel particles fade by covered area (no flicker); near-camera fade |
 | Procedural star field | `shaders/sky.frag` | hashed cells on the view sphere; blackbody star colors; pixel-footprint anti-aliasing |
 | Procedural surface shading | `shaders/star.frag` | animated cellular pattern, linear limb darkening I(μ)=1−u(1−μ) |
@@ -49,6 +49,7 @@ that implements it.
 | Layered photosphere | `star.frag`, `stellar_activity.glsl` | limb darkening; two-scale granulation-like pattern that fades below ~2–6 px per cell (no aliasing); umbra/penumbra starspots with noise-perturbed edges at fixed positions in the rotating stellar frame; flare footpoint kernel |
 | Chromosphere + structured corona | `corona.frag` (billboard, depth-tested) | thin reddish limb rim; smooth halo plus world-anchored radial streamers concentrated toward the stellar equator; flare brightening above the active region |
 | Prominence ribbons | `prominence.vert/.frag` | 3 instanced camera-facing triangle-strip arches anchored on active regions, depth-tested against the star; emission suppressed where seen against the disc (where real prominences appear dark) |
+| Typed particle species | `particles.vert`, `ParticleSystem` | five deterministic families (ambient dust, collapse infall → Keplerian disc, jet, final-stage ejecta, stellar wind), 290k particles. Jets: episodic knots sharing a launch phase (Gaussian-shaped clumps) inside a softer continuous outflow. Wind: radial outflow at constant presentation speed with mild streaming; hot-star or dusty-giant coloring |
 | Back-lit external illumination | `CloudField::keyLightDirection`, `volume.frag` | light from behind the cloud: rim lighting, globules seen in silhouette |
 
 Measured cost and visual evidence: `VERIFICATION.md` §8.
