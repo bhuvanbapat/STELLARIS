@@ -17,7 +17,7 @@
 // The animation is a pure function of a time value t (deterministic), so
 // pausing, stepping phases and resetting always give the same picture.
 // This is a simplified illustration; see the main application for the full
-// visualization and docs/SCIENCE_NOTES.md for the scientific model.
+// visualization and SCIENCE_NOTES.md for the scientific model.
 
 #include <GL/freeglut.h>
 

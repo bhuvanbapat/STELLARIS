@@ -1,6 +1,6 @@
 #pragma once
 // Concise on-screen scientific text for each stage. Sources and the full list of
-// assumptions are in docs/SCIENCE_NOTES.md. Strings are UTF-8.
+// assumptions are in SCIENCE_NOTES.md. Strings are UTF-8.
 
 #include "sim/StellarModel.h"
 #include "sim/Timeline.h"

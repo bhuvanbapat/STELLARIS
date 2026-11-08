@@ -117,3 +117,44 @@ its citations, the IAU 2015 B3 nominal T☉, the Demircan & Kahraman coefficient
 (as reported by Camposeo 2025), the white-dwarf progenitor mass range, and the
 non-monotonic NS/BH outcome. Bibliographic details for Sukhbold et al. (2016)
 and Shu (1977) are from memory and should be confirmed before formal citation.
+
+---
+
+## 9. Proposed extension notes — not part of the current implemented model
+
+The entries below are an expansion design register. They must not be merged into the claims in §§1–8 until the corresponding code, UI labels and verification evidence exist. `SCIENCE_NOTES.md` remains the record of what the executable actually calculates, prescribes and draws.
+
+| Proposed capability | Scientific meaning that may be communicated | Current/required status language | What must not be claimed |
+|---|---|---|---|
+| Filamentary molecular-cloud morphology | Molecular clouds contain structured, non-uniform density regions; procedural filaments help visualise this morphology | `procedural density structure` unless calibrated/derived from data | A calculated turbulent molecular-cloud solution |
+| Multiple dense cores | A cloud region can contain multiple condensations; a selected preset can demonstrate different core arrangements | `scenario preset` or `procedural core distribution` | Self-consistent gravitational fragmentation |
+| Triggered-compression scene | An external compression front can be used to illustrate a possible route to enhanced density | `illustrative compression scenario` | Proof that the displayed shock caused star formation |
+| Binary protostar scene | Two protostellar components and their shared environment can be visualised | `prescribed binary configuration` unless a validated orbit/fragmentation model is added | A resolved binary fragmentation or hydrodynamics calculation |
+| Clustered formation | Several stars/cores can be shown at different stages | `procedural cluster scenario` | N-body cluster dynamics or a statistically representative cluster |
+| Dipole magnetic-field lines | A specified analytical field geometry can be visualised with integrated field lines | `analytic field visualisation` | Self-consistent magnetohydrodynamics or a simulated magnetic dynamo |
+| Stellar spots/prominences/flares | Surface activity can be explained with localised structures and time-dependent emission | `procedural/parametric surface activity` | Solved convection, reconnection or plasma transport |
+| CME-like event | A surface-originating expanding structure can illustrate an ejection | `prescribed ejection visualisation` | A forecast or physical CME calculation |
+| Rayleigh–Taylor-like ejecta fingers | Irregular finger-like morphology can illustrate instability-shaped interfaces | `instability-inspired procedural morphology` | A numerically solved Rayleigh–Taylor instability |
+| Advanced volume scattering | More detailed light transport can improve the appearance of dusty gas | `rendering approximation` with documented parameters | A full wavelength-resolved radiative-transfer solution |
+| Multi-wavelength observation mode | Different bands reveal different observational information when genuine band data are used | `observational data view` with instrument/filter/source | A simulated X-ray/infrared/radio measurement when only a recoloured optical image is shown |
+| Comparative evolution tracks | Different model/data tracks can compare mass-dependent evolution | Identify each track as `simplified model` or named reference dataset | A precise prediction from a simplified lifetime scaling |
+
+### 9.1 Required provenance for observational data
+
+For any observation shown in the application, record the source object, source institution, original page/identifier, instrument, filter/band or wavelength, observation date if available, creator/credit, usage terms, processing/composite notes, original dimensions, local derivative dimensions and checksum. A multi-filter composite must identify the channels and any assigned display colours. Do not infer a natural-colour appearance from a false-colour scientific composite.
+
+### 9.2 Visual-field interpretation rules
+
+A shader-generated density field may be exposed in scientific mode as a **normalized procedural density field**. It must not be labelled with a mass-density unit such as kg m⁻³ unless the code provides a physically defined calibration and the calibration is documented.
+
+A vector field used to draw magnetic lines must be named and described (for example, analytic dipole field). A field-line tracer follows the specified mathematical field; it is not a material particle unless a separate particle equation is implemented.
+
+A colour temperature selected for the appearance of a photosphere or remnant must be distinguished from a measured effective temperature. Keep the current provenance tags: `calculated`, `parameter`, `prescribed`, `model relation`, `reference`, `illustrative`, and `category`.
+
+### 9.3 Reference datasets to investigate before integration
+
+Potential sources for future reference tracks or observational material include MIST and PARSEC stellar-evolution resources, NASA/ESA/STScI image collections, and public astronomy archives such as MAST or HEASARC. These are candidates for investigation, not an assertion that data have been downloaded, validated, licensed, or integrated. Before use, verify the exact dataset version, variables, units, coverage, citation requirements, access conditions and redistribution terms.
+
+### 9.4 Expansion science review gate
+
+Before a new phenomenon is included in a scientific label or presentation, record: the physical concept; the simplified representation; any equation/field/parameter; the units; the assumptions; what is omitted; the exact phrase shown to the user; and the reference supporting the scientific explanation. If a phenomenon is only procedural, use wording such as `visual representation inspired by ...`, not `simulation of ...`.

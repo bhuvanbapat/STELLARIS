@@ -13,20 +13,22 @@ This is not intended to be a commercial game or a full-scale astrophysics resear
 
 The final application must be a real, functioning, locally runnable program—not a mock-up, static presentation, collection of screenshots, or nonfunctional prototype.
 
-## 2. Absolute Rule: Start From a Clean Slate
+## 2. Project Workspace and Preservation Rules
 
-This is a new implementation.
+The initial STELLARIS implementation was established from a clean project baseline. That initialisation rule does **not** authorize restarting, deleting, replacing, or rebuilding the now-existing STELLARIS application.
 
-1. Treat the current project directory as the sole workspace for the new implementation.
-2. Do not search for, import, copy, or continue a previous implementation unless explicitly authorized.
-3. Do not assume that previous architecture, source code, design decisions, or documentation should be reused.
-4. Do not recreate an old implementation merely because its approach is familiar.
-5. Do not invent requirements based on inaccessible conversations, remembered project files, or assumptions about earlier attempts.
-6. Do not introduce files, frameworks, dependencies, or features without a clear project-related reason.
-7. Preserve the separation between the new project and any archived or unrelated directories.
-8. Never delete user files or execute destructive commands without explicit authorization.
+1. Treat the current STELLARIS repository/workspace as the authoritative project workspace.
+2. Preserve the existing C++20 / OpenGL 4.5 application, its build system, tests, shaders, assets, deterministic timeline, and independent freeGLUT demonstration unless a documented defect or user-approved architectural decision requires a change.
+3. Do not search for, import, copy, or continue unrelated earlier applications (including obsolete WAVEFORM product-specific behaviour) unless a component has been explicitly audited and authorized for reuse.
+4. Do not assume that a fresh implementation is preferable to an incremental improvement. Prefer the smallest change that meets the accepted requirement.
+5. Do not replace the established architecture, dependencies, project layout, or rendering pipeline merely because another approach is fashionable or easier to generate.
+6. Inspect the actual code before trusting filenames or historical documentation. Correct documentation when it no longer matches the source.
+7. Do not invent requirements based on inaccessible conversations, remembered project files, or assumptions about earlier attempts.
+8. Do not introduce files, frameworks, dependencies, or features without a clear project-related reason.
+9. Preserve unrelated files and archived/reference material. Never delete user files or execute destructive commands without explicit authorization.
+10. Before a large change, verify Git state and preserve a recoverable baseline. Keep the project buildable after each meaningful milestone.
 
-The new project's specifications must determine its implementation.
+The current STELLARIS specifications and the verified source baseline determine its implementation.
 
 ## 3. Mandatory Context-Loading Protocol
 
@@ -379,5 +381,145 @@ Do not begin major implementation until the essential requirements and architect
 
 ## 18. Project State and Tooling (added 2026-11-02)
 
-* Read `docs/DEVELOPMENT_LOG.md` at the start of every session or after context compaction. It records architecture decisions, scientific sources, and milestone status. Append to it at the end of every milestone.
-* `docs/CLAUDE_SETUP.md` documents the Claude Code configuration for this project: project skills in `.claude/skills/` and the Stop verification hook in `.claude/settings.json`.
+* (Paths updated 2026-11-08: the documentation set now lives at the repository root, per §20.) Read `DEVELOPMENT_LOG.md` at the start of every session or after context compaction. It records architecture decisions, scientific sources, and milestone status. Append to it at the end of every milestone.
+* `CLAUDE_SETUP.md` documents the Claude Code configuration for this project: project skills in `.claude/skills/` and the Stop verification hook in `.claude/settings.json`.
+
+---
+
+## 19. Controlled Expansion Directive — 2026-11-07
+
+This section extends the existing STELLARIS specification. It does **not** replace the established project identity, the six-stage narrative, the native OpenGL architecture, the deterministic timeline, or the scientific limitations already documented above.
+
+### 19.1 Preserve the verified baseline
+
+The current application is an implemented C++20 / OpenGL 4.5 Core application with a separate freeGLUT demonstration. Treat the existing source tree, architecture, build, tests, and verified results as the baseline. This is an enhancement of the existing STELLARIS application, not a restart, migration to a game engine, or a rewrite.
+
+Before changing code:
+
+1. Read this file and the relevant sections of `PROJECT_SPEC.md`, `VISUAL_DESIGN.md`, `SCIENTIFIC_MODEL.md`, `IMPLEMENTATION_PLAN.md`, `ARCHITECTURE.md`, `GRAPHICS_TECHNIQUES.md`, `SCIENCE_NOTES.md`, and `VERIFICATION.md`.
+2. Inspect the actual source and shader files that implement the affected system. Documentation is not proof that the corresponding code still exists or behaves as described.
+3. Establish the current build/test state and capture a baseline screenshot/benchmark for the affected stage.
+4. Identify the smallest compatible change to the current architecture. Do not replace a working subsystem merely to introduce a fashionable technique.
+5. Update the existing authoritative documents when a design decision, scientific assumption, or implementation status changes. Do not create another collection of overlapping Markdown documents. Keep the current document set authoritative.
+
+### 19.2 Status language is mandatory
+
+Every feature discussed in planning, code comments, UI, README, reports, or demonstrations must be classified accurately:
+
+- **Implemented and verified:** code exists, the relevant test/inspection was run, and evidence is recorded.
+- **Implemented, not fully verified:** code exists, but one or more acceptance checks remain open.
+- **Partially implemented:** only the named subset works; state the missing subset.
+- **Approved, not implemented:** accepted roadmap item only; never describe it as a current capability.
+- **Deferred:** intentionally postponed because of scope, performance, or dependency constraints.
+- **Rejected:** assessed and deliberately excluded, with a short reason.
+
+Never turn roadmap text into a completion claim. Never modify historical verification results to make a new feature appear tested.
+
+### 19.3 Expansion priorities and scope gate
+
+Use these priorities when selecting the next task:
+
+| Priority | Meaning | Default decision |
+|---|---|---|
+| P0 — Foundation quality | Improves the existing six-stage experience, correctness, determinism, or visual coherence | Implement after a source audit and measurable acceptance definition |
+| P1 — High-value capability | Adds a scientifically meaningful visual system that reuses existing architecture | Implement only after P0 foundations are stable |
+| P2 — Distinctive extension | Adds another formation scenario, comparison workflow, or observation capability | Implement after the core experience remains reliable |
+| P3 — Experimental | Expensive, research-like, or weakly justified technique | Prototype separately; do not make it a release dependency |
+
+A feature is not automatically approved because it appears in a wishlist. For each proposed feature, identify its scientific purpose, visual contribution, code ownership, dependency, expected VRAM/GPU cost, interaction impact, deterministic-time behaviour, and acceptance evidence. If it duplicates a capability already implemented, improve that capability rather than creating a second system.
+
+### 19.4 Approved direction for the visual expansion
+
+The intended expansion is a deeper and more inspectable stellar environment, not a pile of independent effects. Prioritise these connected systems:
+
+1. **Structured molecular-cloud environments:** multiscale silhouettes, filaments, dense cores, globules, dust lanes, cavities, and controlled external illumination. These are procedural visual structures unless a validated physical model is actually added.
+2. **A more capable volume renderer:** adaptive sampling, depth-aware upsampling, better density hierarchy, stable lighting, and carefully bounded approximations to multiple scattering. Preserve the current energy-aware integration and deterministic timeline behaviour.
+3. **Distinct stellar atmospheric layers:** photosphere, chromosphere, and corona with separate optical and emission roles. Add starspots, prominences, flares, and coronal structures only when each has an identifiable visual/scientific purpose. A star is an emissive body, not an ordinary rough metallic PBR object.
+4. **Typed particle phenomena:** infall, disc orbit, jets, stellar wind, flare/CME ejecta, and supernova material should have distinct motion and rendering parameters while sharing infrastructure where appropriate. Increasing particle count alone is not an enhancement.
+5. **Magnetic-field visualisation:** analytic or prescribed field geometry and tracer paths, explicitly labelled as field visualisation rather than magnetohydrodynamics.
+6. **More structured late-stage remnants:** stratified ejecta, irregular shell morphology, shock-front progression, and optional instability-like structures. Do not call a procedural pattern a fluid-instability simulation.
+7. **Scientific inspection:** selectable density/temperature/velocity/vector overlays and cross-sections, but only for quantities the model actually owns. Clearly label normalized or prescribed fields.
+8. **Observation integration:** authentic astronomical image/data references with source, instrument/filter or wavelength, processing, provenance, rights/credit and intended use retained. Observational images must not be passed off as a physically reconstructed 3D object.
+9. **Formation scenarios and comparison:** low-/intermediate-/high-mass examples, binary or clustered configurations, and triggered-compression examples may be added as configured scenarios. Do not silently imply that every scenario is a separately solved physical process.
+
+The six-stage core narrative remains the default presentation and must continue to work in full when optional systems are disabled.
+
+### 19.5 Scenario and rendering configuration rules
+
+Keep physical/model parameters separate from presentation controls. At minimum, preserve these conceptual distinctions even if the exact C++ types differ:
+
+- Scenario inputs: initial mass, rotation parameter, cloud morphology preset, seed, and optional multiplicity configuration.
+- Model outputs: values genuinely calculated by the implemented model.
+- Prescribed animation state: deterministic time-indexed variables used to communicate a process.
+- Render controls: detail level, scattering strength, exposure, particle density, line visibility, and observation display settings.
+- Scientific display metadata: physical unit, normalization, provenance, and qualification text.
+
+Changing exposure, bloom, particle density, or a visual colour map must not alter the scientific model. Changing a model input must have a documented, deterministic effect on the relevant scene state.
+
+### 19.6 Determinism requirements for new systems
+
+The current application supports direct seeking through a pure time-evaluated scene model. New systems must preserve this contract wherever feasible:
+
+- Procedural morphology derives from a stable seed and explicit parameters.
+- Particle positions are evaluated from stable IDs, seed, and presentation time, or from a documented deterministic state scheme.
+- Camera, field lines, shell perturbations, and scenario configuration reproduce at the same input/time pair.
+- Seeking, rewinding, changing playback speed, and taking a screenshot must not produce a different random cloud or a different particle arrangement.
+- If temporal accumulation is introduced, invalidate history on seek, reset, scenario change, camera discontinuity, resolution change, shader reload, or any input that makes previous history invalid. Do not let temporal history break deterministic screenshot/capture mode.
+
+Do not replace a deterministic stateless particle system with an unconstrained frame-accumulated simulation merely because compute shaders are available. A compute implementation is justified only by a measured requirement and must include reproducibility tests.
+
+### 19.7 Authentic imagery and asset provenance
+
+Never download an arbitrary image and treat it as an interchangeable texture. For every external astronomical asset, preserve a machine-readable sidecar or in-project metadata record containing at least:
+
+- original title/object identifier;
+- source institution and stable source page;
+- file URL or archive identifier;
+- creator/credit and licence/usage terms as stated by the source;
+- observation/instrument and filter or wavelength, when applicable;
+- whether the image is visible-light, infrared, ultraviolet, X-ray, radio, composite, or processed false-colour;
+- calibration/processing notes available from the source;
+- original resolution and local derivative dimensions;
+- derivative operations performed by the project;
+- intended use and where the asset appears;
+- checksum for the downloaded original and derived asset.
+
+Do not assume all NASA, ESA, STScI, observatory, or journal imagery has identical usage rights. Check the individual asset and institution terms. Preserve credits in the application and delivery materials where required.
+
+An astronomical image is not a PBR albedo map by default. A false-colour infrared composite is not a natural-colour photograph. A two-dimensional nebula image is not a volumetric density field. Use observations as observations, as carefully attributed references, or as explicitly declared projection/background elements.
+
+### 19.8 Performance and memory discipline
+
+The reference development GPU is an RTX 4050 Laptop GPU with 6 GB VRAM. It is a hard engineering constraint, not an invitation to allocate every effect at maximum quality.
+
+- Use 1920×1080 as the primary interactive reference resolution unless current project settings establish otherwise.
+- Make high-cost volume, bloom, and screen-space effects resolution-scalable.
+- Use 4K source textures selectively. Measure resident GPU memory, not just source-file size.
+- Account for mipmaps, format conversion, intermediate render targets, ping-pong history buffers, and asset duplication.
+- Do not keep multiple full-resolution 4K RGBA16F copies resident without a measured reason.
+- Provide an appropriate quality fallback when a feature exceeds the GPU budget.
+- Profile representative scenes, including the densest volume, the largest particle effect, and the most expensive remnant/black-hole path.
+- Preserve a usable interactive mode; offline high-quality capture may use slower settings if clearly separated.
+
+### 19.9 Implementation review checklist
+
+Before declaring an expansion feature complete, answer all of the following:
+
+- Does it improve the scientific narrative or inspection capability, rather than merely add decoration?
+- Is its scientific status (calculated, prescribed, reference, or artistic) explicit?
+- Does it reuse the existing C++/OpenGL 4.5 architecture without an unjustified dependency?
+- Is it deterministic at a fixed scenario and timeline position?
+- Does it work at stage boundaries and when seeking directly into the middle of the effect?
+- Does it behave correctly when disabled or when the quality preset is reduced?
+- Does it avoid depth-sorting, transparency, aliasing, banding, and temporal ghosting defects?
+- Has the actual GPU cost been measured on the target machine?
+- Are asset provenance and credits complete where external material is involved?
+- Are the relevant tests, screenshots, logs, and documentation updated?
+
+A feature that fails one of these checks remains incomplete or is deferred.
+
+## 20. Documentation and Agent Operating Constraint
+
+The existing project documents are the complete documentation set for this expansion. Update the appropriate existing file rather than creating overlapping new Markdown files. Use `PROJECT_SPEC.md` for scope and acceptance, `VISUAL_DESIGN.md` for appearance, `SCIENTIFIC_MODEL.md` for scientific meaning, `ARCHITECTURE.md` for system integration, `GRAPHICS_TECHNIQUES.md` for techniques and implementation status, `IMPLEMENTATION_PLAN.md` for task order, `SCIENCE_NOTES.md` for the model-as-implemented record, and `VERIFICATION.md` for test evidence. Keep `DEVELOPMENT_LOG.md` chronological. Do not add a new documentation subsystem or a second master plan.
+
+Work as one autonomous implementation stream. Do not invent team roles, divide work among students, or wait for human teammates. Make conservative changes, build frequently, test the real executable, and report exact completed/partial/deferred status.

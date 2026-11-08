@@ -1,7 +1,7 @@
 #pragma once
 // Simplified, documented stellar relations used by STELLARIS.
 // Every function here is a rough textbook-level scaling relation, NOT a stellar
-// evolution model. See docs/SCIENCE_NOTES.md for sources and limitations.
+// evolution model. See SCIENCE_NOTES.md for sources and limitations.
 
 #include <glm/vec3.hpp>
 

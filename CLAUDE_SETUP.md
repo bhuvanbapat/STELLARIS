@@ -14,7 +14,7 @@ changes are project-scoped (inside this repository) unless stated otherwise.
   `/cost` (session cost; mainly meaningful for API-key billing). In the desktop
   app, the usage card shows the same plan limits.
 - **Persistence:** decisions and milestone results go in
-  `docs/DEVELOPMENT_LOG.md`, which CLAUDE.md §18 tells every session to read.
+  `DEVELOPMENT_LOG.md`, which CLAUDE.md §18 tells every session to read.
 
 ## Plugins (verified with `claude plugin list`, CLI 2.1.309)
 

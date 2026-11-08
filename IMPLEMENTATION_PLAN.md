@@ -776,3 +776,184 @@ Perform these steps in order:
 10. Verify it before proceeding to the rendering foundation.
 
 **The first technical milestone is a verified architecture and build foundation, not a visually elaborate but untested application.**
+
+---
+
+## 19. Controlled expansion roadmap — continue from the current application
+
+This roadmap is a staged extension of the implementation already recorded in `DEVELOPMENT_LOG.md` and `VERIFICATION.md`. It is not a new-project bootstrap plan. Do not repeat completed environment setup or replace working systems without a demonstrated need. Start by auditing the actual current source against the baseline results, because later code changes may have changed the state since the last recorded verification.
+
+### 19.1 Entry gate: baseline audit before expansion
+
+Before the first enhancement:
+
+1. Check Git status and preserve the current working state.
+2. Configure/build the current Release target using the existing project scripts.
+3. Run `ctest` and the application's existing `--selftest`.
+4. Run the existing `--benchmark` and capture representative timeline states.
+5. Inspect the actual cloud, volume, particle, stellar, disc, remnant, lensing and UI implementations.
+6. Record any difference between current code and the claims in the existing documentation.
+7. Do not start a new feature while a regression in the default six-stage path remains unexplained.
+
+**Exit condition:** current baseline build/test/benchmark status is known and the current default scenario is visually stable.
+
+### 19.2 Workstream A — molecular-cloud structure (P0)
+
+**Goal:** make the cloud feel like a large, spatially structured star-forming environment instead of a single generic volume.
+
+Implementation order:
+
+1. Audit the current density/noise composition and identify the controlling shader functions/uniforms.
+2. Separate low-frequency envelope, mid-frequency structure, filament contribution, dense-core mask and fine detail conceptually and in code.
+3. Add a deterministic cloud preset/configuration with stable seed.
+4. Add at least one dominant dense core and a controlled filament network.
+5. Add negative-space/dust-lane masks and optional globule silhouettes only after the basic cloud reads correctly.
+6. Add collapse deformation to the existing field without causing the cloud to lose its large-scale identity abruptly.
+7. Inspect wide, medium and close camera views; inspect before/after stage boundaries and direct seeks.
+8. Profile the volume and ensure the added structures do not require an unreasonable number of ray steps.
+
+**Tests:** same seed/config/time produces the same density; different seeds vary the structure; density remains bounded; no visible tiling; dense core is identifiable; filaments do not alias; volume compositing remains correct.
+
+**Do not:** add random sprites on top of the existing cloud and call it filamentary structure; add uncalibrated SI density values; introduce a full turbulence solver.
+
+### 19.3 Workstream B — volume-rendering refinement (P0)
+
+Implement one measurable improvement at a time:
+
+1. Capture current baseline at identical camera/time/exposure.
+2. Profile ray-march GPU time and identify the worst stages.
+3. Improve density sampling/footprint and jitter first if banding or aliasing is visible.
+4. Prototype adaptive step length with strict min/max bounds and a fallback path.
+5. Prototype depth-aware upsampling; test against the full-resolution depth buffer and opaque silhouettes.
+6. Improve light optical-depth samples only if shadow quality is the bottleneck.
+7. Evaluate a bounded ambient/multiple-scattering approximation after the base integration is stable.
+8. Treat temporal accumulation as P3; add only if it provides a measurable improvement and history invalidation is complete.
+
+**Tests:** fixed-time image comparison; seek/rewind equality; exposure sweep; opaque-object edge test; resizing/minimization test; frame-time and GPU-pass comparison. Do not accept an improvement that merely brightens the whole volume.
+
+### 19.4 Workstream C — layered stellar rendering (P0)
+
+Implement in this order:
+
+1. Refine the photosphere's existing blackbody/limb-darkening treatment and make detail stable at multiple viewing distances.
+2. Add low-contrast granulation-like detail only if it improves the surface at the intended camera range.
+3. Add starspot masks with deterministic positions and controlled contrast.
+4. Add a thin chromosphere contribution with correct depth/blending behavior.
+5. Add structured corona streamers with restrained brightness.
+6. Add a small number of anchored prominence/loop curves.
+7. Add one deterministic flare event type; only then evaluate optional CME-like ejecta.
+
+**Tests:** no aliasing/flicker; no overexposed white disc; surface and atmosphere remain separable; no transparent-shell sorting defects; fixed timestamp reproduces the event; existing star colour/mass dependence remains intact.
+
+**Do not:** turn the star into a conventional roughness/metalness PBR sphere; add many glow layers without visible structure; claim magnetohydrodynamic plasma simulation.
+
+### 19.5 Workstream D — particle species (P0/P1)
+
+Extend the existing stateless particle system rather than replacing it initially.
+
+1. Audit current particle ID/seed/time calculation and ensure every existing trajectory is deterministic.
+2. Define a compact species/type field and shared parameter structure.
+3. Refactor current infall, disc, jet and ejecta paths into explicit trajectory families while preserving their current visual output.
+4. Add species-specific size, fade, opacity/blend and orientation rules.
+5. Add stellar-wind or CME species only after the base families are verified.
+6. Add velocity-aligned streaks only where a dot cloud does not communicate motion clearly.
+7. Consider compute-shader state updates only if a real interaction requirement cannot be represented by deterministic time evaluation.
+
+**Tests:** deterministic seed/time; no species leakage into inappropriate pathways; stable particle count; no subpixel flicker; blend correctness; GPU time and overdraw measurements.
+
+### 19.6 Workstream E — magnetic-field overlays (P1)
+
+1. Select a single initial field model (recommended first example: analytic stellar dipole).
+2. Document the equation, coordinate convention, units/normalization, singularity handling and limits.
+3. Build deterministic seed points and integrate curves with a bounded step/path length.
+4. Render thin ribbons/segments with depth-aware fading.
+5. Add optional tracer particles after the static lines are correct.
+6. Add an explicit UI label identifying the field model as analytic/prescribed.
+7. Keep the overlay disabled by default in shots where it adds clutter.
+
+**Tests:** compare selected field vectors against hand-computed values; check line direction and termination; verify deterministic generation; test orientation changes; verify overlay does not obscure stellar surface or UI.
+
+### 19.7 Workstream F — structured supernova and remnant (P1)
+
+1. Audit the existing massive-star supernova sequence and ensure the white-dwarf branch is unaffected.
+2. Separate shock-front, inner/outer ejecta and remnant-envelope contributions.
+3. Add deterministic asymmetric expansion.
+4. Add seeded clumps and low-frequency shell perturbations.
+5. Add optional finger-like interface morphology only after the shell remains legible.
+6. Preserve the existing pathway-specific final remnant state and text qualifications.
+
+**Tests:** no supernova before the appropriate timeline stage; none on the white-dwarf path; all effects repeat at fixed time; shell geometry remains stable; no sudden full-frame whiteout; camera and tone mapping preserve structure.
+
+### 19.8 Workstream G — scientific inspection and observation integration (P1)
+
+1. Define which fields actually exist and their data provenance before building UI controls.
+2. Add a compact mode switch (Cinematic / Scientific / Observation) rather than showing every control simultaneously.
+3. Add only data views whose values are real inputs/outputs of the current model.
+4. Implement cross-section sampling from the same procedural field used by the volume renderer.
+5. Add labels for units, normalized quantities and prescribed fields.
+6. Curate a small observation set with verified source, band, processing, credit, usage terms and local checksum.
+7. Display observation and procedural scene side by side; label the latter as conceptual unless a validated reconstruction is present.
+8. Add multi-wavelength selection only when the correct band products exist; do not create false bands by tinting a single image.
+
+**Tests:** UI values map to the actual model field; cross-section agrees with volume samples; no physical units on normalized data; source link/credit is present; band labels match metadata; asset can be loaded offline from the packaged location.
+
+### 19.9 Workstream H — optional formation scenarios and comparative laboratory (P2)
+
+Implement scenarios as data configurations that reuse the common renderer and timeline:
+
+- massive-star preset;
+- binary condensation/protostar preset;
+- limited clustered-core preset;
+- triggered-compression concept preset.
+
+Start with one scenario at a time. Ensure the default single-star scenario remains the entry point. For a binary, add a two-subject camera composition and a prescribed/analytical orbit. For a cluster, limit object count and retain a clear focal subject. For triggered compression, show the incoming front and resulting density structure without claiming that the displayed event proves causation.
+
+A comparative mass laboratory should first show the existing simplified model for a small, explicit set of masses. Add published MIST/PARSEC or other tracks only after verifying dataset version, variables, units, source, citations, coverage and use terms. Never silently merge reference tracks with the current analytic scaling relations.
+
+**Tests:** scenario configurations reproduce from seed; no state leaks between scenarios; camera frames all relevant subjects; mass tracks stay in supported domains; uncertainty labels are visible; default six-stage timeline remains unchanged.
+
+### 19.10 Workstream I — performance, polish and delivery
+
+After each major workstream:
+
+1. Build Release and run unit/renderer self-tests.
+2. Run representative benchmark stages at 1920×1080.
+3. Record frame-time distribution and GPU time per major pass.
+4. Check resident VRAM with all selected assets and targets loaded.
+5. Test Performance, Balanced, High and Capture quality tiers.
+6. Capture screenshots at identical timestamps and camera positions.
+7. Review visual defects before adding another effect.
+8. Update only the relevant existing documentation and development log.
+
+Preserve the last known good build. Do not combine several high-risk features into one unreviewed change.
+
+### 19.11 Dependencies and recommended order
+
+| Capability | Depends on | Do not start before |
+|---|---|---|
+| Cloud filaments/cores | Existing density field and deterministic seed | Baseline volume is stable |
+| Adaptive volume sampling | Existing volume pass and GPU profiling | Density morphology is understood |
+| Stellar atmosphere layers | Existing star shader/HDR pipeline | Current photosphere is visually stable |
+| Particle species | Current deterministic particle IDs and timeline | Baseline paths are tested |
+| Magnetic field lines | Explicit vector-field definition | Scientific model and coordinate conventions are documented |
+| Supernova instability morphology | Existing pathway-specific ejecta/remnant | Existing NS/BH/WD pathway guards pass |
+| Scientific cross-sections | Shared field sampling function | Field units/status are defined |
+| Observation mode | Curated, rights-reviewed asset set | Provenance metadata is complete |
+| Binary/cluster scenarios | Reusable scene object/camera configuration | Single-star path remains regression-free |
+| Comparative tracks | Existing StellarModel and verified reference data | Equations/data provenance are clearly separated |
+
+### 19.12 Expansion milestone completion report
+
+For each workstream report:
+
+- files actually changed;
+- feature state (implemented/partial/deferred/rejected);
+- tests run and exact results;
+- screenshots/capture identifiers;
+- measured GPU time and VRAM impact;
+- regressions found/fixed;
+- scientific assumptions added or changed;
+- known limitations remaining;
+- next smallest verified milestone.
+
+Do not report estimates as measurements or screenshots as proof of physical validity.

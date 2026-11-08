@@ -108,11 +108,11 @@ GLUT demonstration: **Space** pause, **N/P** next/previous phase, **1–6** jump
 
 | Document | Contents |
 |---|---|
-| `docs/ARCHITECTURE.md` | technology choice, module layout, frame pipeline, timeline model |
-| `docs/GRAPHICS_TECHNIQUES.md` | the computer graphics techniques actually implemented |
-| `docs/SCIENCE_NOTES.md` | scientific model, equations, sources, approximations, limitations |
-| `docs/VERIFICATION.md` | tests, measurements, visual inspection results, known limitations |
-| `docs/DEVELOPMENT_LOG.md` | decisions and milestone history |
+| `ARCHITECTURE.md` | technology choice, module layout, frame pipeline, timeline model |
+| `GRAPHICS_TECHNIQUES.md` | the computer graphics techniques actually implemented |
+| `SCIENCE_NOTES.md` | scientific model, equations, sources, approximations, limitations |
+| `VERIFICATION.md` | tests, measurements, visual inspection results, known limitations |
+| `DEVELOPMENT_LOG.md` | decisions and milestone history |
 | `PROJECT_SPEC.md`, `VISUAL_DESIGN.md`, `SCIENTIFIC_MODEL.md`, `IMPLEMENTATION_PLAN.md` | the original requirements |
 
 ## 6. Troubleshooting
@@ -123,3 +123,41 @@ GLUT demonstration: **Space** pause, **N/P** next/previous phase, **1–6** jump
   `shaders` folder must sit next to `stellaris.exe` (the build copies it).
 * **Configure fails while downloading**: the first configure needs internet
   access. Run it again once you are connected.
+
+## 7. Current baseline versus proposed expansion
+
+The existing feature descriptions and verification record refer to the implemented baseline documented in the tables above and in `GRAPHICS_TECHNIQUES.md`, `SCIENCE_NOTES.md`, and `VERIFICATION.md`. The expanded molecular-cloud environment, layered stellar atmosphere, typed particle phenomena, analytic magnetic-field overlays, structured supernova morphology, scientific inspection mode, observation comparison, and optional formation scenarios are **roadmap items unless the current source and verification record explicitly show them as completed**.
+
+The default product remains the six-stage single-star visualization. Expansion work must preserve its timeline, deterministic seeking, mass-dependent outcomes, native OpenGL architecture and separate freeGLUT demonstration.
+
+### Expansion direction
+
+The next development direction is to deepen the existing systems rather than create unrelated scenes:
+
+- give the molecular cloud a hierarchy of envelope, filaments, dense cores, dust lanes and cavities;
+- refine volume sampling, lighting and upsampling without sacrificing deterministic playback;
+- build distinct photosphere/chromosphere/corona visual layers and selected surface activity;
+- differentiate infall, disc, jet, wind and ejecta particle motion;
+- add optional analytic magnetic-field visualisation and instability-inspired remnant structure;
+- add scientific inspection and carefully attributed astronomical observations;
+- add optional binary/cluster/triggered-formation presets and mass comparisons only after the shared systems are stable.
+
+These are not claims that the application solves full hydrodynamics, MHD, stellar interiors, nuclear networks, N-body dynamics or wavelength-resolved radiative transfer.
+
+## 8. Expanded documentation map
+
+| Document | Authority |
+|---|---|
+| `CLAUDE.md` | Agent operating rules, source-of-truth order, expansion constraints and completion discipline |
+| `PROJECT_SPEC.md` | Functional scope, priorities and acceptance criteria |
+| `VISUAL_DESIGN.md` | Art direction, scene composition, material/volume goals and visual acceptance |
+| `SCIENTIFIC_MODEL.md` | Physical concepts, equations, units, assumptions and scientific boundaries |
+| `SCIENCE_NOTES.md` | What the current application actually calculates, prescribes and draws; proposed extensions are explicitly separated |
+| `ARCHITECTURE.md` | Current architecture and compatible subsystem integration points |
+| `GRAPHICS_TECHNIQUES.md` | Techniques verified in source versus candidate techniques not yet implemented |
+| `IMPLEMENTATION_PLAN.md` | Existing implementation sequence and controlled expansion roadmap |
+| `VERIFICATION.md` | Historical tests/results and separate planned tests for future features |
+| `DEVELOPMENT_LOG.md` | Chronological decisions, progress and verification status |
+| `CLAUDE_SETUP.md` | Tooling and Claude Code setup notes from the recorded audit |
+
+Do not treat roadmap items as current functionality. For current build instructions and controls, use the earlier sections of this README and validate against the current executable.

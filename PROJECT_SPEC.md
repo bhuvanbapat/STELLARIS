@@ -484,3 +484,226 @@ It must combine:
 * Evidence-based verification.
 
 **The measure of success is the quality, correctness, and demonstrability of the working application—not the number of files, lines of code, effects, or features generated.**
+
+---
+
+# 18. Controlled Expansion Specification
+
+**Status:** Approved design direction for consideration and staged implementation. The features in this section are not automatically current capabilities. The existing implementation status remains the one recorded in `GRAPHICS_TECHNIQUES.md`, `SCIENCE_NOTES.md`, `DEVELOPMENT_LOG.md`, and `VERIFICATION.md`.
+
+## 18.1 Expansion objective
+
+Extend STELLARIS from a polished single-star cinematic sequence into a more capable stellar-formation and evolution visualisation. The extension must improve at least one of these dimensions: scientific interpretability, environmental complexity, distinct physical phenomenon representation, observational authenticity, or meaningful user exploration.
+
+Do not expand scope by merely increasing glow, random particle counts, texture resolution, or number of unrelated space objects. A proposed addition must connect to the existing molecular-cloud → collapse → protostar → accretion → main-sequence → final-outcome narrative.
+
+The existing six-stage single-star sequence is the default and must remain fully functional. New modes are optional branches or inspection layers, not replacements for the core experience.
+
+## 18.2 Priority classes
+
+| Class | Scope | Acceptance policy |
+|---|---|---|
+| P0 — Core visual/technical improvement | Cloud structure, volumetric quality, layered stellar rendering, particle taxonomy, deterministic inspection | Required before broad feature expansion; each item must pass its own visual and performance checks |
+| P1 — Distinctive scientific visualisation | Magnetic-field overlays, structured remnant morphology, scientific inspection and cross-sections, attributed observation mode | Implement after the P0 systems are stable |
+| P2 — Scenario expansion | Binary formation, clustered formation, triggered compression, mass comparison laboratory, multi-band observation | Implement only as integrated presets/workflows using shared systems |
+| P3 — Experimental | Temporal reconstruction, advanced multiple-scattering approximation, more elaborate procedural instability, optional compute-updated particles | Prototype, profile and validate independently; do not make the core experience depend on them |
+
+If the target GPU cannot sustain the feature at the intended quality, prefer a lower-cost implementation or defer the feature. Do not compromise the reliability of the default application to meet the feature count.
+
+## 18.3 Molecular-cloud environment expansion (P0)
+
+The cloud must have a recognisable large-scale structure and internal hierarchy. The target appearance is a complex molecular-cloud region, not a spherical fog shell.
+
+Required visual building blocks:
+
+- broad cloud envelope with an irregular silhouette and depth variation;
+- elongated filaments and ridges that connect or lead toward dense regions;
+- at least one visually legible dense core or condensation;
+- lower-density voids and dust lanes that create contrast;
+- optional compact globules and smaller cores;
+- controllable external illumination and local scattering/emission;
+- deterministic evolution of the cloud's dominant structure during collapse.
+
+Each contribution must be independently adjustable. Use seeded procedural fields and a limited number of scales. High-frequency details must not dominate the silhouette or flicker at normal viewing distance.
+
+Acceptance: the cloud reads as a three-dimensional structured volume at a wide shot and a close shot; the core is visually identifiable; filaments remain stable when seeking; the volume does not turn into uniform glowing smoke; depth-aware compositing does not leak through opaque objects; the chosen quality setting meets the target performance budget.
+
+## 18.4 Advanced volumetric rendering (P0/P3)
+
+Improve the existing volume shader incrementally. The implementation must retain correct transmittance/opacity behavior and its current premultiplied compositing contract.
+
+Potential techniques, in order of evaluation:
+
+1. density-aware/adaptive ray steps with bounded minimum/maximum step sizes;
+2. depth-aware upsampling of half-resolution volume results;
+3. improved shadow sampling and reduced banding;
+4. stable multi-scale density composition and anti-aliasing;
+5. a bounded ambient or multiple-scattering approximation;
+6. optional temporal accumulation with explicit history invalidation.
+
+Do not jump directly to path tracing or a complete radiative-transfer solver. The project requires a real-time, understandable approximation. Explain the energy/brightness implications of each added term and test the effect at different exposure settings.
+
+Acceptance: no visible step banding at normal camera distances; no volume halos bleeding across the stellar silhouette; no severe temporal ghosting; no unexplained brightness changes after seek; no unacceptable cost increase in the default profile.
+
+## 18.5 Stellar atmosphere and surface activity (P0/P1)
+
+Represent the star as several visually distinct layers:
+
+- **Photosphere:** the principal emitting surface, with blackbody-informed colour, limb darkening, controlled granulation-like pattern, and optional cooler starspot regions.
+- **Chromosphere:** a thin emission/transition layer whose visibility is controlled by the scene and camera.
+- **Corona:** extended low-density outer emission with asymmetric/structured variation rather than a uniform spherical aura.
+- **Prominences and magnetic loops:** curved, localised structures attached to selected surface regions.
+- **Flares:** deterministic, localised, time-bounded bursts with a surface origin and restrained HDR response.
+- **Optional coronal mass ejection:** an outward-moving shell/particle event with explicit prescribed/illustrative status.
+
+A different shader/material is justified when the optical role differs. Do not create one shader per cosmetic variant. Maintain a shared parameter interface where practical.
+
+Scientific boundary: granulation-like cells, spots, loops, flares and ejections are visual representations unless driven by a separate validated physical model. Do not say that the application solves convection, plasma dynamics, magnetic reconnection or MHD.
+
+Acceptance: each layer is identifiable at the intended viewing distance; the layers do not create a flat white sphere or overexposed halo; surface details do not swim unnaturally when seeking; the object remains legible under the existing HDR/tone-mapping pipeline; the UI labels the relevant approximations.
+
+## 18.6 Typed particle phenomena (P0/P1)
+
+Expand the existing particle system through distinct particle species rather than independent ad hoc systems. Candidate species:
+
+| Species | Narrative role | Required trajectory character |
+|---|---|---|
+| Collapse/infall | Material moving toward the centre | Inward, convergent and time-bounded |
+| Accretion disc | Orbiting material | Differential Keplerian-inspired orbital motion |
+| Protostellar jet knots | Bipolar outflow | Collimated, outward, structured knot progression |
+| Stellar wind | Continuous mass outflow | Radial or latitude-dependent outward flow |
+| Flare/CME ejecta | Localised surface event | Surface-originating, directional expanding structure |
+| Planetary-nebula shell | Envelope shedding | Expanding shell with layered/anisotropic distribution |
+| Supernova ejecta | Explosion aftermath | Fast, asymmetric, stratified expansion |
+| Ambient dust | Environmental depth | Low-contrast, slow, non-distracting motion |
+
+Not all species need to be active in every scene. Each must be identifiable by trajectory, spatial origin, timing and visual treatment. Preserve stable IDs/seeds so the same timestamp reproduces the same arrangement.
+
+Acceptance: particles do not flicker, pop, form obvious spokes or all move identically; their apparent size/brightness is controlled at distance; species can be inspected or toggled without changing the underlying scenario; particle count and GPU cost are documented.
+
+## 18.7 Magnetic-field visualisation (P1)
+
+Add magnetic-field lines as an optional explanatory overlay for stellar activity, jets or a selected cloud/disc example.
+
+Minimum useful implementation:
+
+- one explicitly documented analytical field model, beginning with a dipole field for a stellar case;
+- deterministic line seeding and curve integration;
+- bounded line count/length and clear termination rules;
+- subtle line/ribbon rendering with depth-aware fading;
+- optional tracer particles that follow the selected field geometry;
+- UI explanation of the model and its limitations.
+
+Do not imply that this field controls or launches the existing jets unless the model explicitly couples them. Analytic lines over an artistically animated jet remain a visual explanation, not a self-consistent magnetohydrodynamic solution.
+
+Acceptance: the field orientation is mathematically consistent with the implemented vector field; line geometry is stable under camera changes; visibility is controllable; labels explicitly say analytic/prescribed; rendering does not obscure the primary object.
+
+## 18.8 Supernova and remnant structure (P1)
+
+The high-mass pathway may be extended with:
+
+- a distinguishable shock-front boundary;
+- inner and outer ejecta regions;
+- asymmetry in expansion and brightness;
+- filamentary/clumpy structures;
+- optional Rayleigh–Taylor-like finger morphology at shell interfaces;
+- a time-evolving remnant with fading emission and persistent irregular structure.
+
+The morphology may be generated procedurally with deterministic seeds. It must not be called a solved Rayleigh–Taylor instability or a hydrodynamic supernova simulation. Keep the existing mass-pathway qualification and never show core-collapse supernovae for the white-dwarf pathway.
+
+Acceptance: the sequence communicates shock propagation and ejecta structure; the remnant is not a perfectly smooth expanding sphere; the visual morphology is deterministic; all pathway and timing rules remain correct.
+
+## 18.9 Scientific inspection mode (P1)
+
+Add a focused inspection mode that exposes the model rather than adding a dense cockpit HUD. The user should be able to toggle only relevant overlays for the selected stage:
+
+- normalized/procedural density field;
+- temperature reference or prescribed temperature field;
+- velocity direction/magnitude when available;
+- particle trajectories by species;
+- analytic magnetic-field lines;
+- a plane or cross-section through the volume;
+- object and stage annotations;
+- explanatory model/limitation information.
+
+Every view must state whether the displayed quantity is calculated, parameterized, prescribed, normalized, reference, or artistic. Do not display fabricated SI values from a normalized procedural field. A cross-section of a shader density field must sample the same field used by the volume renderer.
+
+Acceptance: each overlay corresponds to an actual model/render input; the display includes units or a clear normalized label; the user can turn it off; the cinematic mode remains visually clean; cross-section orientation and scale are understandable.
+
+## 18.10 Authentic observation and multi-wavelength mode (P1/P2)
+
+Integrate a small, curated set of authentic observations relevant to the project's actual stages: molecular clouds/star-forming regions, protostellar jets/discs, stellar surfaces/solar activity, planetary nebulae, supernova remnants and compact-object environments.
+
+For each asset, retain source institution, original page/identifier, creator/credit, usage terms, wavelength/filter/instrument, original resolution, image processing, local derivative, checksum and intended use. Verify the asset-specific terms; do not assume blanket rights based on institution name.
+
+The observation workflow should support:
+
+1. selecting a real observation/reference;
+2. viewing the authentic image with its source and band metadata;
+3. viewing a related STELLARIS procedural scene;
+4. comparing the two while explicitly describing the rendering as a conceptual visualization rather than a reconstruction.
+
+Multi-wavelength presentation must use correctly identified band images/data when available. Do not simulate infrared/X-ray/radio observations by merely tinting a visible-light image. For a synthetic band view, document the emission/absorption approximation and label it synthetic.
+
+Acceptance: no asset appears without provenance; the wavelength/band label matches the source; false-colour/composite imagery is identified as processed; source imagery is not represented as a 3D measured volume; the project respects source usage and credit requirements.
+
+## 18.11 Formation-scenario expansion (P2)
+
+The default remains the existing single-star formation path. Add optional scenario presets only after they can reuse the core cloud, volume, particle, camera, timeline and annotation systems.
+
+| Scenario | What changes in the setup | What the application may claim |
+|---|---|---|
+| Low-/intermediate-mass star | Mass and relevant final pathway | A representative parameterized pathway |
+| Massive star | Higher-mass parameter range, stronger feedback visuals, massive-star outcome branch | A representative massive-star pathway subject to model limits |
+| Binary formation | Two dense condensations, two protostellar objects, prescribed orbital/circumbinary structure | An illustrative binary-formation configuration, not a solved fragmentation calculation |
+| Clustered formation | Multiple cloud cores and stars at staggered stages | A procedural cluster scenario, not N-body cluster evolution |
+| Triggered compression | An incoming shock/compression front and a denser region after contact | A visual model of compression-triggered collapse, not proof of a real trigger event |
+
+A scenario configuration must be deterministic and reproducible. Provide a clear distinction between the current single-star narrative and optional multi-object examples.
+
+## 18.12 Comparative stellar evolution laboratory (P2)
+
+Provide a way to compare a small number of representative initial masses using the existing stellar model or a separately integrated, attributed reference-track dataset. Comparison dimensions may include:
+
+- luminosity and effective temperature trends;
+- radius trend;
+- main-sequence lifetime order of magnitude;
+- representative stage sequence;
+- final outcome category and uncertainty;
+- timeline alignment (presentation time versus physical timescale).
+
+Do not imply that a short normalized presentation timeline represents real stellar lifetime. If published evolutionary tracks are used, preserve dataset version, source, interpolation method, units and limitations. Do not mix a published track with the existing simplified formula without identifying which curve is which.
+
+Acceptance: each curve has a named model/source; units and scaling are clear; uncertain boundaries are visible; comparison does not silently alter the default timeline; all interpolated values stay within the supported data domain.
+
+## 18.13 Quality tiers and performance envelope
+
+The default interactive quality must target stable operation at 1920×1080 on the reference RTX 4050 Laptop GPU (6 GB VRAM), subject to measurement after each feature is added. Define at least:
+
+- **Performance:** reduced volume resolution/steps and fewer particles/overlays;
+- **Balanced:** default interactive balance;
+- **High:** higher volume and particle quality, still intended for interactive use;
+- **Capture:** deterministic high-quality screenshots, permitted to run slower.
+
+Quality settings alter rendering cost only. They must not alter scientific calculations, scenario parameters, stage timing, pathway selection or the deterministic scene state.
+
+Measure frame-time distributions and GPU pass times in representative worst-case scenes. Track memory use for volumes, textures, geometry, particle buffers and post-process targets. A 4K image is not automatically preferable to a well-filtered 2K asset; choose source resolution by screen coverage and usage.
+
+## 18.14 Global expansion acceptance gate
+
+The expansion is acceptable only when all applicable items below are evidenced:
+
+- [ ] Existing six-stage single-star sequence still builds, launches and plays.
+- [ ] Existing seek, rewind, reset, speed and stage selection remain deterministic.
+- [ ] New cloud morphology remains stable at arbitrary timeline positions.
+- [ ] Volume improvements pass edge, banding, aliasing and compositing inspection.
+- [ ] Stellar atmospheric layers remain distinct and controlled under HDR.
+- [ ] Particle species have distinct, repeatable motion and do not cause excessive overdraw.
+- [ ] Magnetic lines use an explicitly identified analytic/prescribed field model.
+- [ ] Supernova morphology does not imply a full hydrodynamic calculation.
+- [ ] Scientific overlays show real underlying fields and correct provenance/units.
+- [ ] Observation assets have complete, verified provenance and appropriate credit.
+- [ ] Optional scenarios do not break the default scenario or its pathway rules.
+- [ ] The comparative laboratory identifies the source/model for every displayed track.
+- [ ] Performance is measured on the target GPU at a stated resolution and quality preset.
+- [ ] No feature is described as implemented until it has passed its relevant verification.

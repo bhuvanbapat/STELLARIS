@@ -71,7 +71,7 @@ separate offset removed by Recenter/Reset. Timeline: 6 stages, 148 s at 1×
 - Blackbody colors: Planck × CIE 1931 analytic fit (Wyman, Sloan & Shirley 2013).
 - Mass range 1–40 M☉ (lower-mass stars have not yet left the main sequence).
 
-### Claude Code setup (this session) — see docs/CLAUDE_SETUP.md
+### Claude Code setup (this session) — see CLAUDE_SETUP.md
 
 ### Milestone status at end of this entry
 
@@ -89,7 +89,7 @@ separate offset removed by Recenter/Reset. Timeline: 6 stages, 148 s at 1×
 
 ## 2026-11-02 — Session 1, later: implementation milestones
 
-**Verified this session** (details and numbers in `docs/VERIFICATION.md`):
+**Verified this session** (details and numbers in `VERIFICATION.md`):
 
 - Renderer, UI and app complete; all six stages and all three final pathways
   render on the RTX 4050. Unit tests 28/28. In-app `--selftest` 0 failures.
@@ -116,3 +116,29 @@ separate offset removed by Recenter/Reset. Timeline: 6 stages, 148 s at 1×
 **Open items / ideas:** stage-1 cloud could be more dramatic (more contrast
 and depth layers); planetary-nebula shape is a little regular; physical mouse
 interaction with the UI still needs one human check.
+
+## 2026-11-07 — Documentation-only visual expansion specification
+
+### Purpose
+
+The existing STELLARIS documentation was extended to define a controlled next phase of visual/scientific expansion while preserving the implemented application and its six-stage single-star narrative.
+
+### Documentation updated
+
+- `CLAUDE.md`: expansion priorities, status language, deterministic behaviour, provenance requirements, performance discipline and no-duplicate-documentation rule.
+- `PROJECT_SPEC.md`: detailed P0–P3 feature scope and acceptance criteria for cloud structure, volume rendering, stellar layers, particle species, magnetic fields, supernova morphology, scientific inspection, observation integration, optional scenarios and comparison.
+- `VISUAL_DESIGN.md`: expanded art direction for cloud morphology, stellar atmospheres, particles, magnetic overlays, remnants, scenario composition, scientific mode and authentic observations.
+- `ARCHITECTURE.md`: compatible integration points and data contracts for new systems.
+- `GRAPHICS_TECHNIQUES.md`: candidate techniques are separated from techniques already implemented in source.
+- `SCIENTIFIC_MODEL.md` and `SCIENCE_NOTES.md`: explicit scientific boundaries for the proposed additions.
+- `IMPLEMENTATION_PLAN.md`: staged roadmap and dependency ordering for the current project.
+- `VERIFICATION.md`: planned acceptance tests clearly separated from historical test results.
+- `README.md`: clarification of current baseline versus proposed expansion.
+
+### Status and limitations
+
+This entry records a documentation update only. No C++ source, GLSL shader, build configuration, runtime asset, or executable was changed by this documentation pass. No new tests were run. Previously recorded build/test/benchmark results remain historical results for their recorded code state and have not been revalidated by this update.
+
+### Direction established
+
+Prioritise deeper cloud morphology, volumetric quality, layered stellar rendering and deterministic particle species before broad optional scenarios. Treat magnetic fields, supernova instability-inspired structures, scientific inspection, observational integration and multi-wavelength views as separate systems with explicit scientific labels. Binary/cluster/triggered scenarios and comparative evolutionary tracks are later extensions.
