@@ -144,7 +144,7 @@ bool Ui::init(GLFWwindow* window, float contentScale) {
     // Fonts: Segoe UI family ships with Windows; fall back to ImGui's default.
     ImFontGlyphRangesBuilder builder;
     builder.AddRanges(io.Fonts->GetGlyphRangesDefault());
-    builder.AddText("\u2609\u2248\u221d\u00d7\u2013\u2014\u00b7\u2264\u2265\u2192\u03c9\u03c1\u03b2\u03b8\u2081\u2082\u2080");
+    builder.AddText("\u2609\u2248\u221d\u00d7\u2013\u2014\u00b7\u2264\u2265\u2192\u03c9\u03c1\u03b2\u03b8\u2081\u2082\u2080\u2099");
     builder.AddText("\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079\u207b\u201c\u201d\u2019");
     static ImVector<ImWchar> ranges;
     builder.BuildRanges(&ranges);
@@ -242,6 +242,55 @@ void Ui::endFrame() {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
+void Ui::setScientificView(bool on) {
+    scientific_ = on;
+    // The scientific view turns on the explanatory overlays; cinematic leaves them
+    // as the user set them individually.
+    if (on) { fieldLines_ = true; labels_ = true; }
+}
+
+namespace {
+// Same viridis polynomial as shaders/section.frag (sRGB).
+ImVec4 viridis(float t) {
+    const float c[7][3] = {{0.2777273f, 0.0054073f, 0.3340998f}, {0.1050930f, 1.4046135f, 1.3845902f},
+                           {-0.3308618f, 0.2148476f, 0.0950952f}, {-4.6342305f, -5.7991010f, -19.3324410f},
+                           {6.2282699f, 14.1799334f, 56.6905526f}, {4.7763850f, -13.7451454f, -65.3530326f},
+                           {-5.4354559f, 4.6458526f, 26.3124352f}};
+    float rgb[3];
+    for (int k = 0; k < 3; ++k) {
+        float v = c[6][k];
+        for (int i = 5; i >= 0; --i) v = c[i][k] + t * v;
+        rgb[k] = std::clamp(v, 0.0f, 1.0f);
+    }
+    return ImVec4(rgb[0], rgb[1], rgb[2], 1.0f);
+}
+} // namespace
+
+void Ui::drawSectionLegend(const SceneState& s) {
+    if (!scientific_ || s.cloudDensity <= 0.01f) return;
+    ImDrawList* dl = ImGui::GetForegroundDrawList();
+    const ImVec2 ds = ImGui::GetIO().DisplaySize;
+    const float w = 260.0f * scale_, h = 10.0f * scale_;
+    const ImVec2 p0(ds.x - w - 30.0f * scale_, ds.y - (visible_ ? 200.0f : 90.0f) * scale_);
+    dl->AddRectFilled(ImVec2(p0.x - 12 * scale_, p0.y - 42 * scale_), ImVec2(p0.x + w + 12 * scale_, p0.y + h + 26 * scale_),
+                      col32(ImVec4(0.02f, 0.03f, 0.06f, 0.75f)), 6.0f * scale_);
+    const float fs = small_->FontSize * layout_;
+    dl->AddText(small_, fs, ImVec2(p0.x, p0.y - 36 * scale_), col32(kText),
+                "Cross-section: normalized density \u03c1\u2099 (dimensionless)");
+    dl->AddText(small_, fs, ImVec2(p0.x, p0.y - 20 * scale_), col32(kTextDim),
+                "plane through the core facing you \u00b7 same field as the volume");
+    const int steps = 48;
+    for (int i = 0; i < steps; ++i) {
+        const float x0 = p0.x + w * i / steps, x1 = p0.x + w * (i + 1) / steps;
+        dl->AddRectFilled(ImVec2(x0, p0.y), ImVec2(x1 + 0.5f, p0.y + h), col32(viridis((i + 0.5f) / steps)));
+    }
+    char buf[32];
+    std::snprintf(buf, sizeof(buf), "\u2265%.0f", CloudField::kSectionRangeMax);
+    dl->AddText(small_, fs, ImVec2(p0.x, p0.y + h + 4 * scale_), col32(kTextDim), "0");
+    dl->AddText(small_, fs, ImVec2(p0.x + w * 0.5f - 8 * scale_, p0.y + h + 4 * scale_), col32(kTextDim), "2");
+    dl->AddText(small_, fs, ImVec2(p0.x + w - 22 * scale_, p0.y + h + 4 * scale_), col32(kTextDim), buf);
+}
+
 bool Ui::wantsMouse() const { return ImGui::GetIO().WantCaptureMouse; }
 bool Ui::wantsKeyboard() const { return ImGui::GetIO().WantCaptureKeyboard; }
 
@@ -249,6 +298,7 @@ UiRequests Ui::draw(Playback& playback, ModelConfig& config, const UiFrameInfo& 
     UiRequests req;
     const SceneState& s = *info.scene;
     if (labels_) drawAnnotations(info);
+    drawSectionLegend(s);
     if (fieldLines_ && (s.atmosphere > 0.05f || s.pulsarBeams > 0.05f)) {
         // Mandatory model label whenever the overlay is visible (VISUAL_DESIGN §20.6).
         const char* label = "ANALYTIC DIPOLE FIELD \u2014 VISUALIZATION  \u00b7  normalized geometry, not MHD";
@@ -377,6 +427,19 @@ void Ui::drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests
                  ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing);
     ImGui::PushFont(small_);
+    // View mode: Cinematic (clean) or Scientific (cross-section + field lines + labels).
+    {
+        const float half = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
+        if (!scientific_) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.98f, 0.76f, 0.42f, 0.35f));
+        if (ImGui::Button("Cinematic", ImVec2(half, 0))) setScientificView(false);
+        if (!scientific_) ImGui::PopStyleColor();
+        ImGui::SameLine();
+        if (scientific_) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.98f, 0.76f, 0.42f, 0.35f));
+        if (ImGui::Button("Scientific", ImVec2(half, 0))) setScientificView(true);
+        if (scientific_) ImGui::PopStyleColor();
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Density cross-section (when the cloud is present), field lines and labels");
+    }
     ImGui::PushStyleColor(ImGuiCol_Text, kTextFaint);
     ImGui::TextUnformatted("MODEL PARAMETERS");
     ImGui::PopStyleColor();

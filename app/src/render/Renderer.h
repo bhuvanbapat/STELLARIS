@@ -43,6 +43,8 @@ public:
     QualityPreset quality() const { return qualityPreset_; }
     // Explanatory analytic dipole field-line overlay (off by default).
     void setFieldLines(bool enabled) { showFieldLines_ = enabled; }
+    // Scientific density cross-section (normalized field), drawn after tone mapping.
+    void setDensitySection(bool enabled) { showSection_ = enabled; }
 
     // lensShiftX shifts the projection center horizontally in NDC units, used to
     // compose the subject to the right of the information panel.
@@ -77,7 +79,7 @@ private:
 
     // Shaders
     Shader noiseGen_, sky_, volume_, composite_, star_, glow_, disc_, particlesShader_, beam_, lens_,
-        bloomDown_, bloomUp_, final_, corona_, prominence_, fieldline_;
+        bloomDown_, bloomUp_, final_, corona_, prominence_, fieldline_, section_;
     std::vector<Shader*> allShaders_;
 
     // Geometry
@@ -86,6 +88,7 @@ private:
     ParticleSystem particles_;
     FieldLines fieldLines_;
     bool showFieldLines_ = false;
+    bool showSection_ = false;
 
     // Resources
     gl::Texture noise3d_;

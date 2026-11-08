@@ -206,3 +206,13 @@ Prioritise deeper cloud morphology, volumetric quality, layered stellar renderin
 - **Implemented and verified:** `sim/MagneticField` (dipole, RK4 tracer),
   `render/FieldLines` (SSBO + instanced quads), UI checkbox, `--field-lines`, and the
   mandatory model label. VERIFICATION §8.7 (includes the end-point debugging record).
+
+## 2026-11-08 — Workstream G (scientific inspection; observation mode deferred)
+
+- **Implemented and verified:** Scientific view with a density cross-section from the
+  shared density include, viridis legend, overlays on. VERIFICATION §8.8.
+- **Deferred:** observation/multi-wavelength mode. Downloading external images needs
+  the user's approval and per-asset rights checks.
+- **Deferred (P2):** Workstream H (binary/cluster/triggered scenarios, comparative
+  laboratory). P0/P1 systems are now in place; H should start only after the user
+  has reviewed this round.

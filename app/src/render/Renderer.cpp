@@ -98,10 +98,11 @@ bool Renderer::init(const std::filesystem::path& shaderDir, int width, int heigh
     bloomUp_         = Shader("bloom_up", {{GL_VERTEX_SHADER, "fullscreen.vert"}, {GL_FRAGMENT_SHADER, "bloom_up.frag"}});
     final_           = Shader("final", {{GL_VERTEX_SHADER, "fullscreen.vert"}, {GL_FRAGMENT_SHADER, "final.frag"}});
     corona_          = Shader("corona", {{GL_VERTEX_SHADER, "glow.vert"}, {GL_FRAGMENT_SHADER, "corona.frag"}});
+    section_         = Shader("section", {{GL_VERTEX_SHADER, "glow.vert"}, {GL_FRAGMENT_SHADER, "section.frag"}});
     fieldline_       = Shader("fieldline", {{GL_VERTEX_SHADER, "fieldline.vert"}, {GL_FRAGMENT_SHADER, "fieldline.frag"}});
     prominence_      = Shader("prominence", {{GL_VERTEX_SHADER, "prominence.vert"}, {GL_FRAGMENT_SHADER, "prominence.frag"}});
     allShaders_ = {&noiseGen_, &sky_, &volume_, &composite_, &star_, &glow_, &disc_,
-                   &particlesShader_, &beam_, &lens_, &bloomDown_, &bloomUp_, &final_, &corona_, &prominence_, &fieldline_};
+                   &particlesShader_, &beam_, &lens_, &bloomDown_, &bloomUp_, &final_, &corona_, &prominence_, &fieldline_, &section_};
 
     bool ok = true;
     for (Shader* s : allShaders_) ok = s->load(shaderDir_) && ok;
@@ -501,6 +502,23 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
     glBindTextureUnit(0, sceneTex);
     glBindTextureUnit(1, bloomMips_[0].color.id());
     drawFullscreen();
+
+    // Scientific cross-section through the core, facing the camera (overlay).
+    if (showSection_ && s.cloudDensity > 0.01f) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        section_.use();
+        section_.set("uCenter", glm::vec3(0.0f));
+        section_.set("uSize", CloudField::kExtent);
+        section_.set("uRangeMax", CloudField::kSectionRangeMax);
+        section_.set("uCloudExtent", CloudField::kExtent);
+        section_.set("uKeyDir", CloudField::keyLightDirection());
+        glBindTextureUnit(0, noise3d_.id());
+        glBindTextureUnit(2, cloudStructure_.id());
+        glBindVertexArray(emptyVao_.id());
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glDisable(GL_BLEND);
+    }
 
     glEndQuery(GL_TIME_ELAPSED);
     ++queryFrame_;

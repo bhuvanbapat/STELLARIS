@@ -421,3 +421,51 @@ standard review set (six stages; 15 and 40 M☉ endings) were taken for comparis
 - Visual: 1 M☉ at 97 s shows thin closed loops and open polar lines, hidden behind
   the star; 15 M☉ at 140 s shows the tilted neutron-star field aligned with the
   beams. The model label is visible at the bottom. 7,984 + 34,672 segments.
+
+### 8.8 Workstream G — scientific inspection (partially implemented)
+
+- **Implemented and verified:** Cinematic/Scientific view switch; density
+  cross-section evaluated by the shared `cloud_density.glsl` (the exact function the
+  volume integrates, so the "cross-section agrees with the volume field" check holds
+  by construction); viridis map with a legend from the same polynomial; units shown
+  as "normalized ρₙ (dimensionless)". Captured at 8, 34 and 52 s: envelope, filaments
+  and the core concentrating during collapse are visible. The legend range was
+  widened from 2.5 to 4 because the core saturated a large area.
+- **Partial:** no temperature/velocity overlays (the model owns no such fields beyond
+  prescribed trajectories, so none are invented) and no per-species particle toggles.
+- **Deferred (blocked): observation / multi-wavelength mode.** It requires downloading
+  external astronomical images, which needs the user's explicit approval and an
+  asset-by-asset rights review. Nothing was downloaded.
+- Regression after G: see §8.9.
+
+### 8.9 Regression after the 2026-11-08 expansion round
+
+- Unit tests 40/40; `--selftest` 0 failures; full Release build of all three targets
+  (main app, tests, GLUT demo) with no warnings in project code.
+- Standard review set (six stages; 15 and 40 M☉ endings) captured and inspected:
+  all stages intact.
+- 1920×1080, vsync off (stages: cloud, collapse, protostar, disc, main sequence,
+  WD nebula, supernova, NS remnant, black hole):
+  - Performance: 2.91 3.37 3.36 3.22 2.92 5.53 6.06 6.15 4.91 ms (162–339 fps)
+  - Balanced: 6.64 7.74 7.47 7.20 6.49 12.84 13.89 14.63 11.12 ms (68–153 fps)
+  - Balanced + Scientific view: 6.81–14.87 ms (67–146 fps)
+- Particle count 290,000; cloud structure texture 16 MiB (128³ RGBA16F); the
+  resident VRAM total was not measured directly (no driver query used).
+
+### 8.10 Expansion acceptance gate (PROJECT_SPEC §18.14) — status on 2026-11-08
+
+| Gate item | Status | Evidence |
+|---|---|---|
+| Six-stage sequence still builds, launches, plays | verified | §8.9, self-test |
+| Seek/rewind/reset/speed/stage selection deterministic | verified | unit tests (determinism, continuity), self-test |
+| Cloud morphology stable at arbitrary times | verified | seeded CPU field (bitwise test); time only enters through the prescribed collapse mapping |
+| Volume: edges, banding, compositing | verified (inspected) | §8.2, §8.3 limb crops |
+| Stellar layers distinct under HDR | verified (inspected) | §8.4 |
+| Particle species distinct, repeatable, no excessive overdraw | verified (inspected); overdraw not measured separately | §8.5 |
+| Magnetic lines use an identified analytic model | verified | §8.7, on-screen label |
+| Supernova morphology not claimed as hydrodynamics | verified | SCIENCE_NOTES §3, code comments |
+| Overlays show real fields with units/normalization | verified for the density cross-section | §8.8 |
+| Observation assets with provenance | **not implemented** (deferred: needs approval to download) | §8.8 |
+| Optional scenarios do not break default | **not implemented** (Workstream H deferred) | — |
+| Comparative laboratory sources | **not implemented** (Workstream H deferred) | — |
+| Performance measured at a stated resolution/preset | verified | §8.3, §8.9 |

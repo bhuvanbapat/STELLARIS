@@ -32,6 +32,7 @@ struct AppOptions {
     bool benchmark = false;
     QualityPreset quality = QualityPreset::Balanced;
     bool fieldLines = false;
+    bool scientific = false;
 };
 
 // Parses argv. Returns false (and prints usage) on invalid input.

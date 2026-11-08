@@ -32,6 +32,8 @@ class CloudField {
 public:
     static constexpr float    kExtent = 56.0f;   // field covers [-kExtent, kExtent]^3 (scene units)
     static constexpr uint32_t kDefaultSeed = 1;
+    // Normalized density mapped to the top of the scientific cross-section color map.
+    static constexpr float    kSectionRangeMax = 4.0f;
     // Unit vector toward the external illuminating source (behind the cloud, upper
     // left). The volume renderer lights with it; globule tails point away from it.
     static glm::vec3 keyLightDirection();

@@ -90,6 +90,14 @@ Selectable mass range: 1–40 M☉. Lower-mass stars live longer than about
   pulsar beams. The on-screen label reads "ANALYTIC DIPOLE FIELD — VISUALIZATION ·
   normalized geometry, not MHD". The lines are field geometry, not particle paths;
   nothing couples them to the jets, activity or evolution.
+- **Scientific view (since 2026-11-08):** a Cinematic/Scientific switch. The
+  Scientific view adds a density cross-section and turns on the field lines and
+  labels. The cross-section shows the **normalized procedural density ρₙ
+  (dimensionless)** of the rendered field (including the prescribed collapse
+  mapping) on a plane through the core facing the camera. The legend runs 0–4
+  and shows "≥ 4" where it saturates. No physical units are attached; a
+  temperature or velocity overlay is not provided, because the model owns no such
+  fields beyond the prescribed trajectories.
 - **Collapse (volume):** a smooth prescribed mapping draws the cloud's inner
   density inward, with a Jacobian density gain, swirl and flattening. It is
   illustrative only.

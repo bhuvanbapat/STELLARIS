@@ -47,6 +47,8 @@ public:
     void toggleVisible() { visible_ = !visible_; }
     bool labelsEnabled() const { return labels_; }
     bool fieldLinesEnabled() const { return fieldLines_; }
+    bool scientificView() const { return scientific_; }
+    void setScientificView(bool on);
     void setFieldLines(bool on) { fieldLines_ = on; }
 
     // Horizontal NDC lens shift that keeps the subject clear of the left panel.
@@ -58,6 +60,7 @@ private:
     void drawTimeline(Playback& playback, const SceneState& s, UiRequests& req);
     void drawAnnotations(const UiFrameInfo& info);
     void drawDiagnostics(const UiFrameInfo& info);
+    void drawSectionLegend(const SceneState& s);
 
     float  baseScale_ = 1.0f;  // monitor content scale (DPI)
     float  layout_ = 1.0f;     // shrink factor for small windows
@@ -65,6 +68,7 @@ private:
     bool   visible_ = true;
     bool   labels_ = true;
     bool   fieldLines_ = false;
+    bool   scientific_ = false;  // Cinematic (false) or Scientific inspection view
     bool   labelClick_ = false;  // current timeline press started on a stage label
     bool   initialized_ = false;
     ImFont* body_ = nullptr;
