@@ -27,6 +27,11 @@ inline constexpr double kNeutronStarBandLow = 18.0, kNeutronStarBandHigh = 30.0;
 // Nominal solar effective temperature, IAU 2015 Resolution B3 (K).
 inline constexpr double kSolarTeffK = 5772.0;
 
+// Explicit, small set of masses shown side by side in the mass-comparison table.
+// Each row is the same simplified analytic relations below, evaluated at that mass;
+// these are not evolutionary tracks.
+inline constexpr double kComparisonMasses[] = {1.0, 2.0, 5.0, 15.0, 40.0};
+
 enum class Pathway { WhiteDwarf, NeutronStar, BlackHole };
 
 const char* pathwayName(Pathway p);        // e.g. "Low / intermediate mass"

@@ -466,8 +466,8 @@ standard review set (six stages; 15 and 40 M☉ endings) were taken for comparis
 | Supernova morphology not claimed as hydrodynamics | verified | SCIENCE_NOTES §3, code comments |
 | Overlays show real fields with units/normalization | verified for the density cross-section | §8.8 |
 | Observation assets with provenance | verified (added after approval) | §8.11, provenance check |
-| Optional scenarios do not break default | **not implemented** (Workstream H deferred) | — |
-| Comparative laboratory sources | **not implemented** (Workstream H deferred) | — |
+| Optional scenarios do not break default | **deferred** (binary, cluster, triggered compression not implemented; mass presets 1/15/40 M☉ already existed) | §8.12 |
+| Comparative laboratory sources | **partially implemented, verified**: simplified-model table only; no reference tracks | §8.12 |
 | Performance measured at a stated resolution/preset | verified | §8.3, §8.9 |
 
 ### 8.11 Observation view (implemented and verified, 2026-11-08)
@@ -493,3 +493,22 @@ standard review set (six stages; 15 and 40 M☉ endings) were taken for comparis
 - One recorded discrepancy: for weic2216a the source page lists 1200×1200 px as the
   original, but the screensize file served is 1280×1280 px. Recorded verbatim in the
   sidecar.
+
+### 8.12 Workstream H: mass-comparison table (partially implemented, 2026-11-08)
+
+- Implemented: a "Compare masses" toggle (`--compare`) opens a table with the existing
+  simplified relations evaluated at 1, 2, 5, 15 and 40 M☉, plus the current mass:
+  L, R, T_eff, blackbody colour, main-sequence lifetime and final pathway. It is
+  labelled "simplified analytic scaling relations, not evolution tracks". Clicking a
+  row sets that mass. The table is display only: it does not change the model.
+- Test `comparison_masses_are_in_domain_and_ordered`: every mass is inside the supported
+  1–40 M☉ domain; L and T_eff rise and the lifetime falls monotonically; all three
+  pathways are represented. 45/45 unit tests and the provenance test pass. `--selftest
+  --compare` reports 0 failures (GPU ~5.4 ms).
+- Visual: captured at 1600×900 with 3 M☉. The values match the info panel
+  (65.5 L☉, 10427 K, ~5×10⁸ yr) and the table is legible without covering the
+  subject.
+- Deferred: binary, cluster and triggered-compression scenarios. Each needs a
+  multi-subject renderer, camera composition and new prescribed dynamics (P2 cost,
+  regression risk to the verified single-star path). Reference tracks (MIST/PARSEC)
+  are also deferred: they need dataset provenance and a download approval.

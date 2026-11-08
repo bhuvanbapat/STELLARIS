@@ -229,3 +229,11 @@ Prioritise deeper cloud morphology, volumetric quality, layered stellar renderin
   Observation) and `--observation`. Image credits were added to README §9.
 - Evidence: VERIFICATION §8.11. Remaining deferred: Workstream H (scenarios,
   comparative laboratory).
+
+## 2026-11-08 — Workstream H (partial): mass-comparison table
+
+- Added `kComparisonMasses` (1, 2, 5, 15, 40 M☉) and a toggleable comparison table:
+  the same analytic relations at each mass, the current mass highlighted, click to
+  select. `--compare` flag. One new unit test. Evidence: VERIFICATION §8.12.
+- Deferred, with reasons recorded: binary, cluster and triggered-compression
+  scenarios, and published reference tracks.

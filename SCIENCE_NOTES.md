@@ -192,7 +192,7 @@ The entries below are an expansion design register. They must not be merged into
 | Rayleigh–Taylor-like ejecta fingers — **implemented 2026-11-08 as procedural morphology** (see §3) | Irregular finger-like morphology can illustrate instability-shaped interfaces | `instability-inspired procedural morphology` | A numerically solved Rayleigh–Taylor instability |
 | Advanced volume scattering | More detailed light transport can improve the appearance of dusty gas | `rendering approximation` with documented parameters | A full wavelength-resolved radiative-transfer solution |
 | Multi-wavelength observation mode — **implemented 2026-11-08 as an Observation view** (see §9.5) | Different bands reveal different observational information when genuine band data are used | `observational data view` with instrument/filter/source | A simulated X-ray/infrared/radio measurement when only a recoloured optical image is shown |
-| Comparative evolution tracks | Different model/data tracks can compare mass-dependent evolution | Identify each track as `simplified model` or named reference dataset | A precise prediction from a simplified lifetime scaling |
+| Comparative evolution tracks — **partial (2026-11-08)**: simplified-model table only (VERIFICATION §8.12) | Different model/data tracks can compare mass-dependent evolution | Identify each track as `simplified model` or named reference dataset | A precise prediction from a simplified lifetime scaling |
 
 ### 9.1 Required provenance for observational data
 

@@ -54,6 +54,7 @@ void printUsage() {
         "  --seed N                 cloud morphology seed (default 1)\n"
         "  --quality Q              performance | balanced (default) | high | capture\n"
         "  --field-lines            show the analytic dipole field-line overlay\n"
+        "  --compare                show the mass-comparison table\n"
         "  --scientific             start in the Scientific view (density cross-section, overlays)\n"
         "  --hide-ui                start with the interface hidden\n"
         "  --capture DIR T1,T2,...  render the listed times to DIR/*.png and exit\n"
@@ -103,6 +104,7 @@ bool parseOptions(int argc, char** argv, AppOptions& o) {
         else if (a == "--field-lines") o.fieldLines = true;
         else if (a == "--scientific") o.scientific = true;
         else if (a == "--observation") o.observation = true;
+        else if (a == "--compare") o.compare = true;
         else if (a == "--quality" && i + 1 < argc) {
             const std::string q = argv[++i];
             if (q == "performance") o.quality = QualityPreset::Performance;
@@ -205,6 +207,7 @@ int App::run() {
     playback_.seek(options_.startTime);
     if (options_.hideUi) ui_.toggleVisible();
     ui_.setFieldLines(options_.fieldLines);
+    ui_.setCompare(options_.compare);
     if (options_.scientific) ui_.setScientificView(true);
     if (options_.observation) ui_.setViewMode(Ui::ViewMode::Observation);
     {

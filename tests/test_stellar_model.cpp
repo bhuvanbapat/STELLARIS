@@ -71,3 +71,17 @@ TEST(free_fall_time_order_of_magnitude) {
     // t_ff scales as n^-1/2.
     CHECK_NEAR(freeFallTimeYears(4e4), t / 2.0, t * 1e-9);
 }
+
+TEST(comparison_masses_are_in_domain_and_ordered) {
+    double prevL = 0.0, prevT = 0.0, prevLife = 1e30;
+    for (double m : kComparisonMasses) {
+        CHECK(m >= kMinMassSolar && m <= kMaxMassSolar);
+        const MainSequenceProperties p = mainSequenceProperties(m);
+        CHECK(p.luminositySolar > prevL && p.teffK > prevT && p.lifetimeYears < prevLife);
+        prevL = p.luminositySolar; prevT = p.teffK; prevLife = p.lifetimeYears;
+    }
+    // Every final pathway is represented in the table.
+    bool seen[3] = {};
+    for (double m : kComparisonMasses) seen[static_cast<int>(pathwayForMass(m))] = true;
+    CHECK(seen[0] && seen[1] && seen[2]);
+}

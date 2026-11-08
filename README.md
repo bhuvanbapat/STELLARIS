@@ -73,6 +73,7 @@ Useful options for `stellaris.exe`:
 | `--rotation R` | relative core rotation, 0.6–1.4 |
 | `--seed N` | procedural cloud morphology seed (default 1) |
 | `--field-lines` | start with the analytic dipole field-line overlay on |
+| `--compare` | start with the mass-comparison table open |
 | `--observation` | start in the Observation view (authentic credited image beside the scene) |
 | `--scientific` | start in the Scientific view (density cross-section, field lines, labels) |
 | `--quality Q` | `performance`, `balanced` (default), `high`, `capture`: rendering cost only |

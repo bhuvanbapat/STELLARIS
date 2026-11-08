@@ -37,6 +37,7 @@ struct AppOptions {
     bool fieldLines = false;
     bool scientific = false;
     bool observation = false;
+    bool compare = false;       // show the mass-comparison table
 };
 
 // Parses argv. Returns false (and prints usage) on invalid input.

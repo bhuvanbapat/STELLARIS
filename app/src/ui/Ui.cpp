@@ -379,6 +379,60 @@ void Ui::drawSectionLegend(const SceneState& s) {
     dl->AddText(small_, fs, ImVec2(p0.x + w - 22 * scale_, p0.y + h + 4 * scale_), col32(kTextDim), buf);
 }
 
+void Ui::drawComparisonPanel(ModelConfig& config) {
+    const ImVec2 ds = ImGui::GetIO().DisplaySize;
+    ImGui::SetNextWindowPos(ImVec2(ds.x * 0.5f, 18.0f * scale_), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
+    ImGui::Begin("##compare", nullptr,
+                 ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing);
+    ImGui::PushFont(small_);
+    ImGui::PushStyleColor(ImGuiCol_Text, kTextFaint);
+    ImGui::TextUnformatted("MASS COMPARISON  ·  simplified analytic scaling relations, not evolution tracks");
+    ImGui::PopStyleColor();
+    const ImGuiTableFlags flags = ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_PadOuterX;
+    if (ImGui::BeginTable("##cmp", 7, flags)) {
+        for (const char* h : {"Mass", "Luminosity", "Radius", "T eff", "Colour", "MS lifetime", "Final pathway"})
+            ImGui::TableSetupColumn(h);
+        ImGui::TableHeadersRow();
+        auto row = [&](double m, bool current) {
+            const MainSequenceProperties p = mainSequenceProperties(m);
+            const Pathway pw = pathwayForMass(m);
+            ImGui::TableNextRow();
+            ImGui::PushID(static_cast<int>(m * 100.0));
+            ImGui::TableNextColumn();
+            char buf[64];
+            std::snprintf(buf, sizeof(buf), current ? "%.1f M☉ (current)##r%.2f" : "%.0f M☉##r%.2f", m, m);
+            if (ImGui::Selectable(buf, current, ImGuiSelectableFlags_SpanAllColumns)) config.massSolar = m;
+            ImGui::TableNextColumn(); ImGui::Text("%s L☉", sci(p.luminositySolar, 1).c_str());
+            ImGui::TableNextColumn(); ImGui::Text("%.2g R☉", p.radiusSolar);
+            ImGui::TableNextColumn(); ImGui::Text("%.0f K", p.teffK);
+            ImGui::TableNextColumn();
+            const glm::vec3 c = blackbodyColor(p.teffK);
+            ImGui::ColorButton("##bb", ImVec4(c.r, c.g, c.b, 1.0f), ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoBorder,
+                               ImVec2(28 * scale_, ImGui::GetTextLineHeight()));
+            ImGui::TableNextColumn();
+            ImGui::Text("~%s yr", sci(p.lifetimeYears, 0).c_str());
+            ImGui::TableNextColumn();
+            ImGui::TextColored(stageColor(Stage::StellarFate, pw), "%s%s", remnantName(pw),
+                               massNearCategoryBoundary(m) ? " (boundary uncertain)" : "");
+            ImGui::PopID();
+        };
+        bool currentShown = false;
+        for (double m : kComparisonMasses) {
+            const bool cur = std::abs(m - config.massSolar) < 0.05;
+            currentShown |= cur;
+            row(m, cur);
+        }
+        if (!currentShown) row(config.massSolar, true);
+        ImGui::EndTable();
+    }
+    ImGui::PushStyleColor(ImGuiCol_Text, kTextFaint);
+    ImGui::TextUnformatted("Lifetime ~1e10 yr · M/L is order-of-magnitude only. Pathway boundaries (8, 25 M☉) are illustrative.");
+    ImGui::PopStyleColor();
+    ImGui::PopFont();
+    ImGui::End();
+}
+
 bool Ui::wantsMouse() const { return ImGui::GetIO().WantCaptureMouse; }
 bool Ui::wantsKeyboard() const { return ImGui::GetIO().WantCaptureKeyboard; }
 
@@ -409,6 +463,7 @@ UiRequests Ui::draw(Playback& playback, ModelConfig& config, const UiFrameInfo& 
     if (mode_ == ViewMode::Observation) drawObservationPanel(info);
     else drawInfoPanel(s);
     drawParameterPanel(config, s, req, info);
+    if (compare_) drawComparisonPanel(config);
     drawTimeline(playback, s, req);
     drawDiagnostics(info);
     return req;
@@ -587,6 +642,9 @@ void Ui::drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests
     ImGui::Checkbox("Magnetic field (analytic dipole)", &fieldLines_);
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Field lines of an ideal dipole (normalized). A visualization of field geometry,\nnot a magnetohydrodynamic model; shown for the main-sequence star and the neutron star.");
+    ImGui::Checkbox("Compare masses (table)", &compare_);
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Side-by-side values of the same simplified relations for a few masses.\nClick a row to use that mass.");
     ImGui::Checkbox("3D labels", &labels_);
     ImGui::SameLine();
     if (ImGui::Button(cameraOffset ? "Recenter camera *" : "Recenter camera")) req.recenterCamera = true;
