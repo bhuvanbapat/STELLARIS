@@ -56,6 +56,7 @@ public:
     void toggleVisible() { visible_ = !visible_; }
     bool labelsEnabled() const { return labels_; }
     bool fieldLinesEnabled() const { return fieldLines_; }
+    int observationIndex() const { return observationIndex_; }
     bool tracersEnabled() const { return tracers_; }
     enum class ViewMode { Cinematic, Scientific, Observation };
     ViewMode viewMode() const { return mode_; }

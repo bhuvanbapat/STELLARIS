@@ -19,13 +19,25 @@ vec3 worldFromStellar(vec3 s, float time) {
 // Unit vector from latitude/longitude (radians).
 vec3 latLon(float lat, float lon) { return vec3(cos(lat) * cos(lon), sin(lat), cos(lat) * sin(lon)); }
 
-// Active regions sit in two latitude bands, as on the Sun (illustrative layout).
+// Active regions: the five strongest regions of the real Sun in Carrington rotation
+// 2284 (May 6 - June 2 2024; SDO/HMI synoptic magnetogram, tools/bake_sun_magnetogram.py).
+// Region 0 is AR 13664 (~S20), source of the May 2024 storms, rotated in longitude to
+// the site where STELLARIS stages its flare.
 const int SPOT_COUNT = 5;
 vec3 spotCenter(int i) {
-    const float lat[5] = float[](0.32, -0.26, 0.45, -0.40, 0.20);
-    // Spot 0 (the flare site) faces the authored stage-5 camera at the flare time.
-    const float lon[5] = float[](2.00, 0.60, 3.30, 4.30, 5.40);
+    const float lat[5] = float[](-0.342, 0.431, -0.235, 0.465, -0.143);
+    const float lon[5] = float[](2.002, 1.072, 5.524, 2.781, 4.536);
     return latLon(lat[i], lon[i]);
+}
+
+// Real radial photospheric field |Br| (gauss) of the same rotation, as a lat-lon map
+// (R: log-scaled |Br|, G: polarity). uHasMagnetogram = 0 when the map is unavailable.
+layout(binding = 4) uniform sampler2D uMagnetogram;
+uniform int uHasMagnetogram;
+float magneticField(vec3 sp, float lod) {
+    vec2 uv = vec2(fract(atan(sp.z, sp.x) / 6.2831853), 0.5 - asin(clamp(sp.y, -1.0, 1.0)) / 3.14159265);
+    float r = textureLod(uMagnetogram, uv, lod).r;
+    return pow(10.0, r * 3.47727) - 1.0;   // inverse of log10(1 + B) / log10(3001)
 }
 float spotRadius(int i) {
     const float r[5] = float[](0.085, 0.06, 0.045, 0.07, 0.04);

@@ -275,3 +275,16 @@ Prioritise deeper cloud morphology, volumetric quality, layered stellar renderin
 - Real data: the Cas A 3D reconstruction (Chandra/CXC), baked to a 3D texture at build
   time, drives the neutron-star remnant. `ASSET_SOURCES.md` added at the user's request.
 - Photosphere at true granule scale. Default quality tier: High. Evidence: VERIFICATION §8.16.
+
+## 2026-11-18 — Astronomy reference library and real solar data (user directive)
+
+- `tools/acquire_assets.py`: archive search plus resumable downloads, 75 files (~1.1 GB),
+  manifest with SHA-256 and credits, download log. `tools/write_catalog.py` writes the
+  catalogue and log. The library is git-ignored; the build copies only the runtime assets.
+- `tools/build_observations.py`: 63 Observation-view entries. The panel now has a ←/→
+  navigator and loads only the selected image.
+- `tools/bake_sun_magnetogram.py`: HMI CR 2284 drives spots, plage, the corona and the
+  active-region anchors. The cloud has sharper ionization-front edges.
+- The ground-up rewrite the user permitted was not done. The volume-first engine from
+  the previous round already matches the requested architecture, so this round put real
+  data into it instead. Evidence: VERIFICATION §8.17.

@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "core/Log.h"
+#include "gfx/ImageTexture.h"
 #include "sim/StellarModel.h"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -236,6 +237,18 @@ bool Renderer::loadRemnantVolume(const std::filesystem::path& raw, int n) {
     return true;
 }
 
+bool Renderer::loadMagnetogram(const std::filesystem::path& png) {
+    auto img = loadImageTexture(png, false);
+    if (!img) {
+        log::warn("Magnetogram {} unavailable; using the built-in active-region layout", png.string());
+        return false;
+    }
+    magnetogram_ = std::move(img->texture);
+    glTextureParameteri(magnetogram_.id(), GL_TEXTURE_WRAP_S, GL_REPEAT);  // longitude wraps
+    log::info("Surface magnetogram: SDO/HMI CR 2284 ({}x{})", img->width, img->height);
+    return true;
+}
+
 void Renderer::setQuality(QualityPreset preset) {
     if (preset == qualityPreset_) return;
     qualityPreset_ = preset;
@@ -347,6 +360,8 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
     glDepthFunc(GL_LESS);
     if (s.centralPresence > 0.01f && s.centralRadius > 0.01f) {
         star_.use();
+        star_.set("uHasMagnetogram", magnetogram_.id() != 0 ? 1 : 0);
+        if (magnetogram_.id() != 0) glBindTextureUnit(4, magnetogram_.id());
         star_.set("uCenter", glm::vec3(0.0f));
         star_.set("uRadius", s.centralRadius);
         star_.set("uColor", s.centralColor);
@@ -362,6 +377,8 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
     }
     if (s.remnantPresence > 0.01f) {
         star_.use();
+        star_.set("uHasMagnetogram", magnetogram_.id() != 0 ? 1 : 0);
+        if (magnetogram_.id() != 0) glBindTextureUnit(4, magnetogram_.id());
         star_.set("uCenter", glm::vec3(0.0f));
         star_.set("uRadius", s.remnantRadius * (0.6f + 0.4f * s.remnantPresence));
         star_.set("uColor", s.remnantColor);
@@ -479,6 +496,8 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
             glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 2 * (kSegments + 1), 3);
         }
         corona_.use();
+        corona_.set("uHasMagnetogram", magnetogram_.id() != 0 ? 1 : 0);
+        if (magnetogram_.id() != 0) glBindTextureUnit(4, magnetogram_.id());
         corona_.set("uCenter", glm::vec3(0.0f));
         corona_.set("uSize", s.centralRadius * 4.5f);
         corona_.set("uRadius", s.centralRadius);

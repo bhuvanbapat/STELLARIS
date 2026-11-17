@@ -11,6 +11,8 @@ and runs as a CTest test. Code dependencies are listed in `cmake/Dependencies.cm
 |---|---|---|---|---|
 | Milky Way panorama, 6000×3000 (eso0932a) | `assets/sky/` | ESO/S. Brunier | CC BY 4.0, credit shown on screen | Background sky of every stage |
 | Cassiopeia A 3D reconstruction (ASCII VTK) | `assets/data/casa/` | NASA/CXC/SAO; T. Delaney et al. 2010, ApJ 725, 2038 | No copyright asserted by CXC; NASA media guidelines; acknowledgement given | Baked at build time into a 192³ emission volume: ejecta of the neutron-star remnant |
+| SDO/HMI synoptic magnetogram, Carrington rotation 2284 (2024 May–Jun) | `assets/data/sun/` | Courtesy of NASA/SDO and the HMI science team (JSOC) | Public domain (NASA data) | Real sunspots, plage, flare site, prominence anchors and coronal brightening of Sun-like stars |
+| Astronomy reference library: 75 files (ESA/Webb, ESA/Hubble, ESO, NASA/SDO) | `assets/astronomy/` (not committed; `tools/acquire_assets.py`) | per file, see `assets/astronomy/ASSET_CATALOG.md` | CC BY 4.0 (ESA/ESO) or public domain (NASA) | Reference library; 63 display copies in the Observation view |
 | Pillars of Creation, visible (heic1501a) | `assets/observations/` | NASA, ESA/Hubble and the Hubble Heritage Team | CC BY 4.0 | Observation view, stages 1–2 |
 | Pillars of Creation, NIRCam (weic2216a) | `assets/observations/` | NASA, ESA, CSA, STScI; J. DePasquale, A. Koekemoer, A. Pagan | CC BY 4.0 | Observation view, stages 1–2 |
 | HH 211 (weic2322a) | `assets/observations/` | ESA/Webb, NASA, CSA, T. Ray (DIAS) | CC BY 4.0 | Observation view, stages 3–4; reference for the jet model |

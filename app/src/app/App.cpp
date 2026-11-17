@@ -229,6 +229,7 @@ int App::run() {
         for (const std::string& e : errors) log::warn("Observation catalog: {}", e);
         log::info("Observation catalog: {} attributed images", observations_.size());
     }
+    renderer_->loadMagnetogram(executableDir() / "assets" / "data" / "sun" / "hmi_cr2284_br.png");
     renderer_->loadRemnantVolume(executableDir() / "assets" / "data" / "casa" / "casa_volume.raw", 192);
     if (!options_.proceduralSky) {
         // Real sky: ESO/S. Brunier all-sky panorama (CC BY 4.0); credit shown on screen.
@@ -318,15 +319,24 @@ void App::renderScene() {
     info.project = [this](const glm::vec3& p) { return renderer_->projectToScreen(p); };
     info.quality = renderer_->quality();
     if (ui_.observationView()) {
-        for (const Observation& o : observations_) {
-            if (!o.matches(scene_.stage, scene_.pathway)) continue;
+        // Only the selected image is decoded and resident (plus a few recent ones):
+        // the library holds dozens of multi-megapixel images.
+        std::vector<const Observation*> matching;
+        for (const Observation& o : observations_)
+            if (o.matches(scene_.stage, scene_.pathway)) matching.push_back(&o);
+        const int sel = matching.empty() ? 0 : std::clamp(ui_.observationIndex(), 0, static_cast<int>(matching.size()) - 1);
+        for (int i = 0; i < static_cast<int>(matching.size()); ++i) {
+            const Observation& o = *matching[i];
             auto it = observationTextures_.find(o.get("id"));
-            if (it == observationTextures_.end()) {
-                auto loaded = loadImageTexture(o.imagePath);
-                if (!loaded) continue;
-                it = observationTextures_.emplace(o.get("id"), std::move(*loaded)).first;
+            if (i == sel && it == observationTextures_.end()) {
+                if (observationTextures_.size() >= 6) observationTextures_.clear();  // bound GPU memory
+                if (auto loaded = loadImageTexture(o.imagePath))
+                    it = observationTextures_.emplace(o.get("id"), std::move(*loaded)).first;
             }
-            info.observations.push_back({&o, it->second.texture.id(), it->second.width, it->second.height});
+            if (it != observationTextures_.end())
+                info.observations.push_back({&o, it->second.texture.id(), it->second.width, it->second.height});
+            else
+                info.observations.push_back({&o, 0u, 1, 1});
         }
     }
     const UiRequests req = ui_.draw(playback_, config_, info);

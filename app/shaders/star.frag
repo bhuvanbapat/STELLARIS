@@ -62,6 +62,16 @@ float granulation(vec3 sp, float cellsPerRadius, float contrast, float t) {
 
 // Spots with penumbral filaments; returns darkening (0..1) and the facular mask.
 vec2 spotsAndFaculae(vec3 sp) {
+    if (uHasMagnetogram != 0) {
+        // From the measured field: umbrae above ~1.2 kG, penumbrae ~0.5-1.2 kG with
+        // radial-looking filaments, faculae/plage ~0.06-0.4 kG (typical solar values).
+        float B = magneticField(sp, 0.0);
+        float fil = 0.5 + 0.5 * sin(texture(uNoise, sp * 9.0).g * 40.0);
+        float umbra = smoothstep(1100.0, 1700.0, B);
+        float penumbra = smoothstep(420.0, 900.0, B) * (0.38 + 0.24 * fil);
+        float plage = smoothstep(60.0, 260.0, magneticField(sp, 1.5)) * (1.0 - smoothstep(380.0, 600.0, B));
+        return vec2(max(penumbra, umbra * 0.92), plage);
+    }
     float wobble = texture(uNoise, sp * 1.9 + vec3(3.1)).r - 0.5;
     float dark = 0.0, fac = 0.0;
     for (int i = 0; i < SPOT_COUNT; ++i) {

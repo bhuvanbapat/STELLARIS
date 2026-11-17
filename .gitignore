@@ -14,3 +14,7 @@ CMakeUserPresets.json
 /screenshots/
 imgui.ini
 *.log
+
+# Astronomy reference library (several GB; reproduced by tools/acquire_assets.py)
+/assets/astronomy/*/
+!/assets/astronomy/metadata/

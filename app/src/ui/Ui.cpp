@@ -312,19 +312,17 @@ void Ui::drawObservationPanel(const UiFrameInfo& info) {
     }
     observationIndex_ = std::clamp(observationIndex_, 0, static_cast<int>(info.observations.size()) - 1);
     if (info.observations.size() > 1) {
-        ImGui::PushFont(small_);
-        for (int i = 0; i < static_cast<int>(info.observations.size()); ++i) {
-            const Observation& o = *info.observations[i].observation;
-            std::string instrument = o.get("observatory_instrument");
-            instrument = instrument.substr(0, instrument.find(','));
-            const std::string label = o.get("band_kind") + " \u00b7 " + instrument + "##band" + std::to_string(i);
-            if (i > 0) ImGui::SameLine();
-            const bool active = i == observationIndex_;
-            if (active) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.98f, 0.76f, 0.42f, 0.35f));
-            if (ImGui::SmallButton(label.c_str())) observationIndex_ = i;
-            if (active) ImGui::PopStyleColor();
-        }
-        ImGui::PopFont();
+        // Navigator: previous / next through every observation linked to this stage.
+        const int count = static_cast<int>(info.observations.size());
+        if (ImGui::Button("\u2190##obsprev")) observationIndex_ = (observationIndex_ + count - 1) % count;
+        ImGui::SameLine();
+        ImGui::Text("%d / %d", observationIndex_ + 1, count);
+        ImGui::SameLine();
+        if (ImGui::Button("\u2192##obsnext")) observationIndex_ = (observationIndex_ + 1) % count;
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_Text, kTextDim);
+        ImGui::TextUnformatted(info.observations[observationIndex_].observation->get("band_kind").c_str());
+        ImGui::PopStyleColor();
     }
     const ObservationItem& item = info.observations[observationIndex_];
     const Observation& o = *item.observation;
@@ -339,7 +337,8 @@ void Ui::drawObservationPanel(const UiFrameInfo& info) {
     float iw = std::min(availW, static_cast<float>(item.width));
     float ih = iw * static_cast<float>(item.height) / std::max(item.width, 1);
     if (ih > maxH) { iw *= maxH / ih; ih = maxH; }
-    ImGui::Image(static_cast<ImTextureID>(item.texture), ImVec2(iw, ih));
+    if (item.texture != 0) ImGui::Image(static_cast<ImTextureID>(item.texture), ImVec2(iw, ih));
+    else ImGui::Dummy(ImVec2(iw, ih));  // being decoded this frame
 
     // Credit exactly as given by the source, directly under the image.
     ImGui::PushStyleColor(ImGuiCol_Text, kAccent);

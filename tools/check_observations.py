@@ -16,7 +16,7 @@ import struct
 import sys
 
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets")
-ROOTS = [os.path.join(ASSETS, "observations"), os.path.join(ASSETS, "sky"), os.path.join(ASSETS, "data", "casa")]
+ROOTS = [os.path.join(ASSETS, "observations"), os.path.join(ASSETS, "sky"), os.path.join(ASSETS, "data", "casa"), os.path.join(ASSETS, "data", "sun")]
 
 REQUIRED = [
     "id", "title", "object", "stage", "pathway", "source_institution", "source_page", "file_url",

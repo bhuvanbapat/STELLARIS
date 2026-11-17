@@ -311,3 +311,26 @@ Three classes of content are kept distinct:
    geometry are illustrative. The photosphere now uses the true granule scale (~700 per
    solar radius, sub-pixel at this distance) instead of enlarged cells. Giants keep a few
    giant cells, as observed.
+
+### 9.9 Real solar surface and the reference library (2026-11-18)
+
+- **Sun-like stars:**
+  - **Data:** the measured radial field of the whole Sun over Carrington rotation 2284
+    (SDO/HMI synoptic map, 2024 May 6 – June 2, near solar maximum). Umbrae are drawn
+    above ~1.2 kG, penumbrae at ~0.4–1.2 kG and plage/faculae at ~0.06–0.4 kG
+    (typical solar values).
+  - **Corona:** brightens above strong-field regions at the limb, as in SDO/AIA EUV images.
+  - **Active regions:** the five strongest regions (including AR 13664) anchor the flare
+    site and the prominences.
+  - **Applied to other masses:** the map is also used for other convective masses,
+    labelled as Sun-like activity. Only longitude is rotated, to stage the flare.
+- **Chromosphere:** the limb rim is ragged, after spicules.
+- **Cloud:** sharper boundaries (ionization fronts, eroded fingers) after the Webb and
+  Hubble images of the Pillars of Creation and the Cosmic Cliffs.
+- **Library classification:** library images are linked to stages by object.
+  Artist's impressions and graphics never appear as observations.
+  - **Type Ia remnants** (Tycho, Kepler), a kilonova (NGC 4993) and unverified matches
+    are reference only. Type Ia needs a white dwarf in a binary, outside the single-star
+    pathways.
+  - **Very massive progenitors** (Eta Carinae, AG Carinae) are linked to the
+    black-hole ending, and Vela, Cas A, the Crab and SN 1987A to the neutron-star ending.

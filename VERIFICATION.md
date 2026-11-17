@@ -579,3 +579,22 @@ projection shows the expected morphology (Si/Fe shell, NE/SW jets).
   24.4, supernova 23.1, NS remnant 23.9, black hole 17.9 ms (41–97 fps). The first,
   unbounded version measured 64 ms in the disc+jets stage.
 - Not verified: how any of it looks; sound on speakers; the new tracer checkbox.
+
+### 8.17 Reference library and real solar data (2026-11-18)
+
+- **Acquisition** (`tools/acquire_assets.py`, run once): 75 OK, 10 UNAVAILABLE (no result
+  titled with the object: NGC 2264 on ESO, AFGL 5180 (Webb, Hubble), HH 46/47 and HH 24 on
+  Webb, R Doradus, WOH G64, a generic red-giant query, Helix on ESO, Eskimo), 1 SKIPPED
+  (duplicate), 0 FAILED. Six results were reclassified by hand and logged as RECLASSIFIED.
+  No substitutions.
+- **Provenance check:** 73 records, 71 images, 0 problems.
+- **Build and tests:** build OK; 49/49 unit tests, including two observation tests
+  updated: the 7 curated links are unchanged, and no library image is linked to the wrong
+  ending.
+- **Self-test:** 0 failures in the default and Observation views. 70 catalogue entries
+  load. Images load one at a time (16–48 MiB each, at most 6 resident). The magnetogram
+  (2048×1024) and the Cas A volume load.
+- **Data check:** the strongest region of the baked magnetogram lies at 19.6° S; AR 13664
+  was observed at ~S18. Maximum |Br| is 2328 G.
+- **Not verified:** the look of the magnetogram-driven star, the corona and the sharper
+  cloud (left to the user); clicking the ←/→ navigator.

@@ -223,3 +223,15 @@ giant, the nebulae and the supernova ejecta. The neutron-star remnant uses the r
 needs Python with numpy. Without numpy the remnant falls back to the procedural shell.
 **Gas tracer particles** (right panel) are an optional overlay. The default quality
 tier is now High. All external assets are listed in `ASSET_SOURCES.md`.
+
+## 12. Astronomy reference library and real solar data (2026-11-18)
+
+`python tools/acquire_assets.py` downloads the reference library: 75 full-resolution
+images and movies (~1.1 GB) from ESA/Webb, ESA/Hubble, ESO and NASA/SDO into
+`assets/astronomy/<category>/`. It records checksums and credits, and the library is
+not committed. See `assets/astronomy/ASSET_CATALOG.md` and `ASSET_DOWNLOAD_LOG.md`.
+`python tools/build_observations.py` turns the library into Observation-view entries
+(display copies of 3072 px or less, committed). In the Observation view, use the
+← / → buttons to step through every image linked to the current stage and ending.
+Sun-like stars now take their sunspots, plage, flare site and active-region corona
+from a real SDO/HMI magnetogram (May 2024, including AR 13664).

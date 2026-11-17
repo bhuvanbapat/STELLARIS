@@ -49,6 +49,8 @@ public:
     void setTracers(bool enabled) { showTracers_ = enabled; }
     // 3D emission volume of the Cas A reconstruction (RGBA8, n^3); false if absent.
     bool loadRemnantVolume(const std::filesystem::path& raw, int n);
+    // Real solar surface field (HMI synoptic map) driving spots, plage and corona.
+    bool loadMagnetogram(const std::filesystem::path& png);
     // Scientific density cross-section (normalized field), drawn after tone mapping.
     void setDensitySection(bool enabled) { showSection_ = enabled; }
 
@@ -112,6 +114,7 @@ private:
     GLuint skyTexture_ = 0;  // not owned
     bool showTracers_ = false;
     gl::Texture remnantVolume_;
+    gl::Texture magnetogram_;
     int queryFrame_ = 0;
     float gpuMs_ = 0.0f;
 

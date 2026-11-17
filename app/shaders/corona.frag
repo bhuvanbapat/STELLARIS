@@ -46,8 +46,17 @@ void main() {
     float equator = pow(1.0 - abs(sdir.y), 1.5);
     float corona = streak * equator * exp(-h * 0.9) * (0.35 + 0.65 * exp(-h * 2.5));
 
-    // Chromosphere: thin rim just above the limb (hydrogen-alpha-like red).
-    float chromo = exp(-pow(h / 0.018, 2.0));
+    // Coronal emission concentrates above active regions (as in SDO/AIA EUV images):
+    // brightness from the real magnetogram, blurred, at the limb position.
+    if (uHasMagnetogram != 0) {
+        float act = smoothstep(20.0, 160.0, magneticField(sdir, 5.0));
+        float loops = 0.6 + 0.4 * sin(texture(uNoise, sdir * 6.0).b * 30.0);
+        corona += act * loops * exp(-h * 3.2) * 1.6;
+    }
+    // Chromosphere: thin rim just above the limb (hydrogen-alpha-like red), made
+    // ragged by spicules, the jets of chromospheric gas seen at the solar limb.
+    float spic = texture(uNoise, sdir * 38.0 + vec3(0.0, TIME * 0.05, 0.0)).r;
+    float chromo = exp(-pow(max(h - 0.012 * spic * spic * 2.0, 0.0) / 0.018, 2.0));
 
     // Flare: brief brightening of the corona above the flare site.
     float flareGlow = exp(-pow(acos(clamp(dot(sdir, flareCenter()), -1.0, 1.0)) / 0.25, 2.0)) * exp(-h * 2.0) * uFlare;

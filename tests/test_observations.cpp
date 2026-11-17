@@ -9,10 +9,11 @@ using namespace stellaris;
 namespace {
 std::filesystem::path assetDir() { return std::filesystem::path(STELLARIS_SOURCE_DIR) / "assets" / "observations"; }
 
+// Curated (hand-checked) images only; the acquired library adds "lib_" entries.
 std::vector<std::string> idsFor(const std::vector<Observation>& catalog, Stage s, Pathway p) {
     std::vector<std::string> ids;
     for (const Observation& o : catalog)
-        if (o.matches(s, p)) ids.push_back(o.get("id"));
+        if (o.matches(s, p) && o.get("id").rfind("lib_", 0) != 0) ids.push_back(o.get("id"));
     return ids;
 }
 } // namespace
@@ -50,7 +51,7 @@ TEST(observation_catalog_loads_every_attributed_asset) {
     std::vector<std::string> errors;
     const auto catalog = loadObservationCatalog(assetDir(), &errors);
     CHECK(errors.empty());
-    CHECK(catalog.size() == 7);
+    CHECK(catalog.size() >= 7);  // 7 curated images plus the acquired reference library
     for (const Observation& o : catalog) {
         CHECK(!o.get("credit").empty() && !o.get("license").empty() && !o.get("source_page").empty());
         CHECK(!o.get("band").empty() && !o.get("image_kind").empty() && !o.get("sha256").empty());
@@ -70,6 +71,11 @@ TEST(observations_are_linked_to_the_right_stage_and_pathway) {
     CHECK((idsFor(catalog, Stage::StellarFate, Pathway::WhiteDwarf) == V{"weic2207a"}));
     CHECK((idsFor(catalog, Stage::StellarFate, Pathway::NeutronStar) == V{"heic0515a"}));
     CHECK((idsFor(catalog, Stage::StellarFate, Pathway::BlackHole) == V{"eso1907a"}));
+    // No library image may be linked to the wrong ending (e.g. a Type Ia remnant).
+    for (const Observation& o : catalog) {
+        if (o.get("pathway") == "white-dwarf") CHECK(!o.matches(Stage::StellarFate, Pathway::NeutronStar));
+        if (o.get("pathway") == "neutron-star") CHECK(!o.matches(Stage::StellarFate, Pathway::WhiteDwarf));
+    }
 }
 
 TEST(observation_catalog_rejects_records_without_provenance) {

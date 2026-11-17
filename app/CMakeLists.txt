@@ -46,8 +46,12 @@ add_custom_command(TARGET stellaris POST_BUILD
 # Attributed images and their provenance sidecars (assets/observations, assets/sky).
 add_custom_command(TARGET stellaris POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${PROJECT_SOURCE_DIR}/assets $<TARGET_FILE_DIR:stellaris>/assets
-    COMMENT "Copying attributed image assets next to the executable")
+            ${PROJECT_SOURCE_DIR}/assets/observations $<TARGET_FILE_DIR:stellaris>/assets/observations
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${PROJECT_SOURCE_DIR}/assets/sky $<TARGET_FILE_DIR:stellaris>/assets/sky
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${PROJECT_SOURCE_DIR}/assets/data $<TARGET_FILE_DIR:stellaris>/assets/data
+    COMMENT "Copying runtime assets next to the executable (not the reference library)")
 
 # Cas A 3D reconstruction -> 192^3 emission texture (tools/bake_casa.py, needs numpy).
 find_package(Python3 COMPONENTS Interpreter)

@@ -35,7 +35,14 @@ float baseDensity(vec3 p, float drift) {
     float fil = s.g * saturate(0.35 + 1.1 * detail) * 1.5;
     float core = s.b * (0.75 + 0.5 * detail) * 1.4;
     float glob = s.a * 3.0;
-    return env + fil + core + glob;
+    float d = env + fil + core + glob;
+    // Observed molecular clouds (Pillars of Creation, Cosmic Cliffs) have sharp
+    // boundaries: dense gas ends abruptly at ionization fronts and is eroded into fine
+    // fingers there. A contrast curve removes faint fuzz and a high-frequency erosion
+    // term breaks up the edges; the interiors stay dense and dark.
+    vec4 n4 = noiseAt(q * 0.34 + vec3(drift, 0.0, 0.0));
+    d *= smoothstep(0.06, 0.30, d) * (0.72 + 0.56 * n4.r);
+    return d;
 }
 
 // Collapse mapping and outflow carving, shared by the full and the coarse density.
