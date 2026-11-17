@@ -334,3 +334,32 @@ Three classes of content are kept distinct:
     pathways.
   - **Very massive progenitors** (Eta Carinae, AG Carinae) are linked to the
     black-hole ending, and Vela, Cas A, the Crab and SN 1987A to the neutron-star ending.
+
+### 9.10 Evolutionary phases, SDO-style star views, cloud detail (2026-11-18)
+
+- **Evolutionary phases** (`sim/EvolutionPhase`), shown in the info panel with their
+  real durations:
+  - first hydrostatic core, second collapse, Class 0 / Class I / T Tauri,
+    pre-main-sequence contraction;
+  - for Sun-like stars: subgiant, red-giant branch, helium ignition and horizontal
+    branch (a helium flash only below ~2 M_sun), AGB, post-AGB, planetary nebula,
+    white-dwarf cooling;
+  - for massive stars: supergiant crossing, advanced burning, iron-core collapse,
+    supernova, remnant, neutron star or black hole.
+
+  Real durations span 10^-8 to 10^10 yr; the timeline is not to scale.
+- **Star views:** visible light, after colourized SDO/HMI continuum images, or extreme
+  ultraviolet in the SDO/AIA style: 304 Å (chromospheric network, plage, filaments,
+  limb brightening) and 171 Å (dark disc, loop systems over active regions, coronal
+  holes). Both EUV views are driven by the real HMI magnetogram, use approximations of
+  the AIA colour tables, and are labelled on screen as false colour. 304 Å is the
+  default. These views are prescribed appearances, not EUV radiative transfer.
+- **Clouds:**
+  - Boundaries are re-integrated with fine sub-samples, and both the structure and its
+    erosion are warped at high frequency, so ionization fronts are crisp and corrugated.
+    Globules and filaments have sharp outlines.
+  - A clumpy HII region (H-alpha / [O III] emission) on the side of the illuminating
+    stars makes dense columns show as dark silhouettes with bright rims, as in the
+    Eagle and Carina images.
+  - The natal cloud disperses by t ~ 95 s, so the main-sequence star sits against a
+    dark sky.

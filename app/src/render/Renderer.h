@@ -47,6 +47,8 @@ public:
     void setSkyTexture(GLuint texture) { skyTexture_ = texture; }
     // Optional gas tracer particles (the gas itself is volumetric).
     void setTracers(bool enabled) { showTracers_ = enabled; }
+    // Star appearance: 0 visible light, 1 SDO/AIA 304 A style, 2 SDO/AIA 171 A style.
+    void setSolarBand(int band) { solarBand_ = band; }
     // 3D emission volume of the Cas A reconstruction (RGBA8, n^3); false if absent.
     bool loadRemnantVolume(const std::filesystem::path& raw, int n);
     // Real solar surface field (HMI synoptic map) driving spots, plage and corona.
@@ -113,6 +115,7 @@ private:
     std::array<GLuint, 4> timeQueries_{};
     GLuint skyTexture_ = 0;  // not owned
     bool showTracers_ = false;
+    int solarBand_ = 1;
     gl::Texture remnantVolume_;
     gl::Texture magnetogram_;
     int queryFrame_ = 0;

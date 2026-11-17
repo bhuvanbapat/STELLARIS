@@ -362,6 +362,7 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
     if (s.centralPresence > 0.01f && s.centralRadius > 0.01f) {
         star_.use();
         star_.set("uHasMagnetogram", magnetogram_.id() != 0 ? 1 : 0);
+        star_.set("uBand", solarBand_);
         if (magnetogram_.id() != 0) glBindTextureUnit(4, magnetogram_.id());
         star_.set("uCenter", glm::vec3(0.0f));
         star_.set("uRadius", s.centralRadius);
@@ -379,6 +380,7 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
     if (s.remnantPresence > 0.01f) {
         star_.use();
         star_.set("uHasMagnetogram", magnetogram_.id() != 0 ? 1 : 0);
+        star_.set("uBand", solarBand_);
         if (magnetogram_.id() != 0) glBindTextureUnit(4, magnetogram_.id());
         star_.set("uCenter", glm::vec3(0.0f));
         star_.set("uRadius", s.remnantRadius * (0.6f + 0.4f * s.remnantPresence));
@@ -492,12 +494,15 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
             prominence_.use();
             prominence_.set("uRadius", s.centralRadius);
             prominence_.set("uSegments", kSegments);
+            prominence_.set("uProminenceColor", solarBand_ == 1 ? glm::vec3(1.0f, 0.42f, 0.10f)
+                                              : solarBand_ == 2 ? glm::vec3(0.55f, 0.40f, 0.15f) : glm::vec3(1.0f, 0.34f, 0.40f));
             prominence_.set("uIntensity", s.activity * s.atmosphere * s.centralIntensity * 0.9f);
             glBindVertexArray(emptyVao_.id());
             glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 2 * (kSegments + 1), 3);
         }
         corona_.use();
         corona_.set("uHasMagnetogram", magnetogram_.id() != 0 ? 1 : 0);
+        corona_.set("uBand", solarBand_);
         if (magnetogram_.id() != 0) glBindTextureUnit(4, magnetogram_.id());
         corona_.set("uCenter", glm::vec3(0.0f));
         corona_.set("uSize", s.centralRadius * 4.5f);

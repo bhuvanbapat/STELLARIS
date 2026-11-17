@@ -9,6 +9,7 @@ add_executable(stellaris_tests
     test_magnetic_field.cpp
     test_observations.cpp
     test_sonification.cpp
+    test_evolution_phase.cpp
     ${PROJECT_SOURCE_DIR}/app/src/render/ParticleSystem.cpp
     ${PROJECT_SOURCE_DIR}/app/src/audio/AudioEngine.cpp
     ${PROJECT_SOURCE_DIR}/app/src/core/Log.cpp)

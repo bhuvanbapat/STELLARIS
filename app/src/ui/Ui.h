@@ -58,6 +58,8 @@ public:
     bool fieldLinesEnabled() const { return fieldLines_; }
     int observationIndex() const { return observationIndex_; }
     bool tracersEnabled() const { return tracers_; }
+    int solarBand() const { return solarBand_; }
+    void setSolarBand(int b) { solarBand_ = b; }
     enum class ViewMode { Cinematic, Scientific, Observation };
     ViewMode viewMode() const { return mode_; }
     void setViewMode(ViewMode mode);
@@ -95,6 +97,7 @@ private:
     bool   fieldLines_ = false;
     bool   compare_ = false;   // mass-comparison table visible
     bool   tracers_ = false;   // optional gas tracer particles
+    int    solarBand_ = 1;     // star view: 0 visible, 1 304 A, 2 171 A
     const char* skyCredit_ = nullptr;  // always-visible credit of the sky photograph
     ViewMode mode_ = ViewMode::Cinematic;
     int    observationIndex_ = 0;  // selected band when several observations match

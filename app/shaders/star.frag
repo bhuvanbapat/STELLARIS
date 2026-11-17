@@ -30,6 +30,8 @@ uniform float uSeed;
 uniform float uActivity;      // 0..1: spots/faculae/flare (convective, main-sequence star)
 uniform float uFlare;         // 0..1 flare pulse
 uniform float uPixelsPerRadius;  // projected size, used to fade sub-pixel detail
+uniform int   uBand;          // 0 visible light, 1 SDO/AIA 304 A style, 2 SDO/AIA 171 A style
+
 
 // 3D Worley noise: distances to the nearest and second-nearest feature point.
 // Feature points drift slowly (granules evolve, new ones appear as old ones fade).
@@ -91,6 +93,50 @@ vec2 spotsAndFaculae(vec3 sp) {
     return vec2(dark, fac);
 }
 
+// SDO/AIA colour tables (approximations of the standard sdoaia304 / sdoaia171 maps):
+// black -> red -> orange -> yellow-white, and black -> gold -> pale yellow.
+vec3 aia304(float I) { I = max(I, 0.0); return vec3(1.0, 0.26, 0.04) * I + vec3(0.0, 0.38, 0.28) * I * I * I; }
+vec3 aia171(float I) { I = max(I, 0.0); return vec3(0.85, 0.55, 0.10) * I + vec3(0.15, 0.40, 0.50) * I * I * I; }
+
+// Extreme-ultraviolet appearance, driven by the real HMI magnetogram:
+//  304 A (He II, ~50,000 K, chromosphere / transition region): bright network on the
+//        boundaries of supergranulation cells, bright plage over active regions, dark
+//        filaments along polarity-inversion lines, limb brightening (optically thin).
+//  171 A (Fe IX, ~0.6 MK, corona): faint quiet Sun, dark coronal holes in weak unipolar
+//        regions, bright fibrous loop systems rooted in active regions.
+// Prescribed from the measured field; not a radiative-transfer computation.
+vec3 euvSurface(vec3 sp, float mu) {
+    float om = 1.0 - mu;
+    // Supergranulation (~30 Mm cells, ~45 per radius) seen as a soft, irregular network.
+    vec3 warpN = (texture(uNoise, sp * 3.0).gba - 0.5) * 0.04;
+    vec2 w = worley((sp + warpN) * 45.0, TIME * 0.01);
+    float m2 = texture(uNoise, sp * 23.0).g;
+    float network = (1.0 - smoothstep(0.0, 0.40, w.y - w.x)) * (0.4 + 0.9 * m2);
+    float mottle = texture(uNoise, sp * 9.0 + vec3(0.0, TIME * 0.003, 0.0)).r;
+    float B = uHasMagnetogram != 0 ? magneticField(sp, 1.5) : 0.0;
+    float Bw = uHasMagnetogram != 0 ? magneticField(sp, 4.0) : 0.0;
+    float pol = uHasMagnetogram != 0 ? textureLod(uMagnetogram,
+                 vec2(fract(atan(sp.z, sp.x) / 6.2831853), 0.5 - asin(clamp(sp.y, -1.0, 1.0)) / 3.14159265), 4.0).g : 0.5;
+    // Plage: large, diffuse bright regions around active regions (blurred field).
+    float plage = smoothstep(12.0, 140.0, uHasMagnetogram != 0 ? magneticField(sp, 4.0) : 0.0);
+    if (uBand == 1) {
+        float pil = 1.0 - smoothstep(0.0, 0.07, abs(pol - 0.5));
+        float filament = pil * smoothstep(12.0, 50.0, Bw) * (1.0 - smoothstep(220.0, 450.0, Bw))
+                       * smoothstep(0.35, 0.6, texture(uNoise, sp * 5.0).g);
+        float I = (0.30 + 0.30 * network + 0.28 * mottle) * (1.0 - 0.8 * filament) + 1.1 * plage * (0.7 + 0.6 * mottle);
+        I = pow(I, 1.35);                                  // AIA-like contrast
+        I *= 1.0 + 0.7 * pow(om, 3.0);
+        return aia304(I * 0.8);
+    }
+    float hole = smoothstep(0.80, 0.97, abs(pol - 0.5) * 2.0) * (1.0 - smoothstep(4.0, 25.0, Bw));
+    float fibre = 0.55 + 0.45 * sin(texture(uNoise, sp * 7.0).b * 38.0);
+    float Bl = uHasMagnetogram != 0 ? magneticField(sp, 5.0) : 0.0;   // loop systems extend beyond the spots
+    float ar = smoothstep(8.0, 110.0, Bl);
+    float I = (0.05 + 0.07 * mottle) * (1.0 - 0.85 * hole) + 2.6 * ar * fibre * (0.45 + 0.55 * mottle);
+    I *= 1.0 + 1.1 * pow(om, 2.0);
+    return aia171(I * 0.8);
+}
+
 void main() {
     vec3 n = normalize(vNormal);
     vec3 v = normalize(uCamPos.xyz - vWorld);
@@ -141,10 +187,16 @@ void main() {
     vec3 gravity = vec3(1.0) + radiative * pole * vec3(0.16, 0.20, 0.26);
 
     vec3 col = uColor * tint * pattern * limb * spotTint * spotDim * faculae * gravity * uIntensity;
+    // Sun-like stars in visible light: NASA's colourized HMI continuum images show a
+    // yellow-orange disc; tint convective (Sun-like) stars toward that rendering.
+    col *= mix(vec3(1.0), vec3(1.08, 0.86, 0.55), uActivity * (uBand == 0 ? 1.0 : 0.0));
 
     // Flare footpoint: a localized, short-lived brightening beside the main spot.
     float flare = flareKernel(sp) * uFlare;
     col += vec3(1.0, 0.92, 0.85) * flare * uIntensity * 3.0;
+
+    // Extreme-ultraviolet views of a Sun-like star (selected in the panel).
+    if (uBand != 0 && uActivity > 0.0) col = mix(col, euvSurface(sp, mu) * uIntensity * 1.6, uActivity);
 
     // A young protostar is seen through its dusty envelope: dimmer and redder.
     vec3 veiled = vec3(1.0, 0.35, 0.12) * uIntensity * 0.45 * (0.6 + 0.4 * pattern) * limb.r;

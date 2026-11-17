@@ -598,3 +598,19 @@ projection shows the expected morphology (Si/Fe shell, NE/SW jets).
   was observed at ~S18. Maximum |Br| is 2328 G.
 - **Not verified:** the look of the magnetogram-driven star, the corona and the sharper
   cloud (left to the user); clicking the ←/→ navigator.
+
+### 8.18 Reviewed on screen: jets, clouds, star (2026-11-18)
+
+After the user reported no visible change, renders were reviewed on screen (contact
+sheets and crops) and fixed iteratively:
+- **Jets:** a narrow chain of knot bows replaced the faint thread / cone; the striping
+  artefact is gone.
+- **Protostar:** the cell net is hidden.
+- **Clouds:** the smooth tubes now have crisp, eroded silhouettes against HII emission.
+- **Star:** the visible / 304 Å / 171 Å views were each compared with SDO image
+  appearance.
+
+Checks: unit tests 51/51 (new: evolution phases contiguous and pathway-correct; helium
+flash only below 2 M_sun); `--selftest` 0 failures. Benchmark at High, 1600×900: cloud
+29, collapse 33, protostar 33, disc+jets 37, main sequence 34, endings 20–27 ms
+(27–51 fps). The finer cloud sampling roughly doubles the cost of stages 1–5.

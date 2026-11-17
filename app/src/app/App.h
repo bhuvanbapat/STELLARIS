@@ -39,6 +39,7 @@ struct AppOptions {
     bool scientific = false;
     bool observation = false;
     bool compare = false;       // show the mass-comparison table
+    int  solarBand = 1;         // star view: 0 visible, 1 304 A (default), 2 171 A
     bool proceduralSky = false; // do not load the real Milky Way photograph
     bool noAudio = false;       // never open an audio device
     bool mute = false;          // start muted

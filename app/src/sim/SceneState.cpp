@@ -126,7 +126,7 @@ SceneState evaluateScene(double time, const ModelConfig& config) {
     const double tFate     = stageSpan(Stage::StellarFate).start;  // 100
 
     // --- Cloud and collapse --------------------------------------------------
-    s.cloudDensity = 1.0f - 0.55f * smooth(84, 100, t) - 0.37f * smooth(100, 114, t);
+    s.cloudDensity = 1.0f - 0.55f * smooth(80, 88, t) - 0.42f * smooth(88, 95, t);
     s.collapse     = smooth(tCollapse, 54, t);
     s.infallClock  = static_cast<float>(std::max(0.0, t - tCollapse));
     s.coreGlow     = smooth(22, 44, t) * (1.0f - 0.8f * smooth(84, 102, t));

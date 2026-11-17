@@ -8,7 +8,8 @@ add_library(stellaris_core STATIC
     src/sim/CloudField.cpp
     src/sim/MagneticField.cpp
     src/sim/ObservationCatalog.cpp
-    src/sim/Sonification.cpp)
+    src/sim/Sonification.cpp
+    src/sim/EvolutionPhase.cpp)
 target_include_directories(stellaris_core PUBLIC src)
 target_link_libraries(stellaris_core PUBLIC glm::glm)
 

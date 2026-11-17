@@ -111,6 +111,24 @@ bool nearShell(vec3 p) {
     return rel > 0.03 && rel < 1.4;
 }
 
+// HII region: the external OB stars that light the cloud ionize the gas on that side.
+// Emission only (H-alpha red, [O III] teal), clumpy, brightest toward the stars; the
+// dust in front of it absorbs it, so dense columns appear as dark silhouettes with
+// bright rims, as in the Eagle and Carina nebulae. Present while the cloud exists.
+vec3 hiiEmission(vec3 p) {
+    float cd = uCloud.x * (1.0 - 0.8 * uCloud2.x);
+    if (cd <= 0.2) return vec3(0.0);
+    vec3 c = KEY_DIR * 30.0;
+    vec3 rel = p - c;
+    float fall = exp(-dot(rel, rel) / (2.0 * 30.0 * 30.0));
+    if (fall < 0.02) return vec3(0.0);
+    vec4 n = noiseAt(p * 0.021 + vec3(0.7, 0.0, 0.2));
+    vec4 m = noiseAt(p * 0.065 + vec3(0.0, 0.4, 0.0));
+    float glow = fall * (0.08 + 2.2 * pow(n.r, 2.5)) * (0.4 + 1.2 * m.g * m.g);
+    vec3 col = mix(vec3(1.0, 0.30, 0.32), vec3(0.25, 0.78, 0.82), smoothstep(0.35, 0.75, n.b));
+    return col * glow * 0.0050 * cd;
+}
+
 float phaseHG(float cosTheta, float g) {
     float g2 = g * g;
     return (1.0 - g2) / (4.0 * PI * pow(1.0 + g2 - 2.0 * g * cosTheta, 1.5));
@@ -178,6 +196,9 @@ void main() {
     int subCount = int(ceil(stepLen / subLen));
     float subDl = stepLen / float(subCount);
     float jitter = ign(gl_FragCoord.xy + 17.0);
+    // Fine sub-samples per step at cloud boundaries (by quality tier).
+    int edgeSub = uSteps <= 64 ? 1 : (uSteps <= 96 ? 2 : (uSteps <= 128 ? 2 : 4));
+    float prevD = 0.0;
     for (int i = 0; i < uSteps && t < tFar; ++i) {
         vec3 p = ro + rd * t;
         // Is this step inside the region of the inner structures?
@@ -195,10 +216,16 @@ void main() {
                 radiance += transmittance * emitI * subDl;
                 transmittance *= Ts;
             }
-        } else if (emptyAt(p) && !nearShell(p)) { t += 2.0 * stepLen; continue; }
+        } else if (prevD <= 0.002 && emptyAt(p) && !nearShell(p)) {
+            radiance += transmittance * hiiEmission(p) * 2.0 * stepLen;
+            t += 2.0 * stepLen;
+            continue;
+        }
+        radiance += transmittance * hiiEmission(p) * stepLen;
         float d = density(p);
         radiance += transmittance * shellEmission(p) * stepLen;
-        if (d > 0.002) {
+        bool edgeBand = edgeSub > 1 && uCloud.x > 0.2 && ((d > 0.002 && d < 1.2) || (prevD > 0.002 && d <= 0.002));
+        if (d > 0.002 || edgeBand) {
             vec3 sigmaT = SIGMA * d * EXTINCTION_TINT;
 
             // External light.
@@ -222,8 +249,8 @@ void main() {
             // Photo-ionised skin: surfaces facing the external stars glow in H-alpha
             // (rose-red), as on the rims of the Pillars of Creation. Only the thin
             // unshadowed layer emits; the interior stays dark dust.
-            float skin = exp(-tauKey * 9.0) * smoothstep(0.10, 0.45, d);
-            vec3 emission = vec3(1.0, 0.38, 0.30) * 0.30 * skin;
+            float skin = exp(-tauKey * 14.0) * smoothstep(0.10, 0.45, d);
+            vec3 emission = vec3(1.0, 0.45, 0.32) * 0.9 * skin;
             // Thin, ionised envelope gas: faint [O III] teal, as in HII regions.
             emission += vec3(0.20, 0.55, 0.58) * 0.10 * (1.0 - smoothstep(0.03, 0.25, d));
             // Compressional heating: the densest gas in the contracting core glows
@@ -236,14 +263,37 @@ void main() {
 
             // Interstellar dust grains: visible albedo ~0.5, slightly bluer when
             // scattering (reddening comes from EXTINCTION_TINT on the light paths).
-            vec3 albedo = vec3(0.46, 0.38, 0.30);  // dusty brown
-            vec3 S = (albedo * (lightKey + lightC + ambient) + emission) * sigmaT;
-            vec3 Tstep = exp(-sigmaT * stepLen);
-            // Energy-conserving integration of in-scattering over the step.
-            radiance += transmittance * (S - S * Tstep) / max(sigmaT, vec3(1e-5));
-            transmittance *= Tstep;
+            vec3 albedo = vec3(0.36, 0.30, 0.25);  // dark dusty brown
+            vec3 light = albedo * (lightKey + lightC + ambient);
+            if (edgeBand) {
+                // Cloud boundary: re-integrate this step with fine density samples so
+                // eroded edges, fingers and holes smaller than the step stay crisp.
+                // Lighting varies smoothly and is reused from the main sample.
+                float dl = stepLen / float(edgeSub);
+                for (int k = 0; k < edgeSub; ++k) {
+                    vec3 pk = ro + rd * (t + (float(k) + 0.5) * dl);
+                    float dk = density(pk);
+                    if (dk <= 0.002) continue;
+                    vec3 sk = SIGMA * dk * EXTINCTION_TINT;
+                    float skinK = exp(-tauKey * 14.0) * smoothstep(0.10, 0.45, dk);
+                    vec3 emK = vec3(1.0, 0.45, 0.32) * 0.9 * skinK
+                             + vec3(0.20, 0.55, 0.58) * 0.10 * (1.0 - smoothstep(0.03, 0.25, dk))
+                             + mix(vec3(0.9, 0.18, 0.05), vec3(1.0, 0.62, 0.30), exp(-r / 1.4)) * 2.4 * hot * min(dk, 2.0);
+                    vec3 Sk = (light + emK) * sk;
+                    vec3 Tk = exp(-sk * dl);
+                    radiance += transmittance * (Sk - Sk * Tk) / max(sk, vec3(1e-5));
+                    transmittance *= Tk;
+                }
+            } else {
+                vec3 S = (light + emission) * sigmaT;
+                vec3 Tstep = exp(-sigmaT * stepLen);
+                // Energy-conserving integration of in-scattering over the step.
+                radiance += transmittance * (S - S * Tstep) / max(sigmaT, vec3(1e-5));
+                transmittance *= Tstep;
+            }
             if (max(transmittance.r, max(transmittance.g, transmittance.b)) < 0.01) break;
         }
+        prevD = d;
         t += stepLen;
     }
 

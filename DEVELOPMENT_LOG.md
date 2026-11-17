@@ -288,3 +288,10 @@ Prioritise deeper cloud morphology, volumetric quality, layered stellar renderin
 - The ground-up rewrite the user permitted was not done. The volume-first engine from
   the previous round already matches the requested architecture, so this round put real
   data into it instead. Evidence: VERIFICATION §8.17.
+
+## 2026-11-18 — On-screen review and fixes (user: "no visible change")
+
+- The user was right: renders were weak and had not been checked. Fixed with on-screen
+  review: jets, protostar, cloud detail and HII silhouettes, an SDO-style star
+  (visible / 304 / 171), dispersal, and the evolutionary phases panel. Evidence:
+  VERIFICATION §8.18.

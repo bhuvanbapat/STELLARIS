@@ -23,7 +23,15 @@ vec4 structureAt(vec3 p) { return texture(uCloudStructure, p / (2.0 * uCloudExte
 // the core and globules stay compact.
 float baseDensity(vec3 p, float drift) {
     vec3 warp = (noiseAt(p * 0.012 + vec3(0.0, 0.0, drift)).gba - 0.5) * 5.0;
+    // Mid-scale warp: filaments twist and branch instead of forming straight tubes.
+    warp += (noiseAt(p * 0.048 + vec3(drift, 0.31, 0.0)).gba - 0.5) * 2.2;
     vec3 q = p + warp;
+    // High-frequency warp of the structure lookup itself: the outlines of dense
+    // columns break into fingers and notches (ionization fronts are corrugated).
+    // Fine detail only while a substantial cloud exists (the thin residual cloud of
+    // the late stages does not need it, and it is the dominant cost there).
+    bool fine = uCloud.x > 0.2;
+    if (fine) q += (noiseAt(p * 0.17 + vec3(0.11, drift, 0.0)).gba - 0.5) * 1.7;
     vec4 s = structureAt(q);
     if (s.r + s.g + s.b + s.a < 0.015) return 0.0;
     vec4 n1 = noiseAt(q * 0.016 + vec3(drift * 0.5, 0.0, 0.0));
@@ -32,9 +40,18 @@ float baseDensity(vec3 p, float drift) {
     float detail = n1.r * 0.58 + n2.g * 0.26 + n2.a * 0.16 + (n3.a - 0.5) * 0.16;
     float env = saturate(remap(detail, 1.0 - s.r * 0.85, 1.0, 0.0, 1.0));
     env = env * env * 1.6;
-    float fil = s.g * saturate(0.35 + 1.1 * detail) * 1.5;
+    float fil = s.g * saturate(0.35 + 1.1 * detail) * 1.5;  // outline sharpened below
     float core = s.b * (0.75 + 0.5 * detail) * 1.4;
-    float glob = s.a * 3.0;
+    // Dense, optically thick globules / column heads with sharp, eroded outlines
+    // (Bok globules and evaporating gaseous globules have well-defined edges).
+    float glob = 0.0;
+    if (fine && (s.a > 0.03 || s.g > 0.03)) {
+        // Filaments and globules get sharp, eroded outlines (Bok globules, dense
+        // filaments and evaporating gaseous globules have well-defined edges).
+        float ge = n3.r;  // reuse the finest detail octave
+        glob = 4.5 * s.a * smoothstep(0.30, 0.40, s.a + (ge - 0.5) * 0.35 + 0.18);
+        fil *= smoothstep(0.22, 0.34, s.g + (ge - 0.5) * 0.35 + 0.08);
+    }
     float d = env + fil + core + glob;
     // Observed molecular clouds (Pillars of Creation, Cosmic Cliffs) have sharp
     // boundaries: dense gas ends abruptly at ionization fronts and is eroded into fine
@@ -42,10 +59,13 @@ float baseDensity(vec3 p, float drift) {
     // term breaks up the edges; the interiors stay dense and dark.
     // Only the boundary band pays for the extra noise lookup.
     if (d < 0.02) return 0.0;
-    if (d < 0.9) {
+    if (fine && d < 0.9) {
         vec4 e = noiseAt(q * 0.42 + vec3(drift, 0.0, 0.0));
-        float erosion = 0.25 + 1.5 * e.r * (0.6 + 0.8 * e.a);   // fingers and holes at the edges
-        d *= smoothstep(0.10, 0.40, d * erosion) * mix(erosion, 1.0, smoothstep(0.45, 0.9, d));
+        float e2 = noiseAt(q * 1.15 + vec3(0.0, drift, 0.53)).r;
+        // Two octaves of erosion: fingers, holes and wisps at the boundaries.
+        float erosion = (0.25 + 1.5 * e.r * (0.6 + 0.8 * e.a)) * (0.55 + 0.9 * e2);
+        // Steep transition: crisp, corrugated boundaries instead of soft halos.
+        d *= smoothstep(0.30, 0.42, d * erosion) * mix(erosion, 1.0, smoothstep(0.45, 0.9, d));
     }
     return d;
 }

@@ -110,6 +110,7 @@ bool parseOptions(int argc, char** argv, AppOptions& o) {
         else if (a == "--scientific") o.scientific = true;
         else if (a == "--observation") o.observation = true;
         else if (a == "--compare") o.compare = true;
+        else if (a == "--band" && i + 1 < argc) { const std::string b = argv[++i]; o.solarBand = b == "visible" ? 0 : b == "171" ? 2 : 1; }
         else if (a == "--procedural-sky") o.proceduralSky = true;
         else if (a == "--no-audio") o.noAudio = true;
         else if (a == "--mute") o.mute = true;
@@ -221,6 +222,7 @@ int App::run() {
     if (options_.hideUi) ui_.toggleVisible();
     ui_.setFieldLines(options_.fieldLines);
     ui_.setCompare(options_.compare);
+    ui_.setSolarBand(options_.solarBand);
     if (options_.scientific) ui_.setScientificView(true);
     if (options_.observation) ui_.setViewMode(Ui::ViewMode::Observation);
     {
@@ -302,6 +304,7 @@ void App::renderScene() {
     const CameraPose pose = poseFromOrbit(orbit, cameraOffset_);
     renderer_->setFieldLines(ui_.fieldLinesEnabled());
     renderer_->setTracers(ui_.tracersEnabled());
+    renderer_->setSolarBand(ui_.solarBand());
     renderer_->setDensitySection(ui_.scientificView());
     renderer_->render(scene_, pose, lensShift_);
     if (audio_.running()) {

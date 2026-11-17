@@ -19,6 +19,7 @@ uniform vec3 uColor;         // photospheric color
 uniform float uIntensity;
 uniform float uActivity;     // 0: smooth hot-star halo only; 1: full structure
 uniform float uFlare;
+uniform int   uBand;          // 0 visible, 1 304 A style, 2 171 A style
 
 void main() {
     float d = length(vLocal);
@@ -62,9 +63,11 @@ void main() {
     float flareGlow = exp(-pow(acos(clamp(dot(sdir, flareCenter()), -1.0, 1.0)) / 0.25, 2.0)) * exp(-h * 2.0) * uFlare;
 
     vec3 coronaColor = mix(uColor, vec3(0.85, 0.9, 1.0), 0.4);
+    if (uBand == 1) { coronaColor = vec3(1.0, 0.40, 0.10); corona *= 0.35; chromo *= 1.8; }
+    if (uBand == 2) { coronaColor = vec3(0.95, 0.75, 0.30); corona *= 1.8; chromo *= 0.2; }
     vec3 col = uColor * halo * mix(1.0, 0.45, uActivity)
              + coronaColor * corona * uActivity * 0.9
-             + vec3(1.0, 0.32, 0.38) * chromo * uActivity * 1.4
+             + (uBand == 1 ? vec3(1.0, 0.45, 0.12) : vec3(1.0, 0.32, 0.38)) * chromo * uActivity * 1.4
              + vec3(1.0, 0.95, 0.9) * flareGlow * 2.0;
     outColor = vec4(col * uIntensity * edgeFade, 0.0);
 }

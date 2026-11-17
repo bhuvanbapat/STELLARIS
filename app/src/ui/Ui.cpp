@@ -1,6 +1,7 @@
 #include "ui/Ui.h"
 
 #include "core/Log.h"
+#include "sim/EvolutionPhase.h"
 #include "sim/StageContent.h"
 
 #include <imgui.h>
@@ -503,6 +504,17 @@ UiRequests Ui::draw(Playback& playback, ModelConfig& config, const UiFrameInfo& 
         const float y = visible_ ? 6.0f * scale_ : ds.y - ts.y - 8.0f * scale_;
         dl->AddText(small_, fs, ImVec2((ds.x - ts.x) * 0.5f, y), col32(kTextFaint, 0.85f), skyCredit_);
     }
+    if (solarBand_ != 0 && s.activity > 0.05f) {
+        const char* label = solarBand_ == 1 ? "STAR SHOWN IN EXTREME UV 304 \u00c5 (SDO/AIA STYLE)  \u00b7  false colour, not visible light"
+                                            : "STAR SHOWN IN EXTREME UV 171 \u00c5 (SDO/AIA STYLE)  \u00b7  false colour, not visible light";
+        ImDrawList* dl = ImGui::GetForegroundDrawList();
+        const ImVec2 ds = ImGui::GetIO().DisplaySize;
+        const ImVec2 ts = small_->CalcTextSizeA(small_->FontSize * layout_, FLT_MAX, 0.0f, label);
+        const ImVec2 pos((ds.x - ts.x) * 0.5f, ds.y - (visible_ ? 175.0f : 62.0f) * scale_);
+        dl->AddRectFilled(ImVec2(pos.x - 8 * scale_, pos.y - 4 * scale_), ImVec2(pos.x + ts.x + 8 * scale_, pos.y + ts.y + 4 * scale_),
+                          col32(ImVec4(0.02f, 0.03f, 0.06f, 0.6f)), 4.0f * scale_);
+        dl->AddText(small_, small_->FontSize * layout_, pos, col32(ImVec4(1.0f, 0.75f, 0.45f, 1.0f)), label);
+    }
     if (!visible_) {
         // Minimal hint so the presenter knows how to bring the interface back.
         ImDrawList* dl = ImGui::GetForegroundDrawList();
@@ -556,6 +568,26 @@ void Ui::drawInfoPanel(const SceneState& s) {
     ImGui::PushStyleColor(ImGuiCol_Text, kAccent);
     ImGui::TextWrapped("%s", content.process);
     ImGui::PopStyleColor();
+    {
+        // Named evolutionary phase within the stage (real duration shown beside it).
+        const EvolutionPhase ph = evolutionPhase(s.time, s.pathway, s.ms.massSolar);
+        ImGui::Spacing();
+        ImGui::PushFont(label_);
+        ImGui::PushStyleColor(ImGuiCol_Text, kText);
+        ImGui::Text("PHASE %d / %d  ·  %s", ph.index + 1, ph.count, ph.name);
+        ImGui::PopStyleColor();
+        ImGui::PopFont();
+        ImGui::PushFont(small_);
+        ImGui::PushStyleColor(ImGuiCol_Text, kTextDim);
+        if (ph.detail[0]) ImGui::TextWrapped("%s", ph.detail);
+        ImGui::PopStyleColor();
+        if (ph.duration[0]) {
+            ImGui::PushStyleColor(ImGuiCol_Text, kTextFaint);
+            ImGui::Text("Real duration: %s", ph.duration);
+            ImGui::PopStyleColor();
+        }
+        ImGui::PopFont();
+    }
     ImGui::Spacing();
     ImGui::TextWrapped("%s", content.explanation);
     ImGui::Spacing();
@@ -702,6 +734,22 @@ void Ui::drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests
     ImGui::Checkbox("Magnetic field (analytic dipole)", &fieldLines_);
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Field lines of an ideal dipole (normalized). A visualization of field geometry,\nnot a magnetohydrodynamic model; shown for the main-sequence star and the neutron star.");
+    ImGui::TextUnformatted("Star seen in");
+    {
+        const char* bands[3] = {"Visible", "304 \u00c5", "171 \u00c5"};
+        const char* tips[3] = {"Visible light (white light, like SDO/HMI): limb darkening, sunspots, faculae",
+                               "Extreme ultraviolet 304 \u00c5 (He II, ~50,000 K): chromosphere, network, filaments, prominences. False colour, as in SDO/AIA images",
+                               "Extreme ultraviolet 171 \u00c5 (Fe IX, ~600,000 K): corona, coronal loops and holes. False colour, as in SDO/AIA images"};
+        const float bw3 = (ImGui::GetContentRegionAvail().x - 2 * ImGui::GetStyle().ItemSpacing.x) / 3.0f;
+        for (int i = 0; i < 3; ++i) {
+            if (i > 0) ImGui::SameLine();
+            const bool active = solarBand_ == i;
+            if (active) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.98f, 0.76f, 0.42f, 0.35f));
+            if (ImGui::Button(bands[i], ImVec2(bw3, 0))) solarBand_ = i;
+            if (active) ImGui::PopStyleColor();
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tips[i]);
+        }
+    }
     ImGui::Checkbox("Gas tracer particles", &tracers_);
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Optional overlay: particles that follow the prescribed gas motion.\nThe gas itself is rendered as a continuous volume.");
