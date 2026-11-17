@@ -90,3 +90,40 @@
 2026-11-18 00:59	RECLASSIFIED	protostars	manual	weic2409a	parallel field next to the protostar, not the protostar; reference only
 2026-11-18 00:59	RECLASSIFIED	supernova_progenitors	manual	heic2105a	AG Carinae is a luminous blue variable (very massive star), not the Carina cloud: moved to progenitors
 2026-11-18 00:59	RECLASSIFIED	supernova_progenitors	manual	opo9623a	Eta Carinae (~100 Msun) belongs to the most massive pathway
+2026-11-18 02:11	SKIPPED	reference_frame_sequences	size	https://svs.gsfc.nasa.gov/vis/a000000/a005600/a005649/AIA.0171A-Frames.PSF_stamped_4096p30.mp4	30.4 GiB > 4 GiB
+2026-11-18 02:11	SKIPPED	reference_frame_sequences	size	https://svs.gsfc.nasa.gov/vis/a000000/a005600/a005649/AIA.0304A-Frames.PSF_stamped_4096p30.mp4	152.6 GiB > 4 GiB
+2026-11-18 02:11	SKIPPED	reference_frame_sequences	size	https://svs.gsfc.nasa.gov/vis/a000000/a005600/a005649/NOVA20260201_AIA.0171A_PSF_stamped_2048p30.mp4	4.3 GiB > 4 GiB
+2026-11-18 02:11	UNAVAILABLE	reference_frame_sequences	frames	/vis/a000000/a005600/a005649/frames/4096x4096_1x1_30p/AIA.0171A-Frames.PSF/	directory listing not readable
+2026-11-18 02:11	UNAVAILABLE	reference_frame_sequences	frames	/vis/a000000/a005600/a005649/frames/4096x4096_1x1_30p/AIA.0304A-Frames.PSF/	directory listing not readable
+2026-11-18 02:11	UNAVAILABLE	reference_frame_sequences	page	https://svs.gsfc.nasa.gov/5649/	no downloadable media found (6 links)
+2026-11-18 02:11	SKIPPED	reference_videos	size	https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004776/SDOat10_AIA171.UHD2160_p30.mp4	13.0 GiB > 4 GiB
+2026-11-18 02:11	SKIPPED	reference_videos	size	https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004776/SDOat10_AIA171_2048p30.mp4	10.2 GiB > 4 GiB
+2026-11-18 02:11	OK	reference_videos	video	https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004776/SDOat10_AIA171.1080p30.mp4	4022 MiB
+2026-11-18 02:11	UNAVAILABLE	reference_videos	frames	/vis/a000000/a004700/a004776/frames/3840x2160_16x9_30p/SDOat10_AIA171.baseimage/	directory listing not readable
+2026-11-18 02:11	UNAVAILABLE	reference_videos	frames	/vis/a000000/a004700/a004776/frames/4096x4096_1x1_30p/AIA171A-Frames/	directory listing not readable
+2026-11-18 02:11	UNAVAILABLE	reference_videos	frames	/vis/a000000/a004700/a004776/frames/4096x4096_1x1_30p/AIA171A-Time/	directory listing not readable
+2026-11-18 02:11	OK	molecular_clouds	video	https://svs.gsfc.nasa.gov/vis/a030000/a031300/a031372/Tour-of-the-Serpens-Nebula-4k.mp4	93 MiB
+2026-11-18 02:11	OK	bipolar_jets	video	https://svs.gsfc.nasa.gov/vis/a030000/a031300/a031344/Herbig-Haro-Stellar-Jets-4K.mp4	73 MiB
+2026-11-18 02:11	OK	supernova_explosions	video	https://svs.gsfc.nasa.gov/vis/a020000/a020400/a020413/SN_HQ_Full_1080_V001.mp4	97 MiB
+2026-11-18 02:11	OK	supernova_explosions	still	https://svs.gsfc.nasa.gov/vis/a010000/a015000/a015041/timelapse_crab_nebula_print.jpg	1024x895
+2026-11-18 02:11	OK	supernova_explosions	still	https://svs.gsfc.nasa.gov/vis/a020000/a020400/a020413/SN_8K_NoPulse_V001_Still_00000.png	7680x4320
+2026-11-18 02:11	OK	scientific_simulations	video	https://svs.gsfc.nasa.gov/vis/a020000/a020300/a020344/AI_WDMerger_4k_60fps_h264.mp4	18 MiB
+2026-11-18 02:11	UNAVAILABLE	scientific_simulations	frames	/vis/a020000/a020300/a020344/frames/3840x2160_16x9_60p/AI_WDMerger_4k/	directory listing not readable
+2026-11-18 02:11	UNAVAILABLE	scientific_simulations	frames	/vis/a020000/a020300/a020344/frames/3840x2160_16x9_60p/Supernova_IA_Accretion_4k/	directory listing not readable
+2026-11-18 02:11	UNAVAILABLE	scientific_simulations	frames	/vis/a020000/a020300/a020344/frames/3840x2160_16x9_60p/Supernova_remnants_4k/	directory listing not readable
+2026-11-18 02:11	UNAVAILABLE	scientific_simulations	frames	/vis/a020000/a020300/a020344/frames/3840x2160_16x9_60p/WDStar_4k/	directory listing not readable
+2026-11-18 02:11	OK	supernova_remnants	video	https://svs.gsfc.nasa.gov/vis/a010000/a010500/a010547/GSFC_20100126_Nova_m10547_SuperNova.mp4	14 MiB
+2026-11-18 02:11	UNAVAILABLE	supernova_remnants	frames	/vis/a010000/a010500/a010547/frames/1280x720_16x9_30p/Supernova/	directory listing not readable
+2026-11-18 02:11	OK	bipolar_jets	still	https://assets.science.nasa.gov/content/dam/science/missions/webb/science/2023/09/STScI-01H9NWWBAC3NR37HQSVP8JTCW1.png	3846x3141
+2026-11-18 02:11	OK	bipolar_jets	still	https://assets.science.nasa.gov/content/dam/science/missions/webb/science/2023/09/STScI-01H9NWWBAC3NR37HQSVP8JTCW1.png/jcr:content/renditions/2000x1633.jpg	2000x1633
+2026-11-18 02:11	OK	bipolar_jets	still	https://assets.science.nasa.gov/content/dam/science/missions/webb/science/2023/09/STScI-01H9NWWBAC3NR37HQSVP8JTCW1.png/jcr:content/renditions/Full%20Res%20(For%20Print).tif	3846x3141
+2026-11-18 02:11	OK	scientific_simulations	video	https://assets.science.nasa.gov/content/dam/science/missions/hubble/stars/supernovae/STScI-01EVSG5KR33FC0S7411P777JB0.mp4/jcr:content/renditions/STScI-01EVSG5P68W1QZ5XSCFSYM4KDK.mp4	19 MiB
+2026-11-18 02:11	OK	scientific_simulations	still	https://assets.science.nasa.gov/content/dam/science/missions/hubble/stars/globular-clusters/Hubble_M30_potm2610a.jpg/jcr:content/renditions/cq5dam.web.1280.1280.jpeg	1280x1128
+2026-11-18 02:11	OK	scientific_simulations	still	https://science.nasa.gov/wp-content/uploads/2023/07/moonrise-at-vasquez-rocks-credit-nasa-preston-dyches-cc-by-nc-2.0.jpg	6016x4016
+2026-11-18 02:11	OK	molecular_clouds	video	https://assets.science.nasa.gov/content/dam/science/missions/hubble/nebulae/emission/STScI-01EVSBTKTPMJY1X7QA3YYA2W6Y.mp4	3 MiB
+2026-11-18 02:11	OK	molecular_clouds	still	https://assets.science.nasa.gov/content/dam/science/missions/hubble/stars/globular-clusters/Hubble_M30_potm2610a.jpg/jcr:content/renditions/cq5dam.web.1280.1280.jpeg	1280x1128
+2026-11-18 02:11	OK	molecular_clouds	still	https://science.nasa.gov/wp-content/uploads/2023/07/moonrise-at-vasquez-rocks-credit-nasa-preston-dyches-cc-by-nc-2.0.jpg	6016x4016
+2026-11-18 02:11	OK	planetary_nebulae	still	https://assets.science.nasa.gov/content/dam/science/missions/hubble/releases/1997/12/STScI-01EVVK2H8CK7F10SQBDT660S4D.jpg	3000x2400
+2026-11-18 02:11	OK	planetary_nebulae	still	https://assets.science.nasa.gov/content/dam/science/missions/hubble/releases/1997/12/STScI-01EVVK2H8CK7F10SQBDT660S4D.jpg/jcr:content/renditions/3000x2400.jpg	3000x2400
+2026-11-18 02:11	OK	supernova_remnants	video	https://chandra.harvard.edu/photo/2013/casa/casa_3D_lg_web.mov	60 MiB
+2026-11-18 02:11	OK	supernova_remnants	video	https://chandra.harvard.edu/photo/2026/kepler/kepler_BU.mp4	206 MiB

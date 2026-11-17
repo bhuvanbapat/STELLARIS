@@ -51,7 +51,7 @@ def main():
     for ident, rec in sorted(manifest.items()):
         title = rec["title"]
         if not rec.get("stage") or not rec["local_file"].lower().endswith(".jpg") or \
-                any(w in (title + " " + rec.get("kind", "").replace("observation", "")).lower() for w in NOT_OBSERVATION):
+                any(w in (title + " " + (rec.get("kind", "") if rec["organization"] in ("science.nasa.gov", "svs.gsfc.nasa.gov", "chandra.harvard.edu") else "")).lower() for w in NOT_OBSERVATION):
             skipped += 1
             continue
         src = os.path.join(LIB, rec["local_file"])
