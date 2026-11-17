@@ -35,6 +35,8 @@ app/
     MagneticField  analytic dipole field and RK4 field-line integration (overlay)
     ObservationCatalog  reads the provenance sidecars of the attributed observation images
     Sonification   scene state -> sound parameters (pure, unit-tested)
+  shaders/inner_medium.glsl  jets, disc, streamers, giant atmosphere as ray-marched media
+                             (sub-stepped inside the volume loop; replaces particle streams)
   audio/AudioEngine   miniaudio device + real-time synthesis (atomics in, smoothed, limited)
     CloudField     seeded procedural cloud structure (envelope, filaments, core, globules), baked to a grid
   src/gfx/      OpenGL helpers: RAII handles, Shader (with #include, hot reload), procedural meshes

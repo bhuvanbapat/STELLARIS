@@ -19,6 +19,9 @@ out vec4 outColor;
 layout(binding = 1) uniform sampler2D uSceneDepth;
 uniform int uSteps;
 #include "cloud_density.glsl"
+#include "inner_medium.glsl"
+// Cas A 3D reconstruction (R Si, G Fe, B IR Ar/Ne, A optical knots + jets), centred on the neutron star.
+layout(binding = 3) uniform sampler3D uRemnantData;
 
 // Emission from final-stage ejecta: a thin, clumpy shell whose radius follows
 // the same expansion law as the ejecta particles (artistic colors: ionized
@@ -77,6 +80,18 @@ vec3 shellEmission(vec3 p) {
     float hot = exp(-clock / 2.0);
     float fade = 0.5 + 0.5 * exp(-clock / 25.0);
     vec3 col = (shockCol * front * filaments + ejectaCol * interior) * fade;
+    if (uInner.z > 0.5) {
+        // Neutron-star pathway: ejecta structure from the Cas A 3D reconstruction
+        // (Delaney et al. 2010), scaled to the current shock radius. Element colours are
+        // a false-colour key like Chandra's: Si gold, Fe violet-blue, IR Ar/Ne green,
+        // fast optical knots red.
+        float Rs = snShockRadius(clock, strength);
+        vec3 uvw = p / (Rs * 1.3) * 0.47 + 0.5;
+        vec4 c = texture(uRemnantData, uvw);
+        vec3 data = c.r * vec3(1.0, 0.72, 0.25) + c.g * vec3(0.50, 0.38, 1.0) + c.b * vec3(0.30, 1.0, 0.50) +
+                    c.a * vec3(1.0, 0.25, 0.20);
+        col = shockCol * front * filaments * fade + data * 2.2 * (0.6 + 0.4 * fade);
+    }
     col = mix(col, vec3(1.0, 0.95, 0.9) * front * 2.0, hot);
     return col * presence * strength * 0.014;
 }
@@ -93,7 +108,7 @@ bool nearShell(vec3 p) {
     }
     float R = snShockRadius(clock, uEjecta2.x);
     float rel = length(p) / max(R, 0.5);
-    return rel > 0.05 && rel < 1.3;
+    return rel > 0.03 && rel < 1.4;
 }
 
 float phaseHG(float cosTheta, float g) {
@@ -135,7 +150,8 @@ void main() {
         vec4 wp = uInvViewProj * vec4(ndc, depth * 2.0 - 1.0, 1.0);
         tFar = min(tFar, length(wp.xyz / wp.w - ro));
     }
-    if (tFar <= tNear || (uCloud.x <= 0.001 && uEjecta.x <= 0.0)) { outColor = vec4(0.0); return; }
+    float innerR = innerExtent();
+    if (tFar <= tNear || (uCloud.x <= 0.001 && uEjecta.x <= 0.0 && innerR <= 0.0)) { outColor = vec4(0.0); return; }
 
     // Fixed step length: the sample pattern must not depend on where the ray
     // ends (otherwise the star's silhouette shows up as banding in the cloud).
@@ -157,9 +173,29 @@ void main() {
     // Empty-space skipping: where the structure field is empty, advance two steps
     // at once (still bounded by uSteps iterations). Inside the cloud the step stays
     // fixed, so the sample pattern does not depend on where the ray ends.
+    // Inner structures are sampled with sub-steps of ~0.08-0.2 units (by quality tier).
+    float subLen = uSteps <= 64 ? 0.25 : (uSteps <= 96 ? 0.16 : (uSteps <= 128 ? 0.12 : 0.07));
+    int subCount = int(ceil(stepLen / subLen));
+    float subDl = stepLen / float(subCount);
+    float jitter = ign(gl_FragCoord.xy + 17.0);
     for (int i = 0; i < uSteps && t < tFar; ++i) {
         vec3 p = ro + rd * t;
-        if (emptyAt(p) && !nearShell(p)) { t += 2.0 * stepLen; continue; }
+        // Is this step inside the region of the inner structures?
+        vec3 pm = ro + rd * (t + 0.5 * stepLen);
+        bool inner = innerR > 0.0 && dot(pm, pm) < (innerR + stepLen) * (innerR + stepLen);
+        if (inner) {
+            for (int k = 0; k < subCount; ++k) {
+                float ts = t + (float(k) + jitter) * subDl;
+                if (ts >= tFar) break;
+                vec3 emitI = vec3(0.0);
+                float sigI = 0.0;
+                innerMedium(ro + rd * ts, emitI, sigI);
+                if (sigI <= 0.0 && dot(emitI, vec3(1.0)) <= 0.0) continue;
+                vec3 Ts = exp(-sigI * subDl * EXTINCTION_TINT);
+                radiance += transmittance * emitI * subDl;
+                transmittance *= Ts;
+            }
+        } else if (emptyAt(p) && !nearShell(p)) { t += 2.0 * stepLen; continue; }
         float d = density(p);
         radiance += transmittance * shellEmission(p) * stepLen;
         if (d > 0.002) {

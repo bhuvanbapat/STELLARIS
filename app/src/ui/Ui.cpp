@@ -703,6 +703,9 @@ void Ui::drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests
     ImGui::Checkbox("Magnetic field (analytic dipole)", &fieldLines_);
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Field lines of an ideal dipole (normalized). A visualization of field geometry,\nnot a magnetohydrodynamic model; shown for the main-sequence star and the neutron star.");
+    ImGui::Checkbox("Gas tracer particles", &tracers_);
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Optional overlay: particles that follow the prescribed gas motion.\nThe gas itself is rendered as a continuous volume.");
     ImGui::Checkbox("Compare masses (table)", &compare_);
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Side-by-side values of the same simplified relations for a few masses.\nClick a row to use that mass.");

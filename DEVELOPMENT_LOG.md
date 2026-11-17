@@ -266,3 +266,12 @@ Prioritise deeper cloud morphology, volumetric quality, layered stellar renderin
 - PN ionization layers, cometary knots, AGB halo. Jets: irregular knots, paraboloid
   bow shock, fainter counter-jet.
 - Sonification (sim/Sonification, audio/AudioEngine, miniaudio). Evidence: VERIFICATION §8.15.
+
+## 2026-11-18 — Volume-first reconstruction (user directive)
+
+- Particles demoted to an optional "Gas tracer particles" overlay. Jets, disc, streamers
+  and the giant atmosphere are now ray-marched media (`inner_medium.glsl`), sub-stepped
+  inside the volume loop. The layered disc geometry is drawn only with tracers.
+- Real data: the Cas A 3D reconstruction (Chandra/CXC), baked to a 3D texture at build
+  time, drives the neutron-star remnant. `ASSET_SOURCES.md` added at the user's request.
+- Photosphere at true granule scale. Default quality tier: High. Evidence: VERIFICATION §8.16.

@@ -229,6 +229,7 @@ int App::run() {
         for (const std::string& e : errors) log::warn("Observation catalog: {}", e);
         log::info("Observation catalog: {} attributed images", observations_.size());
     }
+    renderer_->loadRemnantVolume(executableDir() / "assets" / "data" / "casa" / "casa_volume.raw", 192);
     if (!options_.proceduralSky) {
         // Real sky: ESO/S. Brunier all-sky panorama (CC BY 4.0); credit shown on screen.
         skyTexture_ = loadImageTexture(executableDir() / "assets" / "sky" / "eso0932a.jpg", true);
@@ -299,6 +300,7 @@ void App::renderScene() {
     const OrbitParams orbit = authoredOrbit(playback_.time(), scene_.pathway, visualStarRadius(scene_.ms.radiusSolar));
     const CameraPose pose = poseFromOrbit(orbit, cameraOffset_);
     renderer_->setFieldLines(ui_.fieldLinesEnabled());
+    renderer_->setTracers(ui_.tracersEnabled());
     renderer_->setDensitySection(ui_.scientificView());
     renderer_->render(scene_, pose, lensShift_);
     if (audio_.running()) {

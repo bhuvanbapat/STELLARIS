@@ -128,6 +128,7 @@ SceneState evaluateScene(double time, const ModelConfig& config) {
     s.infallClock  = static_cast<float>(std::max(0.0, t - tCollapse));
     s.coreGlow     = smooth(22, 44, t) * (1.0f - 0.8f * smooth(84, 102, t));
     s.cavity       = smooth(60, 80, t);
+    s.streamers    = smooth(32, 44, t) * (1.0f - smooth(70, 82, t));
     s.dispersal    = smooth(80, 96, t);
 
     // --- Central object ------------------------------------------------------
@@ -195,6 +196,7 @@ SceneState evaluateScene(double time, const ModelConfig& config) {
         s.flare = s.activity * rise * decay;
     }
     s.atmosphere = ignite * (1.0f - s.giant) * s.centralPresence;
+    s.giantAtmosphere = s.giant * s.centralPresence;
     {
         const float msWind = std::clamp(static_cast<float>(std::log10(s.ms.luminositySolar)) / 5.5f, 0.12f, 1.0f);
         const float giantWind = s.giant * s.centralPresence * 0.8f;

@@ -1,5 +1,7 @@
 #include "render/Renderer.h"
 
+#include <fstream>
+
 #include "core/Log.h"
 #include "sim/StellarModel.h"
 
@@ -55,8 +57,9 @@ struct FrameUniforms {
     glm::vec4 remnantColor; // rgb, intensity
     glm::vec4 blackHole;    // presence, shadowR, einsteinR, pulsarBeams
     glm::vec4 wind;         // strength, speed, dusty, unused
+    glm::vec4 inner;        // streamers, giantAtmosphere, remnantData, unused
 };
-static_assert(sizeof(FrameUniforms) == 4 * 64 + 13 * 16, "FrameUniforms must match std140 layout");
+static_assert(sizeof(FrameUniforms) == 4 * 64 + 14 * 16, "FrameUniforms must match std140 layout");
 
 gl::Texture makeTexture2D(int w, int h, GLenum format, GLenum filter) {
     gl::Texture t = gl::createTexture(GL_TEXTURE_2D);
@@ -211,6 +214,28 @@ void Renderer::setCloud(const CloudField& cloud) {
     log::info("Cloud seed {}: structure {}^3 uploaded, {} particles", cloud.seed(), n, particles_.count());
 }
 
+bool Renderer::loadRemnantVolume(const std::filesystem::path& raw, int n) {
+    std::ifstream in(raw, std::ios::binary | std::ios::ate);
+    const std::streamoff expected = static_cast<std::streamoff>(n) * n * n * 4;
+    if (!in || in.tellg() != expected) {
+        log::warn("Remnant volume {} missing or incomplete; using the procedural remnant", raw.string());
+        return false;
+    }
+    std::vector<unsigned char> data(static_cast<size_t>(expected));
+    in.seekg(0);
+    in.read(reinterpret_cast<char*>(data.data()), expected);
+    remnantVolume_ = gl::createTexture(GL_TEXTURE_3D);
+    glTextureStorage3D(remnantVolume_.id(), 1, GL_RGBA8, n, n, n);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTextureSubImage3D(remnantVolume_.id(), 0, 0, 0, 0, n, n, n, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
+    glTextureParameteri(remnantVolume_.id(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(remnantVolume_.id(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    for (GLenum w : {GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T, GL_TEXTURE_WRAP_R})
+        glTextureParameteri(remnantVolume_.id(), w, GL_CLAMP_TO_BORDER);
+    log::info("Remnant volume (Cas A 3D reconstruction): {}^3 RGBA8, {:.1f} MiB on GPU", n, expected / 1048576.0);
+    return true;
+}
+
 void Renderer::setQuality(QualityPreset preset) {
     if (preset == qualityPreset_) return;
     qualityPreset_ = preset;
@@ -263,6 +288,8 @@ void Renderer::uploadFrameUniforms(const SceneState& s, const CameraPose& cam, f
     u.remnantColor = glm::vec4(s.remnantColor, s.remnantIntensity);
     u.blackHole = {s.blackHole, s.bhShadowRadius, s.bhEinsteinRadius, s.pulsarBeams};
     u.wind = {s.wind, s.windSpeed, s.windDusty, 0.0f};
+    u.inner = {s.streamers, s.giantAtmosphere,
+               (remnantVolume_.id() != 0 && s.pathway == Pathway::NeutronStar) ? 1.0f : 0.0f, 0.0f};
     glNamedBufferSubData(frameUbo_.id(), 0, sizeof(u), &u);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, frameUbo_.id());
 }
@@ -350,7 +377,8 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
     }
 
     // --- 3. Volume at half resolution, then composite --------------------------------
-    if (s.cloudDensity > 0.001f || s.ejectaPresence > 0.0f) {
+    if (s.cloudDensity > 0.001f || s.ejectaPresence > 0.0f || s.discPresence > 0.0f || s.jetPresence > 0.0f ||
+        s.streamers > 0.0f || s.giantAtmosphere > 0.0f) {
         glBindFramebuffer(GL_FRAMEBUFFER, volumeTarget_.fbo.id());
         glViewport(0, 0, volumeTarget_.width, volumeTarget_.height);
         glDisable(GL_DEPTH_TEST);
@@ -360,6 +388,7 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
         volume_.set("uKeyDir", CloudField::keyLightDirection());
         glBindTextureUnit(1, hdrDepth_.id());
         glBindTextureUnit(2, cloudStructure_.id());
+        if (remnantVolume_.id() != 0) glBindTextureUnit(3, remnantVolume_.id());
         drawFullscreen();
 
         glBindFramebuffer(GL_FRAMEBUFFER, hdrFbo_.id());
@@ -377,7 +406,9 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
-    if (s.discPresence > 0.01f) {
+    // The disc is now a ray-marched medium (inner_medium.glsl); the layered geometric
+    // disc is drawn only together with the optional tracer particles.
+    if (showTracers_ && s.discPresence > 0.01f) {
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
         disc_.use();
         disc_.set("uLayers", kDiscLayers);
@@ -387,9 +418,11 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
 
     glBlendFunc(GL_ONE, GL_ONE);
     glEnable(GL_PROGRAM_POINT_SIZE);
-    particlesShader_.use();
-    particlesShader_.set("uParticleFraction", quality_.particleFraction);
-    particles_.draw();
+    if (showTracers_) {  // gas tracer particles: an optional inspection overlay
+        particlesShader_.use();
+        particlesShader_.set("uParticleFraction", quality_.particleFraction);
+        particles_.draw();
+    }
 
     if (s.pulsarBeams > 0.01f) {
         const glm::vec3 axis = pulsarAxis(s.time);

@@ -45,6 +45,10 @@ public:
     void setFieldLines(bool enabled) { showFieldLines_ = enabled; }
     // Real all-sky photograph used as the background (0 = procedural sky only).
     void setSkyTexture(GLuint texture) { skyTexture_ = texture; }
+    // Optional gas tracer particles (the gas itself is volumetric).
+    void setTracers(bool enabled) { showTracers_ = enabled; }
+    // 3D emission volume of the Cas A reconstruction (RGBA8, n^3); false if absent.
+    bool loadRemnantVolume(const std::filesystem::path& raw, int n);
     // Scientific density cross-section (normalized field), drawn after tone mapping.
     void setDensitySection(bool enabled) { showSection_ = enabled; }
 
@@ -106,6 +110,8 @@ private:
     // GPU timing (ring of queries so we never stall waiting for a result)
     std::array<GLuint, 4> timeQueries_{};
     GLuint skyTexture_ = 0;  // not owned
+    bool showTracers_ = false;
+    gl::Texture remnantVolume_;
     int queryFrame_ = 0;
     float gpuMs_ = 0.0f;
 

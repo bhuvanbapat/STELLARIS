@@ -56,6 +56,7 @@ public:
     void toggleVisible() { visible_ = !visible_; }
     bool labelsEnabled() const { return labels_; }
     bool fieldLinesEnabled() const { return fieldLines_; }
+    bool tracersEnabled() const { return tracers_; }
     enum class ViewMode { Cinematic, Scientific, Observation };
     ViewMode viewMode() const { return mode_; }
     void setViewMode(ViewMode mode);
@@ -92,6 +93,7 @@ private:
     bool   labels_ = true;
     bool   fieldLines_ = false;
     bool   compare_ = false;   // mass-comparison table visible
+    bool   tracers_ = false;   // optional gas tracer particles
     const char* skyCredit_ = nullptr;  // always-visible credit of the sky photograph
     ViewMode mode_ = ViewMode::Cinematic;
     int    observationIndex_ = 0;  // selected band when several observations match

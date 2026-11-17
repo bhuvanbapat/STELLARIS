@@ -288,3 +288,26 @@ illustrative.
   waves shifted up ~57-58 octaves).
 - Cloud, collapse (pitch rises with contraction), accretion bursts, jets and the
   supernova: noise bands whose level and pitch follow the scene parameters (artistic).
+
+### 9.8 Volume-first reconstruction (2026-11-18)
+
+Three classes of content are kept distinct:
+1. **Observations:** the sky panorama and the Observation-view images.
+2. **Observation-derived 3D data:** the Cas A reconstruction (Delaney et al. 2010), used
+   for the neutron-star remnant. It is Cas A specifically, scaled to the model's shock
+   radius, and rendered from its published iso-surfaces. Element colours are a false-colour
+   key. The real Cas A also hosts a central neutron star, which is why it is used for
+   that pathway.
+3. **Procedural media after observations and simulations** (prescribed density fields,
+   not hydrodynamics):
+   - jets: beam, internal working surfaces from ejection-velocity pulses, bow shock with
+     Mach disk, entrained cocoon;
+   - the flared disc and its dark lane;
+   - accretion streamers;
+   - the extended atmosphere of the giant.
+
+   Colours follow the dominant emission lines (H-alpha, [S II]) and, for dust, the
+   scattered light of the central star. Speeds, knot timing, disc gap radii and streamer
+   geometry are illustrative. The photosphere now uses the true granule scale (~700 per
+   solar radius, sub-pixel at this distance) instead of enlarged cells. Giants keep a few
+   giant cells, as observed.

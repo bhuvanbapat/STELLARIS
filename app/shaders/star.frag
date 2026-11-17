@@ -101,7 +101,10 @@ void main() {
     // Hot main-sequence stars (turbulence ~0.08) have radiative envelopes: no
     // surface granulation. Sun-like stars (~0.35), protostars and giants convect.
     float conv = smoothstep(0.12, 0.25, uTurbulence);
-    float cellsPerRadius = mix(38.0, 3.2, pow(saturate(uTurbulence), 0.7));
+    // Real scale: the Sun has ~10^6 granules (~1 Mm across, ~700 per solar radius),
+    // which are sub-pixel at this distance and blend into a fine mottling; a red
+    // supergiant has only a few giant cells (~3 per radius) that dominate its disc.
+    float cellsPerRadius = 700.0 * pow(3.2 / 700.0, smoothstep(0.35, 1.0, uTurbulence));
     float cellPixels = uPixelsPerRadius / cellsPerRadius;
     float detail = smoothstep(1.5, 5.0, cellPixels) * conv;
     float contrast = mix(0.15, 0.45, uTurbulence);

@@ -197,6 +197,7 @@ and runs as a CTest test.
 | Crab Nebula (heic0515a) | NASA, ESA and Allison Loll/Jeff Hester (Arizona State University). Acknowledgement: Davide De Martin | CC BY 4.0 |
 | M87* black hole (eso1907a) | EHT Collaboration | CC BY 4.0 |
 | Milky Way panorama, background sky of every stage (eso0932a, `assets/sky/`) | ESO/S. Brunier | CC BY 4.0 |
+| Cassiopeia A 3D reconstruction, neutron-star remnant (`assets/data/casa/`) | NASA/CXC/SAO; Delaney et al. 2010 | no copyright asserted (NASA guidelines) |
 
 Third-party code: stb_image 2.30 (Sean Barrett), MIT / public domain; miniaudio 0.11.25 (David Reid), public domain / MIT-0.
 
@@ -211,3 +212,14 @@ the Crab pulsar's real 30 Hz rotation. Every mapping is documented in SCIENCE_NO
 The speaker button (or **M**) mutes it; the slider beside it sets the volume. The
 preference is saved in `stellaris_settings.ini` next to the executable. This is a
 native application, so there are no browser autoplay rules; sound starts with the window.
+
+## 11. Rendering approach (since 2026-11-18)
+
+Gas and plasma are rendered as continuous media, ray-marched with emission and absorption,
+not as particles. This covers the cloud, accretion streamers, the flared disc with its
+dark dust lane, the jets with knots and bow shocks, the extended atmosphere of the
+giant, the nebulae and the supernova ejecta. The neutron-star remnant uses the real Cas A
+3D reconstruction, baked into a 3D texture at build time by `tools/bake_casa.py`, which
+needs Python with numpy. Without numpy the remnant falls back to the procedural shell.
+**Gas tracer particles** (right panel) are an optional overlay. The default quality
+tier is now High. All external assets are listed in `ASSET_SOURCES.md`.

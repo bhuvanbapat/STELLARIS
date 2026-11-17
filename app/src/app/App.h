@@ -34,7 +34,7 @@ struct AppOptions {
     bool selfTest = false;
     // Benchmark mode: render sample points of every stage without vsync, report timings, exit.
     bool benchmark = false;
-    QualityPreset quality = QualityPreset::Balanced;
+    QualityPreset quality = QualityPreset::High;  // highest interactive tier by default
     bool fieldLines = false;
     bool scientific = false;
     bool observation = false;

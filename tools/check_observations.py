@@ -16,7 +16,7 @@ import struct
 import sys
 
 ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets")
-ROOTS = [os.path.join(ASSETS, "observations"), os.path.join(ASSETS, "sky")]
+ROOTS = [os.path.join(ASSETS, "observations"), os.path.join(ASSETS, "sky"), os.path.join(ASSETS, "data", "casa")]
 
 REQUIRED = [
     "id", "title", "object", "stage", "pathway", "source_institution", "source_page", "file_url",
@@ -97,6 +97,8 @@ def check_dir(ROOT, errors):
         covered.add(img)
         if sha256(path) != rec.get("sha256"):
             errors.append(f"{name}: sha256 mismatch for {img}")
+        if not img.lower().endswith(".jpg"):
+            continue  # data files: checksum only
         w, h = jpeg_size(path)
         if rec.get("local_dimensions") != f"{w}x{h}":
             errors.append(f"{name}: local_dimensions {rec.get('local_dimensions')} != actual {w}x{h}")

@@ -564,3 +564,18 @@ inspects the visuals. Checks run:
 - **Not verified:** the visual result of the new photosphere, nebula, jets and UI layout
   (left to the user); how it sounds on speakers (the run above was muted); clicking the
   speaker button and volume slider.
+
+### 8.16 Volume-first reconstruction (2026-11-18)
+
+No screenshot verification in this round, per the user's instruction; the user inspects
+the visuals. One data check was made on the baked Cas A volume: a maximum-intensity
+projection shows the expected morphology (Si/Fe shell, NE/SW jets).
+- Build OK; unit tests 49/49 (`streamers` and `giantAtmosphere` added to the continuity
+  test); provenance checker 9 records, 0 problems (`assets/data/casa` added).
+- `--selftest`: 0 failures, so the new shaders compile and every stage and pathway renders
+  without GL errors. The Cas A volume loads (192³, 27 MiB).
+- Benchmark at the new default (High, 1600×900), after bounding the streamer slab:
+  cloud 10.3, collapse 13.4, protostar 14.3, disc+jets 17.5, main sequence 11.4, WD nebula
+  24.4, supernova 23.1, NS remnant 23.9, black hole 17.9 ms (41–97 fps). The first,
+  unbounded version measured 64 ms in the disc+jets stage.
+- Not verified: how any of it looks; sound on speakers; the new tracer checkbox.

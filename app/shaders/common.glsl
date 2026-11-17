@@ -17,6 +17,7 @@ layout(std140, binding = 0) uniform Frame {
     vec4 uRemnantColor;  // rgb, intensity
     vec4 uBlackHole;     // presence, shadowRadius, einsteinRadius, pulsarBeams
     vec4 uWind;          // strength, speed, dusty, unused
+    vec4 uInner;         // streamers, giantAtmosphere, remnantData (0/1), unused
 };
 
 #define TIME (uCamPos.w)
