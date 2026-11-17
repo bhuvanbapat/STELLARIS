@@ -80,6 +80,9 @@ void evaluateFate(SceneState& s, double t) {
         s.ejectaPresence = inFate ? smooth(0.298, 0.312, u) : 0.0f;
         s.ejectaClock    = static_cast<float>(std::max(0.0, t - fateTime(0.300)));
         s.ejectaGlow     = 1.0f;
+        // Pre-existing circumstellar rings, revealed by the explosion's flash
+        // (after SN 1987A, whose progenitor left a neutron star).
+        s.circumstellarRing = bh ? 0.0f : s.ejectaPresence;
 
         if (bh) {
             s.blackHole        = inFate ? smooth(0.31, 0.40, u) : 0.0f;
@@ -164,7 +167,7 @@ SceneState evaluateScene(double time, const ModelConfig& config) {
     s.centralColor = blackbodyColor(s.centralTempK);
     // Same surface brightness for every main-sequence star (artistic): luminosity
     // differences are carried by size and color, and tone mapping keeps the limb visible.
-    const float msIntensity = 1.35f;
+    const float msIntensity = 0.62f;
     s.centralIntensity = mixf(1.6f, msIntensity, ignite) * mixf(1.0f, 0.38f, s.giant);
 
     // Episodic accretion: young protostars accrete in bursts (FU Orionis / EX Lupi

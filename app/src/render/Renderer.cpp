@@ -58,7 +58,7 @@ struct FrameUniforms {
     glm::vec4 remnantColor; // rgb, intensity
     glm::vec4 blackHole;    // presence, shadowR, einsteinR, pulsarBeams
     glm::vec4 wind;         // strength, speed, dusty, unused
-    glm::vec4 inner;        // streamers, giantAtmosphere, remnantData, unused
+    glm::vec4 inner;        // streamers, giantAtmosphere, remnantData, circumstellarRing
 };
 static_assert(sizeof(FrameUniforms) == 4 * 64 + 14 * 16, "FrameUniforms must match std140 layout");
 
@@ -302,7 +302,8 @@ void Renderer::uploadFrameUniforms(const SceneState& s, const CameraPose& cam, f
     u.blackHole = {s.blackHole, s.bhShadowRadius, s.bhEinsteinRadius, s.pulsarBeams};
     u.wind = {s.wind, s.windSpeed, s.windDusty, 0.0f};
     u.inner = {s.streamers, s.giantAtmosphere,
-               (remnantVolume_.id() != 0 && s.pathway == Pathway::NeutronStar) ? 1.0f : 0.0f, 0.0f};
+               (remnantVolume_.id() != 0 && s.pathway == Pathway::NeutronStar) ? 1.0f : 0.0f,
+               s.circumstellarRing};
     glNamedBufferSubData(frameUbo_.id(), 0, sizeof(u), &u);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, frameUbo_.id());
 }
@@ -395,7 +396,7 @@ void Renderer::render(const SceneState& s, const CameraPose& cam, float lensShif
 
     // --- 3. Volume at half resolution, then composite --------------------------------
     if (s.cloudDensity > 0.001f || s.ejectaPresence > 0.0f || s.discPresence > 0.0f || s.jetPresence > 0.0f ||
-        s.streamers > 0.0f || s.giantAtmosphere > 0.0f) {
+        s.streamers > 0.0f || s.giantAtmosphere > 0.0f || s.circumstellarRing > 0.0f) {
         glBindFramebuffer(GL_FRAMEBUFFER, volumeTarget_.fbo.id());
         glViewport(0, 0, volumeTarget_.width, volumeTarget_.height);
         glDisable(GL_DEPTH_TEST);

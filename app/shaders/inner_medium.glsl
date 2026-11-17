@@ -36,7 +36,7 @@ void jetMedium(vec3 p, inout vec3 emit, inout float sigma) {
     if (r2 > (rBow + 1.2) * (rBow + 1.2)) return;
     float r = sqrt(r2);
 
-    float rb = 0.09 + 0.026 * ay;                   // beam radius (collimated)
+    float rb = 0.10 + 0.018 * ay;                   // beam radius (collimated)
     // Turbulence advected outward with the flow.
     vec4 nt = noiseAt(vec3(q.x * 1.4, ay * 0.8 - TIME * JET_SPEED * 0.12, q.y * 1.4) + side * 7.13);
     float turb = 0.55 + 0.9 * nt.r;
@@ -48,7 +48,7 @@ void jetMedium(vec3 p, inout vec3 emit, inout float sigma) {
     // Internal working surfaces: one per ejection-velocity pulse. Ejection times are
     // irregular (hashed jitter) and pulses differ in strength; each knot is a small bow.
     float knots = 0.0;
-    const float PERIOD = 1.7;
+    const float PERIOD = 0.85;  // ejection pulses: a long chain of knots, as in HH 211
     float n0 = floor(TIME / PERIOD);
     for (int k = 0; k < 8; ++k) {
         float n = n0 - float(k);
@@ -66,7 +66,7 @@ void jetMedium(vec3 p, inout vec3 emit, inout float sigma) {
     float d = (tip - ay) - r2 / (2.0 * Rc);
     float shellW = 0.10 + 0.05 * r;
     float bow = exp(-d * d / (shellW * shellW)) * exp(-r / rBow) * step(-0.3, tip - ay + 0.6);
-    float frag = 0.35 + 1.3 * smoothstep(0.42, 0.72, nt.b);
+    float frag = 0.55 + 0.9 * texture(uNoise, vec3(q.x * 0.35, ay * 0.12, q.y * 0.35) + side * 3.1).b;
     // Mach disk: where the jet itself is decelerated, just behind the apex on axis.
     float mach = exp(-pow((ay - (tip - 0.22)) / 0.10, 2.0)) * exp(-r2 / (rb * rb * 1.6));
 
@@ -80,9 +80,9 @@ void jetMedium(vec3 p, inout vec3 emit, inout float sigma) {
     vec3 hAlpha = vec3(1.0, 0.30, 0.38), sII = vec3(1.0, 0.16, 0.14), apex = vec3(1.0, 0.70, 0.82);
     float nearSrc = 1.0 - smoothstep(launch, launch + 3.5, ay);
     vec3 beamCol = mix(hAlpha, vec3(0.78, 0.84, 1.0), nearSrc * 0.6);
-    vec3 e = beamCol * (0.25 * beam * turb + 2.6 * knots * turb)
-           + mix(sII, apex, exp(-r2 * 1.5)) * (1.7 * bow * frag + 3.2 * mach)
-           + vec3(0.85, 0.32, 0.20) * 0.10 * cocoon;
+    vec3 e = beamCol * (0.25 * beam * turb + 5.0 * knots * turb)
+           + mix(sII, apex, exp(-r2 * 1.5)) * (2.2 * bow * frag + 4.0 * mach)
+           + vec3(0.85, 0.32, 0.20) * 0.04 * cocoon;
     emit += e * on;
     sigma += 0.06 * cocoon * on;
 }
@@ -146,8 +146,8 @@ void streamerMedium(vec3 p, inout vec3 emit, inout float sigma) {
     rho *= fade * on * 0.55;
     sigma += rho * 0.9;
     float star = uCentral.x * uCentral.z + uCloud.z;
-    emit += (uCentralColor.rgb * star * 0.30 / (1.0 + R * R * 0.04) * vec3(0.9, 0.8, 0.75)) * rho;
-    emit += vec3(1.0, 0.42, 0.16) * 0.8 * shock * fade * on;
+    emit += (uCentralColor.rgb * star * 0.10 / (1.0 + R * R * 0.04) * vec3(0.9, 0.8, 0.75)) * rho;
+    emit += vec3(1.0, 0.42, 0.16) * 0.12 * shock * fade * on;
 }
 
 void giantAtmosphere(vec3 p, inout vec3 emit, inout float sigma) {
@@ -171,7 +171,51 @@ void giantAtmosphere(vec3 p, inout vec3 emit, inout float sigma) {
     emit += uCentralColor.rgb * dust * on * star * 0.25 / Rs;
 }
 
+// Circumstellar rings, after SN 1987A (Hubble, Chandra, Webb; Sugerman et al. 2005):
+// an equatorial ring and two fainter outer rings in an hourglass, shed by the progenitor
+// long before the explosion. The explosion's UV flash ionizes them (they glow, then fade).
+// When the blast wave reaches the equatorial ring, dense knots light up one after another
+// as a "string of pearls" (hot spots, first seen ~1995-2001), then fade. Ring radius is
+// chosen so the shock arrives ~5 s of timeline after the explosion. Illustrative timing.
+const float RING_TILT = 0.75;   // radians: shows the ring as an ellipse, as SN 1987A is seen
+void circumstellarRings(vec3 p, inout vec3 emit) {
+    float on = uInner.w;
+    if (on <= 0.0) return;
+    float c = uEjecta.y;
+    float strength = uEjecta2.x;
+    float Rr = snShockRadius(5.0, strength);
+    float cs = cos(RING_TILT), sn = sin(RING_TILT);
+    vec3 q = vec3(p.x, cs * p.y - sn * p.z, sn * p.y + cs * p.z);
+    if (dot(q, q) > (1.5 * Rr + 1.5) * (1.5 * Rr + 1.5)) return;
+    float flash = exp(-c / 6.0);                         // flash-ionized glow, fading
+    float rho = length(q.xz);
+    float phi = atan(q.z, q.x);
+    // Equatorial ring (Halpha/[N II] red when ionized).
+    float d = length(vec2(rho - Rr, q.y));
+    float ring = exp(-d * d / 0.03);
+    // Hot spots: ~30 dense knots on the inner edge, lit as the shock reaches them.
+    float jitter = texture(uNoise, vec3(phi * 0.6, 0.3, 0.7)).r;
+    float cell = floor((phi + PI) / (2.0 * PI) * 30.0);
+    float hp = fract(sin(cell * 91.7) * 43758.5);       // per-knot brightness / presence
+    float pearls = pow(0.5 + 0.5 * cos(phi * 30.0 + jitter * 9.0), 14.0) * step(0.35, hp) * (0.3 + hp);
+    float dIn = length(vec2(rho - Rr * 0.97, q.y));
+    float knots = pearls * exp(-dIn * dIn / 0.05);
+    float Rs = snShockRadius(c, strength);
+    float hit = smoothstep(Rr * 0.92, Rr * 1.0, Rs + 0.4 * (jitter - 0.5));
+    float since = max(c - 5.0, 0.0);
+    float glowHot = hit * (0.35 + 0.65 * exp(-since / 14.0));
+    // Outer rings: larger, displaced above and below, fainter, never shocked here.
+    float dU = length(vec2(length(q.xz) - 1.3 * Rr, q.y - 0.85 * Rr));
+    float dL = length(vec2(length(q.xz) - 1.3 * Rr, q.y + 0.85 * Rr));
+    float outer = exp(-dU * dU / 0.02) + exp(-dL * dL / 0.02);
+    vec3 red = vec3(1.0, 0.30, 0.30);
+    emit += on * (red * ring * (0.02 + 0.25 * flash + 0.25 * glowHot)
+                + vec3(1.0, 0.94, 0.88) * knots * glowHot * 6.0
+                + red * outer * (0.01 + 0.07 * flash));
+}
+
 void innerMedium(vec3 p, inout vec3 emit, inout float sigma) {
+    circumstellarRings(p, emit);
     jetMedium(p, emit, sigma);
     discMedium(p, emit, sigma);
     streamerMedium(p, emit, sigma);
@@ -185,5 +229,6 @@ float innerExtent() {
     if (uDisc.x > 0.0) r = max(r, uDisc.y * 1.5);
     if (uInner.x > 0.0) r = max(r, 15.0);
     if (uInner.y > 0.0) r = max(r, uCentral.y * 2.45);
+    if (uInner.w > 0.0) r = max(r, 1.5 * snShockRadius(5.0, uEjecta2.x) + 1.5);
     return r;
 }

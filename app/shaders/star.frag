@@ -116,7 +116,8 @@ void main() {
     // supergiant has only a few giant cells (~3 per radius) that dominate its disc.
     float cellsPerRadius = 700.0 * pow(3.2 / 700.0, smoothstep(0.35, 1.0, uTurbulence));
     float cellPixels = uPixelsPerRadius / cellsPerRadius;
-    float detail = smoothstep(1.5, 5.0, cellPixels) * conv;
+    // A protostar is seen through its dusty envelope: no surface pattern shows.
+    float detail = smoothstep(1.5, 5.0, cellPixels) * conv * (1.0 - smoothstep(0.05, 0.4, uVeil));
     float contrast = mix(0.15, 0.45, uTurbulence);
     float pattern = mix(1.0, granulation(sp, cellsPerRadius, contrast, t * 0.08), detail);
     // Mesoscale and, on giants, very large-scale brightness variations.

@@ -36,6 +36,10 @@ def classify(rec):
                 "infrared" if ir else "visible")
     if org == "ESO":
         return ("ESO facilities (VLT, VISTA, VST, ALMA, ...; see source page)", "See source page", "multi-band")
+    if org in ("science.nasa.gov", "svs.gsfc.nasa.gov", "chandra.harvard.edu"):
+        k = rec.get("kind", "").lower()
+        bk = "infrared" if ("infrared" in k or "webb" in k) else "visible" if "visible" in k else              "x-ray" if "x-ray" in k else "multi-band"
+        return (rec.get("kind", "NASA"), rec.get("kind", "see source page"), bk)
     band = rec.get("band", "")
     kind = "visible" if "HMI" in band or "1700" in band else "ultraviolet"
     return ("Solar Dynamics Observatory (" + band.split(" ")[0] + ")", band, kind)
@@ -47,7 +51,7 @@ def main():
     for ident, rec in sorted(manifest.items()):
         title = rec["title"]
         if not rec.get("stage") or not rec["local_file"].lower().endswith(".jpg") or \
-                any(w in title.lower() for w in NOT_OBSERVATION):
+                any(w in (title + " " + rec.get("kind", "").replace("observation", "")).lower() for w in NOT_OBSERVATION):
             skipped += 1
             continue
         src = os.path.join(LIB, rec["local_file"])

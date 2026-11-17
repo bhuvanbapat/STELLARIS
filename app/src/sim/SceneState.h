@@ -49,7 +49,8 @@ struct SceneState {
     float coreGlow     = 0.0f;  // embedded central emission inside the cloud (artistic)
     float accretionBurst = 0.0f;
     float streamers    = 0.0f;  // infalling accretion streamers feeding the disc (prescribed)
-    float giantAtmosphere = 0.0f;  // extended molecular/dust layer of a giant (prescribed)  // episodic accretion outburst of the protostar, 0..1 (prescribed)
+    float giantAtmosphere = 0.0f;
+    float circumstellarRing = 0.0f;  // SN 1987A-like ring system, neutron-star pathway (prescribed)  // extended molecular/dust layer of a giant (prescribed)  // episodic accretion outburst of the protostar, 0..1 (prescribed)
     float cavity       = 0.0f;  // bipolar outflow cavity opening, 0..1
     float dispersal    = 0.0f;  // envelope cleared by stellar feedback, 0..1
 

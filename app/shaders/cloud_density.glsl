@@ -40,8 +40,13 @@ float baseDensity(vec3 p, float drift) {
     // boundaries: dense gas ends abruptly at ionization fronts and is eroded into fine
     // fingers there. A contrast curve removes faint fuzz and a high-frequency erosion
     // term breaks up the edges; the interiors stay dense and dark.
-    vec4 n4 = noiseAt(q * 0.34 + vec3(drift, 0.0, 0.0));
-    d *= smoothstep(0.06, 0.30, d) * (0.72 + 0.56 * n4.r);
+    // Only the boundary band pays for the extra noise lookup.
+    if (d < 0.02) return 0.0;
+    if (d < 0.9) {
+        vec4 e = noiseAt(q * 0.42 + vec3(drift, 0.0, 0.0));
+        float erosion = 0.25 + 1.5 * e.r * (0.6 + 0.8 * e.a);   // fingers and holes at the edges
+        d *= smoothstep(0.10, 0.40, d * erosion) * mix(erosion, 1.0, smoothstep(0.45, 0.9, d));
+    }
     return d;
 }
 

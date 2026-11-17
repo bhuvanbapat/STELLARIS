@@ -90,7 +90,7 @@ vec3 shellEmission(vec3 p) {
         vec4 c = texture(uRemnantData, uvw);
         vec3 data = c.r * vec3(1.0, 0.72, 0.25) + c.g * vec3(0.50, 0.38, 1.0) + c.b * vec3(0.30, 1.0, 0.50) +
                     c.a * vec3(1.0, 0.25, 0.20);
-        col = shockCol * front * filaments * fade + data * 2.2 * (0.6 + 0.4 * fade);
+        col = shockCol * front * filaments * fade + data * 1.1 * (0.6 + 0.4 * fade);
     }
     col = mix(col, vec3(1.0, 0.95, 0.9) * front * 2.0, hot);
     return col * presence * strength * 0.014;
@@ -158,7 +158,7 @@ void main() {
     float stepLen = 2.0 * uCloudExtent / float(uSteps);
     float t = tNear + stepLen * ign(gl_FragCoord.xy);
 
-    const float SIGMA = 0.32;  // extinction per unit density per scene unit
+    const float SIGMA = 0.48;  // extinction per unit density per scene unit
     vec3 transmittance = vec3(1.0);
     vec3 radiance = vec3(0.0);
 
@@ -185,7 +185,7 @@ void main() {
         bool inner = innerR > 0.0 && dot(pm, pm) < (innerR + stepLen) * (innerR + stepLen);
         if (inner) {
             for (int k = 0; k < subCount; ++k) {
-                float ts = t + (float(k) + jitter) * subDl;
+                float ts = t + (float(k) + fract(jitter + float(k) * 0.618034 + float(i) * 0.381966)) * subDl;
                 if (ts >= tFar) break;
                 vec3 emitI = vec3(0.0);
                 float sigI = 0.0;
@@ -222,8 +222,8 @@ void main() {
             // Photo-ionised skin: surfaces facing the external stars glow in H-alpha
             // (rose-red), as on the rims of the Pillars of Creation. Only the thin
             // unshadowed layer emits; the interior stays dark dust.
-            float skin = exp(-tauKey * 3.0) * smoothstep(0.05, 0.35, d);
-            vec3 emission = vec3(0.95, 0.30, 0.36) * 0.55 * skin;
+            float skin = exp(-tauKey * 9.0) * smoothstep(0.10, 0.45, d);
+            vec3 emission = vec3(1.0, 0.38, 0.30) * 0.30 * skin;
             // Thin, ionised envelope gas: faint [O III] teal, as in HII regions.
             emission += vec3(0.20, 0.55, 0.58) * 0.10 * (1.0 - smoothstep(0.03, 0.25, d));
             // Compressional heating: the densest gas in the contracting core glows
@@ -236,7 +236,7 @@ void main() {
 
             // Interstellar dust grains: visible albedo ~0.5, slightly bluer when
             // scattering (reddening comes from EXTINCTION_TINT on the light paths).
-            vec3 albedo = vec3(0.56, 0.50, 0.45);
+            vec3 albedo = vec3(0.46, 0.38, 0.30);  // dusty brown
             vec3 S = (albedo * (lightKey + lightC + ambient) + emission) * sigmaT;
             vec3 Tstep = exp(-sigmaT * stepLen);
             // Energy-conserving integration of in-scattering over the step.

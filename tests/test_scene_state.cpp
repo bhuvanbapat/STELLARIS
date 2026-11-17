@@ -17,7 +17,7 @@ namespace {
 std::vector<float> continuousFields(const SceneState& s) {
     return {s.cloudDensity, s.collapse, s.coreGlow, s.cavity, s.dispersal, s.centralPresence,
             s.protostarVeil, s.discPresence, s.jetPresence, s.giant, s.ejectaPresence, s.ejectaGlow,
-            s.supernovaFlash, s.remnantPresence, s.pulsarBeams, s.blackHole, s.activity, s.flare, s.atmosphere, s.accretionBurst, s.streamers, s.giantAtmosphere};
+            s.supernovaFlash, s.remnantPresence, s.pulsarBeams, s.blackHole, s.activity, s.flare, s.atmosphere, s.accretionBurst, s.streamers, s.giantAtmosphere, s.circumstellarRing};
 }
 
 bool sameState(const SceneState& a, const SceneState& b) {
