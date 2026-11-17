@@ -19,11 +19,14 @@ namespace stellaris {
 namespace {
 
 // Palette (linear-ish UI colors, ImGui expects sRGB-encoded values).
-const ImVec4 kText      = ImVec4(0.90f, 0.92f, 0.96f, 1.00f);
-const ImVec4 kTextDim   = ImVec4(0.62f, 0.66f, 0.76f, 1.00f);
-const ImVec4 kTextFaint = ImVec4(0.45f, 0.49f, 0.60f, 1.00f);
+// Hierarchy: kText for content, kTextDim for secondary text, kTextFaint for
+// metadata only. Panels are dark and fairly opaque so text never competes with
+// bright nebula behind it, with a hairline border to separate them from space.
+const ImVec4 kText      = ImVec4(0.94f, 0.95f, 0.98f, 1.00f);
+const ImVec4 kTextDim   = ImVec4(0.74f, 0.78f, 0.87f, 1.00f);
+const ImVec4 kTextFaint = ImVec4(0.56f, 0.61f, 0.73f, 1.00f);
 const ImVec4 kAccent    = ImVec4(0.98f, 0.76f, 0.42f, 1.00f);
-const ImVec4 kPanelBg   = ImVec4(0.025f, 0.03f, 0.06f, 0.62f);
+const ImVec4 kPanelBg   = ImVec4(0.018f, 0.022f, 0.045f, 0.82f);
 
 ImU32 col32(const ImVec4& c, float alphaMul = 1.0f) {
     return ImGui::ColorConvertFloat4ToU32(ImVec4(c.x, c.y, c.z, c.w * alphaMul));
@@ -88,13 +91,22 @@ void quantityRow(const char* label, const std::string& value, const char* tag) {
     ImGui::PopStyleColor();
 }
 
+// Section label: semibold, accent-tinted, used for panel headings.
+void sectionLabel(ImFont* font, const char* text) {
+    ImGui::PushFont(font);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.98f, 0.80f, 0.55f, 0.85f));
+    ImGui::TextUnformatted(text);
+    ImGui::PopStyleColor();
+    ImGui::PopFont();
+}
+
 std::filesystem::path windowsFontDir() {
     const char* windir = std::getenv("WINDIR");
     return std::filesystem::path(windir ? windir : "C:\\Windows") / "Fonts";
 }
 
 // Small vector icons for the transport buttons (font independent).
-enum class Icon { Play, Pause, Back, Forward, Reset };
+enum class Icon { Play, Pause, Back, Forward, Reset, Speaker, SpeakerMuted };
 
 bool iconButton(const char* id, Icon icon, float size, const char* tooltip) {
     const ImVec2 p = ImGui::GetCursorScreenPos();
@@ -102,7 +114,8 @@ bool iconButton(const char* id, Icon icon, float size, const char* tooltip) {
     const bool hovered = ImGui::IsItemHovered();
     ImDrawList* dl = ImGui::GetWindowDrawList();
     const ImVec2 c(p.x + size * 0.5f, p.y + size * 0.5f);
-    dl->AddCircleFilled(c, size * 0.5f, col32(ImVec4(1, 1, 1, hovered ? 0.14f : 0.06f)), 32);
+    dl->AddCircleFilled(c, size * 0.5f, col32(ImVec4(1, 1, 1, hovered ? 0.16f : 0.07f)), 32);
+    if (hovered) dl->AddCircle(c, size * 0.5f - 0.5f, col32(kAccent, 0.55f), 32, 1.2f);
     const ImU32 fg = col32(hovered ? kAccent : kText);
     const float r = size * 0.22f;
     switch (icon) {
@@ -121,6 +134,26 @@ bool iconButton(const char* id, Icon icon, float size, const char* tooltip) {
         dl->AddTriangleFilled(ImVec2(c.x - r * 0.9f, c.y - r * 0.8f), ImVec2(c.x - r * 0.9f, c.y + r * 0.8f), ImVec2(c.x, c.y), fg);
         dl->AddTriangleFilled(ImVec2(c.x, c.y - r * 0.8f), ImVec2(c.x, c.y + r * 0.8f), ImVec2(c.x + r * 0.9f, c.y), fg);
         break;
+    case Icon::Speaker:
+    case Icon::SpeakerMuted: {
+        // Speaker body (box + cone), then sound waves or a red cross.
+        const float bx = c.x - r * 1.05f;
+        dl->AddRectFilled(ImVec2(bx, c.y - r * 0.38f), ImVec2(bx + r * 0.5f, c.y + r * 0.38f), fg);
+        dl->AddQuadFilled(ImVec2(bx + r * 0.45f, c.y - r * 0.38f), ImVec2(bx + r * 1.05f, c.y - r * 0.95f),
+                          ImVec2(bx + r * 1.05f, c.y + r * 0.95f), ImVec2(bx + r * 0.45f, c.y + r * 0.38f), fg);
+        const float sx = c.x + r * 0.25f;
+        if (icon == Icon::Speaker) {
+            dl->PathArcTo(ImVec2(sx - r * 0.2f, c.y), r * 0.55f, -0.9f, 0.9f, 12);
+            dl->PathStroke(fg, 0, size * 0.06f);
+            dl->PathArcTo(ImVec2(sx - r * 0.2f, c.y), r * 1.0f, -0.9f, 0.9f, 16);
+            dl->PathStroke(fg, 0, size * 0.06f);
+        } else {
+            const ImU32 red = col32(ImVec4(1.0f, 0.45f, 0.40f, 1.0f));
+            dl->AddLine(ImVec2(sx, c.y - r * 0.5f), ImVec2(sx + r, c.y + r * 0.5f), red, size * 0.07f);
+            dl->AddLine(ImVec2(sx, c.y + r * 0.5f), ImVec2(sx + r, c.y - r * 0.5f), red, size * 0.07f);
+        }
+        break;
+    }
     case Icon::Reset:
         dl->PathArcTo(c, r, 0.6f, 5.6f, 20);
         dl->PathStroke(fg, 0, size * 0.07f);
@@ -166,10 +199,13 @@ bool Ui::init(GLFWwindow* window, float contentScale) {
         }
         return f;
     };
-    body_    = load("segoeui.ttf", 16.0f);
-    small_   = load("segoeui.ttf", 13.5f);
-    heading_ = load("seguisb.ttf", 27.0f);
-    title_   = load("segoeuisl.ttf", 14.0f);
+    // Type scale (logical px): stage title 34 semibold, body 17, secondary 15,
+    // section labels 14.5 semibold, eyebrow 14.5 light.
+    body_    = load("segoeui.ttf", 17.0f);
+    small_   = load("segoeui.ttf", 15.0f);
+    heading_ = load("seguisb.ttf", 34.0f);
+    title_   = load("segoeuisl.ttf", 14.5f);
+    label_   = load("seguisb.ttf", 14.5f);
     if (!body_) {
         log::warn("Segoe UI not found; using the built-in ImGui font.");
         ImFontConfig cfg;
@@ -179,16 +215,19 @@ bool Ui::init(GLFWwindow* window, float contentScale) {
     if (!small_) small_ = body_;
     if (!heading_) heading_ = body_;
     if (!title_) title_ = small_;
+    if (!label_) label_ = small_;
     io.FontDefault = body_;
 
     ImGuiStyle& st = ImGui::GetStyle();
     st.WindowRounding = 8.0f;
     st.FrameRounding = 5.0f;
     st.GrabRounding = 5.0f;
-    st.WindowBorderSize = 0.0f;
+    st.WindowBorderSize = 1.0f;
     st.FrameBorderSize = 0.0f;
-    st.WindowPadding = ImVec2(16, 14);
-    st.ItemSpacing = ImVec2(8, 7);
+    st.WindowPadding = ImVec2(20, 18);
+    st.FramePadding = ImVec2(10, 6);
+    st.ItemSpacing = ImVec2(9, 8);
+    st.GrabMinSize = 14.0f;
     st.ScaleAllSizes(scale_);
     ImVec4* c = st.Colors;
     c[ImGuiCol_Text] = kText;
@@ -196,12 +235,15 @@ bool Ui::init(GLFWwindow* window, float contentScale) {
     c[ImGuiCol_WindowBg] = kPanelBg;
     c[ImGuiCol_PopupBg] = ImVec4(0.04f, 0.05f, 0.09f, 0.95f);
     c[ImGuiCol_FrameBg] = ImVec4(1, 1, 1, 0.07f);
-    c[ImGuiCol_FrameBgHovered] = ImVec4(1, 1, 1, 0.12f);
+    c[ImGuiCol_FrameBgHovered] = ImVec4(1, 1, 1, 0.13f);
     c[ImGuiCol_FrameBgActive] = ImVec4(1, 1, 1, 0.16f);
     c[ImGuiCol_SliderGrab] = kAccent;
     c[ImGuiCol_SliderGrabActive] = ImVec4(1.0f, 0.85f, 0.6f, 1.0f);
     c[ImGuiCol_Button] = ImVec4(1, 1, 1, 0.07f);
-    c[ImGuiCol_ButtonHovered] = ImVec4(1, 1, 1, 0.14f);
+    c[ImGuiCol_ButtonHovered] = ImVec4(0.98f, 0.76f, 0.42f, 0.22f);
+    c[ImGuiCol_Border] = ImVec4(1, 1, 1, 0.08f);
+    c[ImGuiCol_HeaderHovered] = ImVec4(0.98f, 0.76f, 0.42f, 0.18f);
+    c[ImGuiCol_Header] = ImVec4(0.98f, 0.76f, 0.42f, 0.14f);
     c[ImGuiCol_ButtonActive] = ImVec4(0.98f, 0.76f, 0.42f, 0.45f);
     c[ImGuiCol_CheckMark] = kAccent;
     c[ImGuiCol_Separator] = ImVec4(1, 1, 1, 0.10f);
@@ -480,7 +522,7 @@ UiRequests Ui::draw(Playback& playback, ModelConfig& config, const UiFrameInfo& 
 }
 
 void Ui::drawInfoPanel(const SceneState& s) {
-    const float w = 390.0f * scale_;
+    const float w = 440.0f * scale_;
     const float m = 18.0f * scale_;
     ImGui::SetNextWindowPos(ImVec2(m, m));
     ImGui::SetNextWindowSize(ImVec2(w, 0));
@@ -497,6 +539,15 @@ void Ui::drawInfoPanel(const SceneState& s) {
     ImGui::PopStyleColor();
     ImGui::PopFont();
 
+    ImGui::Spacing();
+    {
+        // Stage-coloured accent bar beside the stage title.
+        const ImVec2 p = ImGui::GetCursorScreenPos();
+        const float bar = heading_->FontSize * layout_;
+        ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(p.x - 20.0f * scale_ + 1.0f, p.y + bar * 0.12f),
+                                                  ImVec2(p.x - 16.0f * scale_, p.y + bar * 0.92f),
+                                                  col32(stageColor(s.stage, s.pathway)), 2.0f);
+    }
     ImGui::PushFont(heading_);
     ImGui::PushStyleColor(ImGuiCol_Text, stageColor(s.stage, s.pathway));
     ImGui::TextWrapped("%s", stageSpan(s.stage).name);
@@ -511,9 +562,7 @@ void Ui::drawInfoPanel(const SceneState& s) {
     ImGui::Spacing();
 
     ImGui::PushFont(small_);
-    ImGui::PushStyleColor(ImGuiCol_Text, kTextDim);
-    ImGui::TextUnformatted("IN THIS VISUALIZATION");
-    ImGui::PopStyleColor();
+    sectionLabel(label_, "IN THIS VISUALIZATION");
     ImGui::PushStyleColor(ImGuiCol_Text, kTextDim);
     ImGui::TextWrapped("%s", content.approximation);
     ImGui::PopStyleColor();
@@ -561,6 +610,9 @@ void Ui::drawInfoPanel(const SceneState& s) {
             if (s.stage == Stage::StellarFate) {
                 quantityRow("Pathway (illustrative)", pathwayName(s.pathway), "category");
                 quantityRow("Remnant", remnantName(s.pathway), "category");
+                if (s.remnantPresence > 0.5f && s.remnantTempK > 0.0f)
+                    quantityRow("Remnant surface temp.", "\u2248 " + sci(std::round(s.remnantTempK / 1000.0) * 1000.0, 0) + " K",
+                                s.pathway == Pathway::WhiteDwarf ? "prescribed cooling" : "reference");
             }
             break;
         }
@@ -572,7 +624,7 @@ void Ui::drawInfoPanel(const SceneState& s) {
 
 void Ui::drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests& req, const UiFrameInfo& info) {
     const bool cameraOffset = info.cameraOffsetActive;
-    const float w = 300.0f * scale_;
+    const float w = 350.0f * scale_;
     const float m = 18.0f * scale_;
     const ImVec2 ds = ImGui::GetIO().DisplaySize;
     ImGui::SetNextWindowPos(ImVec2(ds.x - w - m, m));
@@ -598,9 +650,8 @@ void Ui::drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests
             if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", modes[i].tip);
         }
     }
-    ImGui::PushStyleColor(ImGuiCol_Text, kTextFaint);
-    ImGui::TextUnformatted("MODEL PARAMETERS");
-    ImGui::PopStyleColor();
+    ImGui::Spacing();
+    sectionLabel(label_, "MODEL PARAMETERS");
 
     ImGui::TextUnformatted("Initial stellar mass");
     float mass = static_cast<float>(config.massSolar);
@@ -659,6 +710,8 @@ void Ui::drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests
     ImGui::SameLine();
     if (ImGui::Button(cameraOffset ? "Recenter camera *" : "Recenter camera")) req.recenterCamera = true;
     // Display quality: changes rendering cost only, never the model or the timeline.
+    ImGui::Spacing();
+    sectionLabel(label_, "DISPLAY");
     ImGui::TextUnformatted("Render quality");
     for (int i = 0; i < kQualityPresetCount; ++i) {
         const QualityPreset p = static_cast<QualityPreset>(i);
@@ -685,7 +738,7 @@ void Ui::drawParameterPanel(ModelConfig& config, const SceneState& s, UiRequests
 void Ui::drawTimeline(Playback& playback, const SceneState& s, UiRequests& req) {
     const ImVec2 ds = ImGui::GetIO().DisplaySize;
     const float m = 18.0f * scale_;
-    const float h = 104.0f * scale_;
+    const float h = 118.0f * scale_;
     ImGui::SetNextWindowPos(ImVec2(m, ds.y - h - m));
     ImGui::SetNextWindowSize(ImVec2(ds.x - 2 * m, h));
     ImGui::Begin("##timeline", nullptr,
@@ -693,7 +746,7 @@ void Ui::drawTimeline(Playback& playback, const SceneState& s, UiRequests& req) 
                      ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoFocusOnAppearing);
 
     // Transport row.
-    const float btn = 30.0f * scale_;
+    const float btn = 36.0f * scale_;
     if (iconButton("##reset", Icon::Reset, btn, "Reset to the beginning (R)")) req.resetAll = true;
     ImGui::SameLine();
     if (iconButton("##back", Icon::Back, btn, "Back 5 s (Left)")) playback.step(-5.0);
@@ -702,6 +755,22 @@ void Ui::drawTimeline(Playback& playback, const SceneState& s, UiRequests& req) 
         playback.togglePlay();
     ImGui::SameLine();
     if (iconButton("##fwd", Icon::Forward, btn, "Forward 5 s (Right)")) playback.step(5.0);
+    ImGui::SameLine(0, 14.0f * scale_);
+    // Sound: the speaker toggles mute (M); the short slider sets the volume.
+    if (iconButton("##mute", audioMuted_ ? Icon::SpeakerMuted : Icon::Speaker, btn,
+                   audioMuted_ ? "Unmute sonification (M)" : "Mute sonification (M)"))
+        toggleMute();
+    ImGui::SameLine();
+    {
+        const float y0 = ImGui::GetCursorPosY();
+        ImGui::SetCursorPosY(y0 + (btn - ImGui::GetFrameHeight()) * 0.5f);
+        ImGui::SetNextItemWidth(84.0f * scale_);
+        ImGui::BeginDisabled(audioMuted_);
+        if (ImGui::SliderFloat("##vol", &audioVolume_, 0.0f, 1.0f, "", ImGuiSliderFlags_AlwaysClamp)) audioDirty_ = true;
+        ImGui::EndDisabled();
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) ImGui::SetTooltip("Volume %.0f%%", audioVolume_ * 100.0f);
+        ImGui::SetCursorPosY(y0);
+    }
     ImGui::SameLine(0, 18.0f * scale_);
 
     ImGui::PushFont(small_);

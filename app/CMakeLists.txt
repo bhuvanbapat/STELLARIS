@@ -7,7 +7,8 @@ add_library(stellaris_core STATIC
     src/sim/StageContent.cpp
     src/sim/CloudField.cpp
     src/sim/MagneticField.cpp
-    src/sim/ObservationCatalog.cpp)
+    src/sim/ObservationCatalog.cpp
+    src/sim/Sonification.cpp)
 target_include_directories(stellaris_core PUBLIC src)
 target_link_libraries(stellaris_core PUBLIC glm::glm)
 
@@ -15,6 +16,7 @@ target_link_libraries(stellaris_core PUBLIC glm::glm)
 add_executable(stellaris
     src/main.cpp
     src/app/App.cpp
+    src/audio/AudioEngine.cpp
     src/core/Log.cpp
     src/core/PngWriter.cpp
     src/gfx/GL.cpp
@@ -25,7 +27,7 @@ add_executable(stellaris
     src/render/ParticleSystem.cpp
     src/render/Renderer.cpp
     src/ui/Ui.cpp)
-target_link_libraries(stellaris PRIVATE stellaris_core glad glfw imgui stb_image opengl32)
+target_link_libraries(stellaris PRIVATE stellaris_core glad glfw imgui stb_image miniaudio opengl32)
 
 foreach(target stellaris_core stellaris)
     if(MSVC)

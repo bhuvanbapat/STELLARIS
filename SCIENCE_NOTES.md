@@ -256,3 +256,35 @@ sits against the Milky Way disc, where molecular clouds actually are. That place
 a presentation choice, not a real sky position for the simulated star. A sparse layer
 of procedural point stars is drawn over it so star cores stay sharp. The credit is on
 screen at all times. `--procedural-sky` restores the fully procedural sky.
+
+### 9.7 Stellar surfaces, late stages, jets and sonification (2026-11-17)
+
+**Observationally established (shown as such):** granulation on Sun-like stars (bright
+upflow cells, dark lanes; rms contrast ~15% in visible light); stronger limb darkening
+in blue than in red (Neckel & Labs 1994); sunspot umbra and filamentary penumbra;
+faculae brightest near the limb; few, very large convection cells on red supergiants
+(interferometry of Betelgeuse; Chiavassa et al. 2011); gravity darkening of fast-rotating
+hot stars (Altair, Vega); ionization stratification in planetary nebulae (He II inside,
+[O III] in the middle, H-alpha/[N II] outside); cometary knots (Helix); faint AGB halos
+(NGC 6543); central stars of planetary nebulae above 100,000 K; young neutron stars near
+10^6 K; jet knots from variable ejection speed, and paraboloidal bow shocks (HH 47, HH 211).
+**Visualization choices:** granule size is enlarged, because real solar granules (~1 Mm)
+would be sub-pixel. White-dwarf cooling from 120,000 to 30,000 K is compressed into the
+end of the stage; in reality it takes ~10 Myr. Spot layout, knot timing and bow size are
+illustrative.
+
+**Sonification mappings (all illustrative except where a value is stated as real):**
+- Star: nu_max = 3090 muHz * M R^-2 (Teff/5772 K)^-1/2 and Delta_nu = 135.1 muHz *
+  sqrt(M/R^3) (Kjeldsen & Bedding 1995; solar values from Huber et al. 2011). Audible
+  centre = 220 Hz * (nu_max/nu_max_sun)^0.15, a logarithmic compression that keeps
+  giants audible; mode spacing keeps the ratio Delta_nu/nu_max (clamped to 0.02-0.25).
+  Modes follow nu ~ Delta_nu (n + l/2) with l = 0, 1, Gaussian envelope and stochastic
+  amplitudes (solar-like oscillations are stochastically excited). Giant radius for
+  this purpose: ~150 R_sun (low mass) or ~700 R_sun (supergiant), representative values.
+- Planetary nebula: chord with pitch ratios = inverse wavelength ratios of H-alpha 656.3,
+  [N II] 658.4 (beats with H-alpha), [O III] 500.7 and He II 468.6 nm.
+- Pulsar: click train at the Crab pulsar's real rotation rate, 29.9 Hz.
+- Black hole: very low drone, after NASA's 2022 Perseus-cluster sonification (pressure
+  waves shifted up ~57-58 octaves).
+- Cloud, collapse (pitch rises with contraction), accretion bursts, jets and the
+  supernova: noise bands whose level and pitch follow the scene parameters (artistic).

@@ -94,6 +94,7 @@ struct SceneState {
     float     remnantPresence  = 0.0f;
     float     remnantRadius    = 0.0f;  // scene units, greatly enlarged for visibility
     glm::vec3 remnantColor{1.0f};
+    float     remnantTempK     = 0.0f;  // remnant surface temperature (prescribed, K)
     float     remnantIntensity = 0.0f;
     float     pulsarBeams      = 0.0f;
     float     blackHole        = 0.0f;  // presence of the black-hole lensing effect

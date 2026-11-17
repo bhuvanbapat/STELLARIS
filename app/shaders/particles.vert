@@ -166,36 +166,56 @@ void jetGas(vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {
     float phase = fract(s.x + t * rate);
     float side = s.z < 0.5 ? -1.0 : 1.0;
     float launch = uCentral.y * 1.3;
+    float tip = len + launch;
     float y = launch + phase * 17.0;
-    if (y > len + launch) { p = vec3(0.0); col = vec3(0.0); alpha = 0.0; size = 0.0; return; }
+    const float BOW_PATH = 2.6;  // path length spent flowing along the bow-shock wings
+    if (y > tip + BOW_PATH) { p = vec3(0.0); col = vec3(0.0); alpha = 0.0; size = 0.0; return; }
 
-    // Narrow, slightly widening stream with a slow precession of the axis.
-    float bow = smoothstep(0.82, 1.0, y / (len + launch));
-    // ~15% of the gas forms a hot, very narrow spine along the axis.
+    // ~15% of the gas forms a hot, very narrow spine along the axis; a quarter of the
+    // rest is large and faint, so the overlap reads as a glowing beam, not dots.
     bool spine = fract(s.w * 53.1) < 0.15;
-    float radius = (0.14 + 0.075 * y) * sqrt(fract(s.w * 7.13)) * (1.0 + 2.0 * bow) * (spine ? 0.18 : 1.0);
-    float a = s.w * 6.2831853;
-    vec3 lateral = vec3(cos(a), 0.0, sin(a)) * radius;
-    lateral.x += sin(t * 0.35 - y * 0.12) * 0.028 * y;
-    lateral += (hash33(vec3(floor(y * 1.5 - t * 3.0), s.w * 97.0, side)) - 0.5) * 0.12 * y * 0.15;
-    p = vec3(lateral.x, side * y, lateral.z);
-
-    // Continuous, collimated beam. Internal shocks ("knots", as in Herbig-Haro jets)
-    // are brightness enhancements that travel outward with the gas; the particles
-    // themselves stay evenly spread so the beam never breaks into separate clumps.
-    float kw = sin((y - 6.6 * t) * 0.8 + side * 1.3);
-    float knot = pow(0.5 + 0.5 * kw, 4.0);
-    // Colour after observed protostellar jets: hot, bluish-white gas near the
-    // source, H-alpha/[S II] rose-red along the beam, deep red-orange bow shock.
-    float along = smoothstep(0.0, 0.45, (y - launch) / max(len, 1e-3));
-    vec3 beam = mix(vec3(0.70, 0.80, 1.0), vec3(1.0, 0.42, 0.52), along);
-    // A quarter of the particles are large and faint: their overlap forms the diffuse
-    // glow of the beam, so it reads as gas rather than a string of dots.
     bool halo = !spine && fract(s.w * 31.7) < 0.25;
+    float a = s.w * 6.2831853;
+    vec3 radial = vec3(cos(a), 0.0, sin(a));
+    // Precession of the jet axis (S-shaped wiggle, as in many HH jets).
+    float wiggle = sin(t * 0.35 - min(y, tip) * 0.12) * 0.028 * min(y, tip);
+    float bowQ = 0.0;  // 0 in the beam, 0..1 while flowing along the bow shock
+    if (y <= tip) {
+        // Collimated beam: opening half-angle ~4-5 degrees.
+        float radius = (0.14 + 0.075 * y) * sqrt(fract(s.w * 7.13)) * (spine ? 0.18 : 1.0);
+        vec3 lateral = radial * radius;
+        lateral += (hash33(vec3(floor(y * 1.5 - t * 3.0), s.w * 97.0, side)) - 0.5) * 0.12 * y * 0.15;
+        p = vec3(lateral.x + wiggle, side * y, lateral.z);
+    } else {
+        // Bow shock: where the jet rams the ambient gas, shocked material is pushed
+        // sideways and back along a paraboloid y = tip - r^2 / (2 Rc) (HH 47, HH 211).
+        bowQ = (y - tip) / BOW_PATH;
+        const float RC = 1.5;
+        float rMax = 1.2 + 0.09 * len;
+        float r = rMax * bowQ * (0.75 + 0.25 * fract(s.w * 7.13));
+        float shell = (fract(s.w * 3.71) - 0.5) * 0.22;  // finite thickness
+        float yb = tip - r * r / (2.0 * RC) + shell;
+        p = vec3(radial.x * r + wiggle, side * yb, radial.z * r);
+    }
+
+    // Internal shocks ("knots") from variations in the ejection speed: brightness
+    // enhancements travelling with the gas, irregularly spaced and of unequal strength.
+    float u = min(y, tip) - 6.6 * t;
+    float knot = pow(0.5 + 0.5 * sin(u * 0.8 + side * 1.3), 4.0) * (0.55 + 0.45 * sin(u * 0.29 + side * 2.1));
+    knot = max(knot, 0.0);
+    // Colour after observed protostellar jets: hot, bluish-white gas near the source,
+    // H-alpha/[S II] rose-red along the beam, red-orange [S II]/H2 bow shock.
+    float along = smoothstep(0.0, 0.45, (min(y, tip) - launch) / max(len, 1e-3));
+    vec3 beam = mix(vec3(0.70, 0.80, 1.0), vec3(1.0, 0.42, 0.52), along);
     if (spine) beam = mix(vec3(0.85, 0.92, 1.0), beam, 0.5 * along);
-    col = mix(beam, vec3(1.0, 0.36, 0.20), bow) * (0.045 + 0.08 * knot + 0.05 * bow) * (halo ? 0.35 : spine ? 1.8 : 1.0);
-    alpha = presence * smoothstep(0.0, 0.06, phase) * (1.0 - smoothstep(0.9, 1.0, phase));
-    size = (halo ? 0.38 : 0.13) + 0.06 * knot + 0.25 * bow;
+    float bowGlow = bowQ > 0.0 ? (1.0 - bowQ) * 1.6 + 0.4 : 0.0;
+    vec3 c = bowQ > 0.0 ? vec3(1.0, 0.36, 0.20) * (0.07 * bowGlow)
+                        : beam * (0.045 + 0.08 * knot);
+    col = c * (halo ? 0.35 : spine ? 1.8 : 1.0);
+    // Counter-jet slightly fainter: seen through more of the disc and envelope.
+    col *= side < 0.0 ? 0.8 : 1.0;
+    alpha = presence * smoothstep(0.0, 0.06, phase) * (1.0 - smoothstep(0.85, 1.0, bowQ));
+    size = (halo ? 0.38 : 0.13) + 0.06 * knot + (bowQ > 0.0 ? 0.12 : 0.0);
 }
 
 void ejecta(vec4 s, out vec3 p, out vec3 col, out float alpha, out float size) {

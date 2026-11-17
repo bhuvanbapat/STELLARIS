@@ -8,6 +8,7 @@
 #   GLM   1.0.1   vector / matrix math
 #   ImGui 1.91.5  immediate-mode user interface
 #   stb_image 2.30 JPEG decoding for attributed observation images (pinned commit + SHA-256)
+#   miniaudio 0.11.25 audio playback for the sonification (pinned tag + SHA-256)
 #
 # The OpenGL loader (glad) is generated once and vendored in third_party/glad.
 
@@ -57,3 +58,13 @@ FetchContent_Declare(stb_image
 FetchContent_MakeAvailable(stb_image)
 add_library(stb_image INTERFACE)
 target_include_directories(stb_image INTERFACE ${stb_image_SOURCE_DIR})
+
+# --- miniaudio 0.11.25 (audio output for the sonification) --------------------
+# Single header, public domain (Unlicense) or MIT No Attribution, at the user's choice.
+FetchContent_Declare(miniaudio
+    URL https://raw.githubusercontent.com/mackron/miniaudio/0.11.25/miniaudio.h
+    URL_HASH SHA256=ac7af4de748b7e26b777f37e01cee313a308a7296a3eb080e2906b320cc55c89
+    DOWNLOAD_NO_EXTRACT TRUE)
+FetchContent_MakeAvailable(miniaudio)
+add_library(miniaudio INTERFACE)
+target_include_directories(miniaudio SYSTEM INTERFACE ${miniaudio_SOURCE_DIR})

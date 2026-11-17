@@ -65,6 +65,12 @@ public:
     void setFieldLines(bool on) { fieldLines_ = on; }
     void setCompare(bool on) { compare_ = on; }
     void setSkyCredit(const char* credit) { skyCredit_ = credit; }
+    // Sound preference: owned here so it survives stage changes; App persists it.
+    bool audioMuted() const { return audioMuted_; }
+    float audioVolume() const { return audioVolume_; }
+    void setAudioPreference(bool muted, float volume) { audioMuted_ = muted; audioVolume_ = volume; }
+    void toggleMute() { audioMuted_ = !audioMuted_; audioDirty_ = true; }
+    bool takeAudioDirty() { const bool d = audioDirty_; audioDirty_ = false; return d; }
 
     // Horizontal NDC lens shift that keeps the subject clear of the left panel.
     float compositionShift() const { return visible_ ? (mode_ == ViewMode::Observation ? 0.42f : 0.14f) : 0.0f; }
@@ -95,6 +101,10 @@ private:
     ImFont* small_ = nullptr;
     ImFont* heading_ = nullptr;
     ImFont* title_ = nullptr;
+    ImFont* label_ = nullptr;
+    bool   audioMuted_ = false;
+    float  audioVolume_ = 0.7f;
+    bool   audioDirty_ = false;  // preference changed since the last save
 };
 
 } // namespace stellaris

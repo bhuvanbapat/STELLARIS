@@ -5,6 +5,7 @@
 #include "sim/CameraPath.h"
 #include "sim/SceneState.h"
 #include "sim/Timeline.h"
+#include "audio/AudioEngine.h"
 #include "gfx/ImageTexture.h"
 #include "sim/ObservationCatalog.h"
 #include "ui/Ui.h"
@@ -39,6 +40,8 @@ struct AppOptions {
     bool observation = false;
     bool compare = false;       // show the mass-comparison table
     bool proceduralSky = false; // do not load the real Milky Way photograph
+    bool noAudio = false;       // never open an audio device
+    bool mute = false;          // start muted
 };
 
 // Parses argv. Returns false (and prints usage) on invalid input.
@@ -64,6 +67,8 @@ private:
     void toggleFullscreen();
     void resetAll();
     void rebuildCloudIfNeeded(bool force);
+    void loadAudioPreference();
+    void saveAudioPreference() const;
 
     // GLFW callbacks (static trampolines -> instance).
     static void onKey(GLFWwindow* w, int key, int scancode, int action, int mods);
@@ -75,6 +80,7 @@ private:
     GLFWwindow* window_ = nullptr;
     std::unique_ptr<Renderer> renderer_;  // destroyed before the GL context
     Ui          ui_;
+    AudioEngine audio_;
     bool        uiReady_ = false;
     Playback    playback_;
     ModelConfig config_;

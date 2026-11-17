@@ -53,8 +53,12 @@ void evaluateFate(SceneState& s, double t) {
 
         s.remnantPresence  = inFate ? smooth(0.50, 0.60, u) : 0.0f;
         s.remnantRadius    = 0.16f;
-        s.remnantColor     = blackbodyColor(60000.0);
-        s.remnantIntensity = 9.0f;
+        // The exposed core is extremely hot (>100,000 K, as for central stars of
+        // planetary nebulae) and then cools; real cooling to ~30,000 K takes ~10 Myr,
+        // compressed here into the end of the stage (illustrative timing).
+        s.remnantTempK     = mixf(120000.0f, 30000.0f, inFate ? smooth(0.62, 1.0, u) : 0.0f);
+        s.remnantColor     = blackbodyColor(s.remnantTempK);
+        s.remnantIntensity = 9.0f * (0.75f + 0.25f * s.remnantTempK / 120000.0f);
         break;
     }
     case Pathway::NeutronStar:
@@ -84,7 +88,9 @@ void evaluateFate(SceneState& s, double t) {
         } else {
             s.remnantPresence  = inFate ? smooth(0.34, 0.42, u) : 0.0f;
             s.remnantRadius    = 0.12f;
-            s.remnantColor     = blackbodyColor(40000.0);
+            // Young neutron stars have surfaces near 10^6 K (X-ray emitters).
+            s.remnantTempK     = 1.0e6f;
+            s.remnantColor     = blackbodyColor(s.remnantTempK);
             s.remnantIntensity = 12.0f;
             s.pulsarBeams      = inFate ? smooth(0.40, 0.50, u) : 0.0f;
         }

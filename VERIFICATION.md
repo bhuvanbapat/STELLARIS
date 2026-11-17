@@ -546,3 +546,21 @@ standard review set (six stages; 15 and 40 M☉ endings) were taken for comparis
 - Not done: larger versions of the 7 Observation images. The panel displays at about
   700 px and the current files are 1024–1280 px, so they would add memory and no
   visible detail.
+
+### 8.15 Enhancement round: UI, stellar surfaces, late stages, jets, sonification (2026-11-17)
+
+Per the user's instruction this round has **no screenshot verification**: the user
+inspects the visuals. Checks run:
+- Build: Release, MSVC /W4, no new warnings. New dependency: miniaudio 0.11.25, pinned by
+  tag and SHA-256 (ac7af4de...c55c89).
+- Unit tests 49/49 (3 new: solar asteroseismic values reproduced exactly; sonification
+  per stage and deterministic; audio output finite, ceiling <= 0.85 with every voice at
+  full level, and exactly silent after muting). Provenance test passes.
+- `--selftest`: 0 failures, so all changed shaders compile and render every stage and
+  pathway without GL errors. Benchmark (1600×900): 4.7–11.3 ms; the PN stage went from
+  9.7 to 11.3 ms (knot and halo emission).
+- Audio: an interactive run opened the default device ("Speakers (Realtek(R) Audio)",
+  48 kHz stereo) with `--mute` and exited cleanly.
+- **Not verified:** the visual result of the new photosphere, nebula, jets and UI layout
+  (left to the user); how it sounds on speakers (the run above was muted); clicking the
+  speaker button and volume slider.

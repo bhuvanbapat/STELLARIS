@@ -5,6 +5,8 @@
 #endif
 
 #include "app/App.h"
+#include "sim/Sonification.h"
+#include <fstream>
 
 #include "core/Log.h"
 #include "core/PngWriter.h"
@@ -56,6 +58,8 @@ void printUsage() {
         "  --field-lines            show the analytic dipole field-line overlay\n"
         "  --compare                show the mass-comparison table\n"
         "  --procedural-sky         use the procedural star field instead of the ESO Milky Way photograph\n"
+        "  --mute                   start with the sonification muted (M toggles)\n"
+        "  --no-audio               do not open an audio device\n"
         "  --scientific             start in the Scientific view (density cross-section, overlays)\n"
         "  --hide-ui                start with the interface hidden\n"
         "  --capture DIR T1,T2,...  render the listed times to DIR/*.png and exit\n"
@@ -107,6 +111,8 @@ bool parseOptions(int argc, char** argv, AppOptions& o) {
         else if (a == "--observation") o.observation = true;
         else if (a == "--compare") o.compare = true;
         else if (a == "--procedural-sky") o.proceduralSky = true;
+        else if (a == "--no-audio") o.noAudio = true;
+        else if (a == "--mute") o.mute = true;
         else if (a == "--quality" && i + 1 < argc) {
             const std::string q = argv[++i];
             if (q == "performance") o.quality = QualityPreset::Performance;
@@ -137,7 +143,11 @@ bool parseOptions(int argc, char** argv, AppOptions& o) {
 App::App(AppOptions options) : options_(std::move(options)), config_(options_.config) {}
 
 App::~App() {
-    if (uiReady_) ui_.shutdown();
+    audio_.stop();
+    if (uiReady_) {
+        if (ui_.takeAudioDirty()) saveAudioPreference();
+        ui_.shutdown();
+    }
     if (window_) {
         observationTextures_.clear();
         skyTexture_.reset();
@@ -234,6 +244,11 @@ int App::run() {
     if (options_.benchmark) return runBenchmark();
     if (options_.autoplay) playback_.play();
 
+    // Sonification (interactive runs only: capture, self-test and benchmark stay silent).
+    loadAudioPreference();
+    if (options_.mute) ui_.setAudioPreference(true, ui_.audioVolume());
+    if (!options_.noAudio) audio_.start();
+
     auto last = std::chrono::steady_clock::now();
     while (!glfwWindowShouldClose(window_)) {
         glfwPollEvents();
@@ -286,6 +301,11 @@ void App::renderScene() {
     renderer_->setFieldLines(ui_.fieldLinesEnabled());
     renderer_->setDensitySection(ui_.scientificView());
     renderer_->render(scene_, pose, lensShift_);
+    if (audio_.running()) {
+        audio_.setMuted(ui_.audioMuted());
+        audio_.setVolume(ui_.audioVolume());
+        audio_.publish(sonify(scene_), playback_.playing());
+    }
 
     ui_.beginFrame();
     UiFrameInfo info;
@@ -337,6 +357,25 @@ bool App::saveScreenshot(const std::filesystem::path& path) {
         return false;
     }
     return true;
+}
+
+// Sound preference (mute, volume) persists between sessions in a small text file.
+void App::loadAudioPreference() {
+    std::ifstream in(executableDir() / "stellaris_settings.ini");
+    bool muted = ui_.audioMuted();
+    float volume = ui_.audioVolume();
+    std::string line;
+    while (std::getline(in, line)) {
+        if (line.rfind("muted=", 0) == 0) muted = line.substr(6) == "1";
+        else if (line.rfind("volume=", 0) == 0) volume = std::clamp(std::strtof(line.c_str() + 7, nullptr), 0.0f, 1.0f);
+    }
+    ui_.setAudioPreference(muted, volume);
+}
+
+void App::saveAudioPreference() const {
+    std::ofstream out(executableDir() / "stellaris_settings.ini");
+    if (!out) { log::warn("Could not save the sound preference"); return; }
+    out << "muted=" << (ui_.audioMuted() ? 1 : 0) << "\nvolume=" << ui_.audioVolume() << "\n";
 }
 
 int App::runCapture() {
@@ -498,6 +537,7 @@ void App::onKey(GLFWwindow* w, int key, int /*scancode*/, int action, int mods) 
     case GLFW_KEY_R:     if (action == GLFW_PRESS) app->resetAll(); break;
     case GLFW_KEY_C:     app->cameraOffset_ = {}; break;
     case GLFW_KEY_H:     if (action == GLFW_PRESS) app->ui_.toggleVisible(); break;
+    case GLFW_KEY_M:     if (action == GLFW_PRESS) app->ui_.toggleMute(); break;
     case GLFW_KEY_F5:    if (action == GLFW_PRESS) app->renderer_->reloadShaders(); break;
     case GLFW_KEY_F11:   if (action == GLFW_PRESS) app->toggleFullscreen(); break;
     case GLFW_KEY_F12:   if (action == GLFW_PRESS) app->screenshotRequested_ = true; break;

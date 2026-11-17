@@ -254,3 +254,15 @@ Prioritise deeper cloud morphology, volumetric quality, layered stellar renderin
   stage, mapped in galactic coordinates with an on-screen credit; `--procedural-sky`
   turns it off. sRGB texture loading was added to `ImageTexture`; the whole `assets/`
   folder is copied next to the executable. Evidence: VERIFICATION §8.14.
+
+## 2026-11-17 — Enhancement round (user directive)
+
+- UI: type scale (34/17/15/14.5), brighter secondary text, more opaque bordered panels,
+  wider panels, section labels, accent stage bar, larger transport buttons with hover
+  rings, speaker button + volume slider (M), remembered preference.
+- Star: Worley granulation, per-channel quadratic limb darkening, penumbral filaments,
+  faculae, gravity darkening of hot stars, giant cells on giants. WD cooling
+  (`remnantTempK`, shown in the info panel); NS surface 10^6 K.
+- PN ionization layers, cometary knots, AGB halo. Jets: irregular knots, paraboloid
+  bow shock, fainter counter-jet.
+- Sonification (sim/Sonification, audio/AudioEngine, miniaudio). Evidence: VERIFICATION §8.15.

@@ -38,8 +38,22 @@ vec3 shellEmission(vec3 p) {
         float re = length(p) / stretch;
         float rel = re / R;
         float shell = exp(-pow((rel - 0.92) / 0.10, 2.0)) + 0.35 * exp(-pow((rel - 0.62) / 0.16, 2.0));
-        vec3 col = mix(vec3(0.15, 0.85, 0.75), vec3(1.0, 0.28, 0.22), smoothstep(0.7, 1.0, rel));
-        return col * shell * clumps * presence * uEjecta.w * 0.018;
+        // Ionization stratification, as observed in the Ring and Helix nebulae: the
+        // hardest radiation is absorbed closest to the hot core, so He II (blue-violet)
+        // sits innermost, [O III] 500.7 nm (teal-green) in the middle and H-alpha /
+        // [N II] (red) at the outer edge.
+        vec3 heII = vec3(0.45, 0.55, 1.0), oIII = vec3(0.15, 0.88, 0.72), hAlpha = vec3(1.0, 0.24, 0.22);
+        vec3 col = mix(heII, oIII, smoothstep(0.35, 0.62, rel));
+        col = mix(col, hAlpha, smoothstep(0.74, 0.97, rel));
+        // Cometary knots (Helix): dense globules in the outer zone, elongated radially,
+        // with bright ionized heads facing the star.
+        vec3 dir = p / max(length(p), 1e-3);
+        vec4 kn = noiseAt(dir * 3.2 + vec3(rel * 0.35, 0.0, 0.17));
+        float knots = smoothstep(0.68, 0.80, kn.r) * smoothstep(0.78, 0.9, rel) * (1.0 - smoothstep(1.0, 1.1, rel));
+        vec3 em = col * shell * clumps + hAlpha * knots * 0.9;
+        // Faint outer halo: material lost earlier on the AGB (Cat's Eye, NGC 6543).
+        em += hAlpha * 0.06 * exp(-pow((rel - 1.35) / 0.22, 2.0)) * (0.6 + 0.4 * n2.r);
+        return em * presence * uEjecta.w * 0.018;
     }
     // Supernova: a thin shock front (sharp outer edge, softer inner edge) with
     // filamentary brightness, plus faint emission from the ejecta inside it.

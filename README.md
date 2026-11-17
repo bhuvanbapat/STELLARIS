@@ -74,6 +74,8 @@ Useful options for `stellaris.exe`:
 | `--seed N` | procedural cloud morphology seed (default 1) |
 | `--field-lines` | start with the analytic dipole field-line overlay on |
 | `--compare` | start with the mass-comparison table open |
+| `--mute` | start with the sonification muted |
+| `--no-audio` | never open an audio device |
 | `--procedural-sky` | use the procedural star field instead of the ESO Milky Way photograph |
 | `--observation` | start in the Observation view (authentic credited image beside the scene) |
 | `--scientific` | start in the Scientific view (density cross-section, field lines, labels) |
@@ -99,6 +101,7 @@ Useful options for `stellaris.exe`:
 | **H** | hide / show the interface |
 | **F11** | full screen;  **Esc** leaves full screen |
 | **F12** | screenshot to `screenshots\` |
+| **M** | mute / unmute the sonification (also the speaker button in the transport bar; the choice is remembered) |
 | **F5** | reload shaders (development) |
 
 Scientific controls are in the right-hand panel. **Initial stellar mass** changes
@@ -195,4 +198,16 @@ and runs as a CTest test.
 | M87* black hole (eso1907a) | EHT Collaboration | CC BY 4.0 |
 | Milky Way panorama, background sky of every stage (eso0932a, `assets/sky/`) | ESO/S. Brunier | CC BY 4.0 |
 
-Third-party code: stb_image 2.30 (Sean Barrett), MIT / public domain.
+Third-party code: stb_image 2.30 (Sean Barrett), MIT / public domain; miniaudio 0.11.25 (David Reid), public domain / MIT-0.
+
+## 10. Sound (sonification)
+
+Sound does not travel through space, so STELLARIS plays a **sonification**: each sound
+translates a quantity of the model into audio, in the spirit of NASA/Chandra
+sonifications and of helioseismology recordings. The star's tone comes from the
+asteroseismic scaling relations for its mass, radius and temperature. The planetary
+nebula plays a chord built from its emission-line wavelengths, and the pulsar ticks at
+the Crab pulsar's real 30 Hz rotation. Every mapping is documented in SCIENCE_NOTES §9.7.
+The speaker button (or **M**) mutes it; the slider beside it sets the volume. The
+preference is saved in `stellaris_settings.ini` next to the executable. This is a
+native application, so there are no browser autoplay rules; sound starts with the window.
