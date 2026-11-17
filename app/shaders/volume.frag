@@ -36,11 +36,23 @@ vec3 shellEmission(vec3 p) {
     if (uEjecta.z < 0.5) {
         // Bipolar planetary nebula: faster expansion along the axis.
         float dirY = abs(p.y) / max(length(p), 1e-3);
-        float stretch = 1.0 + 0.6 * dirY * dirY;
+        float stretch = 1.0 + 0.3 * dirY * dirY;
         float R = 4.2 + 0.29 * clock;
         float re = length(p) / stretch;
         float rel = re / R;
-        float shell = exp(-pow((rel - 0.92) / 0.10, 2.0)) + 0.35 * exp(-pow((rel - 0.62) / 0.16, 2.0));
+        // Uneven rim: thickness and radius vary with direction; fine filaments and
+        // knots break the shell up (Ring, Helix, NGC 6302 images).
+        vec3 dirN = p / max(length(p), 1e-3);
+        vec4 nr = noiseAt(dirN * 1.7 + vec3(0.13, 0.0, clock * 0.001));
+        // Direction-based (radially coherent) filaments: no aliasing with the ray step,
+        // and radial spokes / knots like those of the Helix Nebula.
+        vec4 nf = noiseAt(dirN * 4.5 + vec3(rel * 0.8, 0.41, 0.0));
+        float relW = rel + (nr.r - 0.5) * 0.12;
+        float width = 0.07 + 0.08 * nr.g;
+        float shell = exp(-pow((relW - 0.92) / width, 2.0)) + 0.35 * exp(-pow((relW - 0.62) / 0.16, 2.0));
+        // Knots and rays mostly in the outer zone; the inner shell stays smoother.
+        float outerZone = smoothstep(0.72, 0.88, relW);
+        shell *= mix(1.0, 0.25 + 1.5 * smoothstep(0.38, 0.72, nf.r) * (0.5 + 0.7 * nf.a), outerZone);
         // Ionization stratification, as observed in the Ring and Helix nebulae: the
         // hardest radiation is absorbed closest to the hot core, so He II (blue-violet)
         // sits innermost, [O III] 500.7 nm (teal-green) in the middle and H-alpha /
@@ -103,7 +115,7 @@ bool nearShell(vec3 p) {
     float clock = uEjecta.y;
     if (uEjecta.z < 0.5) {
         float dirY = abs(p.y) / max(length(p), 1e-3);
-        float rel = (length(p) / (1.0 + 0.6 * dirY * dirY)) / (4.2 + 0.29 * clock);
+        float rel = (length(p) / (1.0 + 0.3 * dirY * dirY)) / (4.2 + 0.29 * clock);
         return rel > 0.35 && rel < 1.3;
     }
     float R = snShockRadius(clock, uEjecta2.x);
@@ -258,7 +270,7 @@ void main() {
             // (artistic rendering of a hot, compressed core; brightens in bursts).
             // Heating follows the collapse itself (compression), then the embedded source.
             float squeeze = max(uCloud.z, uCloud.y * 0.7) * (1.0 + 0.12 * sin(TIME * 2.3));
-            float hot = squeeze * exp(-r / 2.8);
+            float hot = squeeze * exp(-r / 1.6) * (1.0 - smoothstep(3.0, 6.0, r));
             emission += mix(vec3(0.9, 0.18, 0.05), vec3(1.0, 0.62, 0.30), exp(-r / 1.4)) * 2.4 * hot * min(d, 2.0);
 
             // Interstellar dust grains: visible albedo ~0.5, slightly bluer when

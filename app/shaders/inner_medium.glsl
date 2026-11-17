@@ -203,7 +203,7 @@ void circumstellarRings(vec3 p, inout vec3 emit) {
     float Rs = snShockRadius(c, strength);
     float hit = smoothstep(Rr * 0.92, Rr * 1.0, Rs + 0.4 * (jitter - 0.5));
     float since = max(c - 5.0, 0.0);
-    float glowHot = hit * (0.35 + 0.65 * exp(-since / 14.0));
+    float glowHot = hit * exp(-since / 9.0);
     // Outer rings: larger, displaced above and below, fainter, never shocked here.
     float dU = length(vec2(length(q.xz) - 1.3 * Rr, q.y - 0.85 * Rr));
     float dL = length(vec2(length(q.xz) - 1.3 * Rr, q.y + 0.85 * Rr));

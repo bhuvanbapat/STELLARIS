@@ -504,7 +504,7 @@ UiRequests Ui::draw(Playback& playback, ModelConfig& config, const UiFrameInfo& 
         const float y = visible_ ? 6.0f * scale_ : ds.y - ts.y - 8.0f * scale_;
         dl->AddText(small_, fs, ImVec2((ds.x - ts.x) * 0.5f, y), col32(kTextFaint, 0.85f), skyCredit_);
     }
-    if (solarBand_ != 0 && s.activity > 0.05f) {
+    if (solarBand_ != 0 && s.activity > 0.05f && s.turbulence < 0.45f) {  // same condition as the shader
         const char* label = solarBand_ == 1 ? "STAR SHOWN IN EXTREME UV 304 \u00c5 (SDO/AIA STYLE)  \u00b7  false colour, not visible light"
                                             : "STAR SHOWN IN EXTREME UV 171 \u00c5 (SDO/AIA STYLE)  \u00b7  false colour, not visible light";
         ImDrawList* dl = ImGui::GetForegroundDrawList();

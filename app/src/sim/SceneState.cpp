@@ -41,7 +41,7 @@ void evaluateFate(SceneState& s, double t) {
         // exposure of the hot core, which remains as a white dwarf.
         s.giant = inFate ? smooth(0.02, 0.28, u) : 0.0f;
         const float shed = inFate ? smooth(0.30, 0.56, u) : 0.0f;
-        s.centralRadius = mixf(s.centralRadius, 5.0f, s.giant) * (1.0f - 0.85f * shed);
+        s.centralRadius = mixf(s.centralRadius, 8.0f, s.giant) * (1.0f - 0.85f * shed);
         s.centralTempK  = mixf(s.centralTempK, 3300.0f, s.giant);
         s.turbulence    = mixf(s.turbulence, 1.0f, s.giant);
         s.centralPresence *= 1.0f - (inFate ? smooth(0.48, 0.58, u) : 0.0f);

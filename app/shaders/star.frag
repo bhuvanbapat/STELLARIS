@@ -56,7 +56,8 @@ vec2 worley(vec3 p, float t) {
 // Granulation intensity factor (mean ~1): bright cell centres, dark lanes.
 float granulation(vec3 sp, float cellsPerRadius, float contrast, float t) {
     vec2 w = worley(sp * cellsPerRadius, t);
-    float lane = smoothstep(0.0, 0.28, w.y - w.x);          // 0 in the lanes
+    // Lanes narrow on dwarfs; on giants the cells blend into large soft patches.
+    float lane = smoothstep(0.0, mix(0.28, 0.9, smoothstep(0.5, 1.0, uTurbulence)), w.y - w.x);
     float dome = 1.0 - smoothstep(0.0, 0.85, w.x);           // hotter cell centres
     float g = 0.55 * lane + 0.45 * dome * lane;
     return 1.0 + contrast * (g - 0.42) * 2.4;
@@ -196,7 +197,9 @@ void main() {
     col += vec3(1.0, 0.92, 0.85) * flare * uIntensity * 3.0;
 
     // Extreme-ultraviolet views of a Sun-like star (selected in the panel).
-    if (uBand != 0 && uActivity > 0.0) col = mix(col, euvSurface(sp, mu) * uIntensity * 1.6, uActivity);
+    // Only for the Sun-like main-sequence star (not the expanding giant).
+    float euvW = uActivity * (1.0 - smoothstep(0.40, 0.55, uTurbulence));
+    if (uBand != 0 && euvW > 0.0) col = mix(col, euvSurface(sp, mu) * uIntensity * 1.6, euvW);
 
     // A young protostar is seen through its dusty envelope: dimmer and redder.
     vec3 veiled = vec3(1.0, 0.35, 0.12) * uIntensity * 0.45 * (0.6 + 0.4 * pattern) * limb.r;
