@@ -614,3 +614,13 @@ Checks: unit tests 51/51 (new: evolution phases contiguous and pathway-correct; 
 flash only below 2 M_sun); `--selftest` 0 failures. Benchmark at High, 1600×900: cloud
 29, collapse 33, protostar 33, disc+jets 37, main sequence 34, endings 20–27 ms
 (27–51 fps). The finer cloud sampling roughly doubles the cost of stages 1–5.
+
+## 8.19 Fresh-clone check (2026-11-18)
+
+Cloned https://github.com/bhuvanbapat/STELLARIS into an empty temporary folder and followed README §1–2 exactly.
+- First attempt: **checkout failed on Windows** ("Filename too long", 260-char path limit) because of four
+  over-long observation filenames. Fixed in 8707298: names shortened to ≤ 60 characters (stable hash suffix,
+  generator updated) and one mis-filed CC BY-NC landscape photo removed. Provenance check: 76 records, 0 problems.
+- Second attempt: clone OK; `cmake` configure + Release build OK (0 errors; one C4505 warning inside freeGLUT's
+  own header); Cas A volume baked (192³, 27.0 MiB); `ctest`: 2/2 passed; `stellaris.exe --selftest --no-audio`:
+  0 failures, 73 attributed observation images, magnetogram, Cas A volume and ESO sky all loaded.
