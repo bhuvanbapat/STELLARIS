@@ -23,8 +23,12 @@ The repository contains two independent programs:
 * **CMake 3.24 or newer** on `PATH`.
 * Internet access **once**, for the first configure step. CMake downloads these
   pinned dependencies into `build/_deps`: GLFW 3.4, GLM 1.0.1, Dear ImGui
-  1.91.5 and freeGLUT 3.6.0. After that, building and running work offline.
-  The OpenGL loader (glad) is already included in `third_party/glad`.
+  1.91.5, stb_image, miniaudio 0.11.25 and freeGLUT 3.6.0. After that, building
+  and running work offline. The OpenGL loader (glad) is already included in
+  `third_party/glad`.
+* **Python 3 with numpy** (`pip install numpy`), recommended: the build uses it to
+  bake the real Cas A 3D data into a volume. Without it the app still builds and
+  runs, but the supernova remnant falls back to the procedural shell.
 
 ## 2. Build
 
