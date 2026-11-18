@@ -1,12 +1,12 @@
 {
-  "id": "lib__hubble_hubbles_planetary_nebula_gallery___hubble_hubbles_planetary_nebula_gallery__STScI-01EVVK2H8CK7F10SQBDT660S4D.jpg",
+  "id": "lib_hubble_hubbles_planetary_nebula_gallery_89f9b20d",
   "title": "Planetary nebula gallery: shells, bipolar lobes, filaments",
   "object": "Planetary nebula gallery: shells, bipolar lobes, filaments",
   "stage": "6",
   "pathway": "white-dwarf",
   "source_institution": "science.nasa.gov",
   "source_page": "https://science.nasa.gov/asset/hubble/hubbles-planetary-nebula-gallery/",
-  "file_url": "https://assets.science.nasa.gov/content/dam/science/missions/hubble/releases/1997/12/STScI-01EVVK2H8CK7F10SQBDT660S4D.jpg",
+  "file_url": "https://assets.science.nasa.gov/content/dam/science/missions/hubble/releases/1997/12/STScI-01EVVK2H8CK7F10SQBDT660S4D.jpg/jcr:content/renditions/3000x2400.jpg",
   "credit": "NASA (see source page for the full credit)",
   "license": "NASA media: generally not copyrighted (https://www.nasa.gov/nasa-brand-center/images-and-media/); check the page for third-party elements",
   "observatory_instrument": "observation (Hubble)",
@@ -15,10 +15,10 @@
   "image_kind": "processed colour image released by the observatory (see source page for filters)",
   "processing_notes": "Metadata compiled automatically from the source page by tools/acquire_assets.py; band classified by observatory. Planetary nebula gallery: shells, bipolar lobes, filaments",
   "original_dimensions": "3000x2400",
-  "local_file": "lib__hubble_hubbles_planetary_nebula_gallery___hubble_hubbles_planetary_nebula_gallery__STScI-01EVVK2H8CK7F10SQBDT660S4D.jpg.jpg",
+  "local_file": "lib_hubble_hubbles_planetary_nebula_gallery_89f9b20d.jpg",
   "local_dimensions": "3000x2400",
-  "derivative_operations": "resized to <= 3072 px on the longest side (Lanczos), JPEG quality 92; original kept in assets/astronomy/planetary_nebulae/_hubble_hubbles_planetary_nebula_gallery__STScI-01EVVK2H8CK7F10SQBDT660S4D.jpg",
+  "derivative_operations": "resized to <= 3072 px on the longest side (Lanczos), JPEG quality 92; original kept in assets/astronomy/planetary_nebulae/_hubble_hubbles_planetary_nebula_gallery__3000x2400.jpg",
   "intended_use": "Observation view reference (library image) beside the conceptual STELLARIS scene",
   "retrieved": "2026-11-18",
-  "sha256": "1ac4dd66b7c385085cb5acf497d2e8b1a802b558c533e3c9078b6705f139d124"
+  "sha256": "13a9b7da9743c7cdd9bb3a904b7c52ed75e349e034fed6d95cb042fe4b558d8d"
 }

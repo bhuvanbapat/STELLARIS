@@ -1,5 +1,5 @@
 {
-  "id": "lib_asset_webb_hh_211_nircam_image__asset_webb_hh_211_nircam_image__2000x1633.jpg",
+  "id": "lib_asset_webb_hh_211_nircam_image_asset_web_66e1dd2c",
   "title": "HH 211 full resolution: H2/CO/SiO shock emission (infrared, colour-mapped)",
   "object": "HH 211 full resolution: H2/CO/SiO shock emission (infrared, colour-mapped)",
   "stage": "3-4",
@@ -15,7 +15,7 @@
   "image_kind": "processed colour image released by the observatory (see source page for filters)",
   "processing_notes": "Metadata compiled automatically from the source page by tools/acquire_assets.py; band classified by observatory. HH 211 full resolution: H2/CO/SiO shock emission (infrared, colour-mapped)",
   "original_dimensions": "2000x1633",
-  "local_file": "lib_asset_webb_hh_211_nircam_image__asset_webb_hh_211_nircam_image__2000x1633.jpg.jpg",
+  "local_file": "lib_asset_webb_hh_211_nircam_image_asset_web_66e1dd2c.jpg",
   "local_dimensions": "2000x1633",
   "derivative_operations": "resized to <= 3072 px on the longest side (Lanczos), JPEG quality 92; original kept in assets/astronomy/bipolar_jets/asset_webb_hh_211_nircam_image__2000x1633.jpg",
   "intended_use": "Observation view reference (library image) beside the conceptual STELLARIS scene",
